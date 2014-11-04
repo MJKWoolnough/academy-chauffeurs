@@ -31,9 +31,9 @@ func TestDriverSetGet(t *testing.T) {
 		return
 	}
 	tests := []Driver{
-		{1, "testDriver1", "LN09TYR"},
-		{2, "testDriver2", "JK54BKF"},
-		{3, "", ""},
+		{1, "testDriver1", "LN09TYR", ""},
+		{2, "testDriver2", "JK54BKF", ""},
+		{3, "", "", ""},
 	}
 
 	d.SetDriver(Driver{ID: 0, Name: "testDriver1", Registration: "LN09TYR"})
@@ -57,9 +57,9 @@ func TestDriverAddRemove(t *testing.T) {
 		return
 	}
 	tests := []Driver{
-		{1, "testDriver1", "LN09TYR"},
-		{2, "", ""},
-		{3, "testDriver3", "RT56FKT"},
+		{1, "testDriver1", "LN09TYR", ""},
+		{2, "", "", ""},
+		{3, "testDriver3", "RT56FKT", ""},
 	}
 
 	d.SetDriver(Driver{ID: 0, Name: "testDriver1", Registration: "LN09TYR"})
@@ -89,9 +89,9 @@ func TestDriverAddGetAll(t *testing.T) {
 		return
 	}
 	tests := []Driver{
-		{0, "testDriver1", "LN09TYR"},
-		{0, "testDriver2", "JK54BKF"},
-		{0, "testDriver3", "RT56FKT"},
+		{0, "testDriver1", "LN09TYR", ""},
+		{0, "testDriver2", "JK54BKF", ""},
+		{0, "testDriver3", "RT56FKT", ""},
 	}
 
 	for n, test := range tests {
@@ -120,11 +120,11 @@ func TestDriverAddUpdate(t *testing.T) {
 		Driver
 		count int
 	}{
-		{Driver{0, "testDriver1", "LN09TYR"}, 1},
-		{Driver{0, "testDriver2", "JK54BKF"}, 2},
-		{Driver{0, "testDriver3", "RT56FKT"}, 3},
-		{Driver{1, "renamedDriver1", "LN09TYR"}, 3},
-		{Driver{3, "renamedDriver3", "RT56FKT"}, 3},
+		{Driver{0, "testDriver1", "LN09TYR", ""}, 1},
+		{Driver{0, "testDriver2", "JK54BKF", ""}, 2},
+		{Driver{0, "testDriver3", "RT56FKT", ""}, 3},
+		{Driver{1, "renamedDriver1", "LN09TYR", ""}, 3},
+		{Driver{3, "renamedDriver3", "RT56FKT", ""}, 3},
 	}
 
 	for n, test := range tests {
