@@ -136,7 +136,7 @@ func TestDriverAddGetAll(t *testing.T) {
 			t.Errorf("test %d: unexpected error: %s", n+1, err)
 			continue
 		}
-		drivers, err := d.GetDrivers()
+		drivers, err := d.GetDrivers(0, 100)
 		if err != nil {
 			t.Errorf("test %d: unexpected error: %s", n+1, err)
 		} else if len(drivers) != n+1 {
@@ -176,7 +176,7 @@ func TestDriverAddUpdate(t *testing.T) {
 		} else if driver.Name != test.Name || driver.Registration != test.Registration {
 			t.Errorf("test %d: expecting driver %q (%d chars) with registration %q (%d chars), got %q (%d chars) with %q (%d chars)", n+1, test.Name, len(test.Name), test.Registration, len(test.Registration), driver.Name, len(driver.Name), driver.Registration, len(driver.Registration))
 		}
-		drivers, err := d.GetDrivers()
+		drivers, err := d.GetDrivers(0, 100)
 		if err != nil {
 			t.Errorf("test %d: unexpected error: %s", n+1, err)
 			continue

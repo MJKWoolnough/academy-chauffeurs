@@ -20,7 +20,7 @@ func (d *DB) prepareDriverStatements() error {
 	if err != nil {
 		return err
 	}
-	d.getDrivers, err = d.Prepare("SELECT id, name, registration FROM drivers ORDER BY id ASC;")
+	d.getDrivers, err = d.Prepare("SELECT id, name, registration FROM drivers ORDER BY id ASC LIMIT ? OFFSET ?;")
 	if err != nil {
 		return err
 	}
@@ -62,11 +62,11 @@ func (d *DB) GetDriver(id int) (Driver, error) {
 	return dr, err
 }
 
-func (d *DB) GetDrivers() (drivers []Driver, err error) {
+func (d *DB) GetDrivers(from, to int) (drivers []Driver, err error) {
 	d.Lock()
 	defer d.Unlock()
 	drivers = make([]Driver, 0, 5)
-	for err = d.getDrivers.Query(); err == nil; err = d.getDrivers.Next() {
+	for err = d.getDrivers.Query(to-from, from); err == nil; err = d.getDrivers.Next() {
 		var dTmp Driver
 		d.getDrivers.Scan(&dTmp.ID, &dTmp.Name, &dTmp.Registration)
 		drivers = append(drivers, dTmp)
