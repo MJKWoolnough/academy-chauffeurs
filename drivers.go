@@ -1,25 +1,30 @@
 package main
 
+import "io"
+
 type Driver struct {
 	ID                 int
 	Name, Registration string
 }
 
 func (d *DB) prepareDriverStatements() error {
-	var err error
-	d.addDriver, err = d.Prepare("INSERT INTO drivers (name, registration) VALUES (?, ?)")
+	err := d.Exec("CREATE TABLE IF NOT EXISTS drivers(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, registration TEXT);")
 	if err != nil {
 		return err
 	}
-	d.getDriver, err = d.Prepare("SELECT id, name, registration FROM drivers WHERE id = ?")
+	d.addDriver, err = d.Prepare("INSERT INTO drivers (name, registration) VALUES (?, ?);")
 	if err != nil {
 		return err
 	}
-	d.getDriver, err = d.Prepare("SELECT id, name, registration FROM drivers ORDER BY id ASC")
+	d.getDriver, err = d.Prepare("SELECT name, registration FROM drivers WHERE id = ?;")
 	if err != nil {
 		return err
 	}
-	d.editDriver, err = d.Prepare("UPDATE drivers SET name = ?, registration = ? WHERE id = ?")
+	d.getDrivers, err = d.Prepare("SELECT id, name, registration FROM drivers ORDER BY id ASC;")
+	if err != nil {
+		return err
+	}
+	d.editDriver, err = d.Prepare("UPDATE drivers SET name = ?, registration = ? WHERE id = ?;")
 	if err != nil {
 		return err
 	}
@@ -30,10 +35,13 @@ func (d *DB) prepareDriverStatements() error {
 	return nil
 }
 
-func (d *DB) AddDriver(name, registration string) (int, error) {
+func (d *DB) SetDriver(dr Driver) (int, error) {
 	d.Lock()
 	defer d.Unlock()
-	err := d.addDriver.Exec(name, registration)
+	if dr.ID > 0 {
+		return dr.ID, d.editDriver.Exec(dr.Name, dr.Registration, dr.ID)
+	}
+	err := d.addDriver.Exec(dr.Name, dr.Registration)
 	return int(d.LastInsertId()), err
 }
 
@@ -43,13 +51,14 @@ func (d *DB) GetDriver(id int) (Driver, error) {
 	var dr Driver
 	err := d.getDriver.Query(id)
 	if err != nil {
-		return dr, nil
+		dr.ID = -1
+		if err == io.EOF {
+			err = nil
+		}
+		return dr, err
 	}
-	err = d.getDriver.Next()
-	if err != nil {
-		return dr, nil
-	}
-	err = d.getDriver.Scan(dr.ID, dr.Name, dr.Registration)
+	err = d.getDriver.Scan(&dr.Name, &dr.Registration)
+	dr.ID = id
 	return dr, err
 }
 
@@ -59,20 +68,17 @@ func (d *DB) GetDrivers() (drivers []Driver, err error) {
 	drivers = make([]Driver, 0, 5)
 	for err = d.getDrivers.Query(); err == nil; err = d.getDrivers.Next() {
 		var dTmp Driver
-		d.getDrivers.Scan(dTmp.ID, dTmp.Name, dTmp.Registration)
+		d.getDrivers.Scan(&dTmp.ID, &dTmp.Name, &dTmp.Registration)
 		drivers = append(drivers, dTmp)
+	}
+	if err == io.EOF {
+		err = nil
 	}
 	return drivers, err
 }
 
-func (d *DB) EditDriver(dr Driver) error {
+func (d *DB) RemoveDriver(id int) error {
 	d.Lock()
 	defer d.Unlock()
-	return d.editDriver.Exec(dr.Name, dr.Registration, dr.ID)
-}
-
-func (d *DB) RemoveDriver(dr Driver) error {
-	d.Lock()
-	defer d.Unlock()
-	return d.removeDriver.Exec(dr.ID)
+	return d.removeDriver.Exec(id)
 }
