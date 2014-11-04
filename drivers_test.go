@@ -10,14 +10,14 @@ func TestDriverSet(t *testing.T) {
 		return
 	}
 	tests := []struct {
-		name, registration string
+		name, registration, phone string
 	}{
-		{"testDriver1", "LN09TYR"},
-		{"testDriver2", "JK54BKF"},
+		{"testDriver1", "LN09TYR", "07765432154"},
+		{"testDriver2", "JK54BKF", "07879 345 556"},
 	}
 
 	for n, test := range tests {
-		if _, err = d.SetDriver(Driver{ID: 0, Name: test.name, Registration: test.registration}); err != nil {
+		if _, err = d.SetDriver(Driver{ID: 0, Name: test.name, Registration: test.registration, Phone: test.phone}); err != nil {
 			t.Errorf("test %d: unexpected error: %s", n+1, err)
 		}
 	}
@@ -31,20 +31,20 @@ func TestDriverSetGet(t *testing.T) {
 		return
 	}
 	tests := []Driver{
-		{1, "testDriver1", "LN09TYR", ""},
-		{2, "testDriver2", "JK54BKF", ""},
+		{1, "testDriver1", "LN09TYR", "07765432154"},
+		{2, "testDriver2", "JK54BKF", "07879 345 556"},
 		{3, "", "", ""},
 	}
 
-	d.SetDriver(Driver{ID: 0, Name: "testDriver1", Registration: "LN09TYR"})
-	d.SetDriver(Driver{ID: 0, Name: "testDriver2", Registration: "JK54BKF"})
+	d.SetDriver(Driver{ID: 0, Name: "testDriver1", Registration: "LN09TYR", Phone: "07765432154"})
+	d.SetDriver(Driver{ID: 0, Name: "testDriver2", Registration: "JK54BKF", Phone: "07879 345 556"})
 
 	for n, test := range tests {
 		driver, err := d.GetDriver(test.ID)
 		if err != nil {
 			t.Errorf("test %d: unexpected error: %s", n+1, err)
-		} else if driver.Name != test.Name || driver.Registration != test.Registration {
-			t.Errorf("test %d: expecting driver %q (%d chars) with registration %q (%d chars), got %q (%d chars) with %q (%d chars)", n+1, test.Name, len(test.Name), test.Registration, len(test.Registration), driver.Name, len(driver.Name), driver.Registration, len(driver.Registration))
+		} else if driver.Name != test.Name || driver.Registration != test.Registration || driver.Phone != test.Phone {
+			t.Errorf("test %d: expecting driver %q with registration %q and phone %q, got %q with %q and %q", n+1, test.Name, test.Registration, test.Phone, driver.Name, driver.Registration, driver.Phone)
 		}
 	}
 }
@@ -120,11 +120,11 @@ func TestDriverAddUpdate(t *testing.T) {
 		Driver
 		count int
 	}{
-		{Driver{0, "testDriver1", "LN09TYR", ""}, 1},
-		{Driver{0, "testDriver2", "JK54BKF", ""}, 2},
-		{Driver{0, "testDriver3", "RT56FKT", ""}, 3},
-		{Driver{1, "renamedDriver1", "LN09TYR", ""}, 3},
-		{Driver{3, "renamedDriver3", "RT56FKT", ""}, 3},
+		{Driver{0, "testDriver1", "LN09TYR", "0"}, 1},
+		{Driver{0, "testDriver2", "JK54BKF", "1"}, 2},
+		{Driver{0, "testDriver3", "RT56FKT", "2"}, 3},
+		{Driver{1, "renamedDriver1", "LN09TYR", "3"}, 3},
+		{Driver{3, "renamedDriver3", "RT56FKT", "4"}, 3},
 	}
 
 	for n, test := range tests {
@@ -137,8 +137,8 @@ func TestDriverAddUpdate(t *testing.T) {
 		if err != nil {
 			t.Errorf("test %d: unexpected error: %s", n+1, err)
 			continue
-		} else if driver.Name != test.Name || driver.Registration != test.Registration {
-			t.Errorf("test %d: expecting driver %q (%d chars) with registration %q (%d chars), got %q (%d chars) with %q (%d chars)", n+1, test.Name, len(test.Name), test.Registration, len(test.Registration), driver.Name, len(driver.Name), driver.Registration, len(driver.Registration))
+		} else if driver.Name != test.Name || driver.Registration != test.Registration || driver.Phone != test.Phone {
+			t.Errorf("test %d: expecting driver %q with registration %q and phone %q, got %q with %q and %q", n+1, test.Name, test.Registration, test.Phone, driver.Name, driver.Registration, driver.Phone)
 		}
 		drivers, err := d.GetDrivers(0, 100)
 		if err != nil {
