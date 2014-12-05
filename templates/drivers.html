@@ -1,0 +1,17 @@
+{{template "header.html" "Add Driver"}}
+		<div><a href="adddriver">Add Driver</a></div>
+		<table>
+			<tr>
+				<th>Driver Name</th>
+				<th>Registration</th>
+				<th>Phone Number</th>
+			</tr>
+{{range .Drivers}}{{if ne .ID 0}}			<tr>
+				<td>{{.Name}}</td>
+				<td>{{.Registration}}</td>
+				<td>{{.Phone}}</td>
+			</tr>
+{{end}}{{end}}
+		</table>
+		{{.Pagination.HTML}}
+{{template "footer.html"}}

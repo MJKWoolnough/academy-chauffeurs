@@ -1,0 +1,6 @@
+{{ template "header.html" "Remove Driver" }}
+		<div>Are you sure you wish to remove driver "{{.Name}}"?</div>
+		<form action="?" method="POST">
+			<input type="submit" name="confirm" value="Yes" /><a href="drivers.html">No</a>
+		</form>
+{{ template "footer.html" }}
