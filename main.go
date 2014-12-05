@@ -14,7 +14,11 @@ func main() {
 		return
 	}
 
-	s := NewServer(db)
+	s, err := NewServer(db)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	http.HandleFunc("/drivers", s.drivers)
 	http.HandleFunc("/adddriver", s.addDriver)
