@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -40,7 +39,7 @@ func (s *Server) drivers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	vars := DriverListPageVars{drivers, Pagination{page, make([]struct{}, maxPage)}}
+	vars := DriverListPageVars{drivers, Pagination{page, uint(maxPage)}}
 	s.pages.ExecuteTemplate(w, "drivers.html", &vars)
 }
 
@@ -70,7 +69,6 @@ func (s *Server) addDriver(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			fmt.Println(d.ID)
 			num, err := s.db.Count(new(Driver))
 			maxPage := num / driversPerPage
 			if num%driversPerPage > 0 {
