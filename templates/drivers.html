@@ -5,11 +5,13 @@
 				<th>Driver Name</th>
 				<th>Registration</th>
 				<th>Phone Number</th>
+				<th>Actions</th>
 			</tr>
 {{range .Drivers}}{{if ne .ID 0}}			<tr>
 				<td>{{.Name}}</td>
 				<td>{{.Registration}}</td>
 				<td>{{.Phone}}</td>
+				<td><a href="updatedriver?id={{.ID}}">Edit</a> <a href="removedriver?id={{.ID}}">Remove</a></td>
 			</tr>
 {{end}}{{end}}
 		</table>
