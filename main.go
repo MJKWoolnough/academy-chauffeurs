@@ -25,7 +25,7 @@ func main() {
 	http.HandleFunc("/updatedriver", s.updateDriver)
 	http.HandleFunc("/removedriver", s.removeDriver)
 
-	l, err := net.Listen("tcp", ":8080")
+	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -41,7 +41,7 @@ func main() {
 	}()
 	//Start Browser
 
-	OpenBrowser("http://127.0.0.1:8080/drivers").Run()
+	OpenBrowser("http://" + l.Addr().String() + "/drivers")
 
 	l.Close()
 	<-done
