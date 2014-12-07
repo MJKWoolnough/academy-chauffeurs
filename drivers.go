@@ -34,12 +34,12 @@ func (s *Server) drivers(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < driversPerPage; i++ {
 		data[i] = &drivers[i]
 	}
-	_, err = s.db.GetPage(data, int(page)*driversPerPage)
+	n, err := s.db.GetPage(data, int(page)*driversPerPage)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	vars := DriverListPageVars{drivers, Pagination{page, uint(maxPage)}}
+	vars := DriverListPageVars{drivers[:n], Pagination{page, uint(maxPage)}}
 	s.pages.ExecuteTemplate(w, "drivers.html", &vars)
 }
 
