@@ -74,7 +74,7 @@ func (s *Server) addDriver(w http.ResponseWriter, r *http.Request) {
 			if num%driversPerPage > 0 {
 				maxPage++
 			}
-			http.Redirect(w, r, "drivers?page="+strconv.Itoa(maxPage), http.StatusFound)
+			http.Redirect(w, r, "drivers?page="+strconv.Itoa(maxPage-1), http.StatusFound)
 			return
 		}
 	}
