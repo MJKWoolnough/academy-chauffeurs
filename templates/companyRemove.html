@@ -1,0 +1,6 @@
+{{ template "header.html" "Remove Company" }}
+		<div>Are you sure you wish to remove company "{{.Name}}"?</div>
+		<form action="?" method="POST">
+			<input type="submit" name="confirm" value="Yes" /><a href="companies.html">No</a>
+		</form>
+{{ template "footer.html" }}

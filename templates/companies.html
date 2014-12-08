@@ -1,0 +1,20 @@
+{{template "header.html" "Companies"}}
+		<div><a href="addcompany">Add Company</a></div>
+		{{.Pagination.HTML}}
+		<table>
+			<tr>
+				<th>Company Name</th>
+				<th>Address</th>
+				<th>Reference</th>
+				<th>Actions</th>
+			</tr>
+{{range .Drivers}}{{if ne .ID 0}}			<tr>
+				<td>{{.Name}}</td>
+				<td>{{.Address}}</td>
+				<td>{{.Reference}}</td>
+				<td><a href="updatecompany?id={{.ID}}">Edit</a> <a href="removecompany?id={{.ID}}">Remove</a></td>
+			</tr>
+{{end}}{{end}}
+		</table>
+		{{.Pagination.HTML}}
+{{template "footer.html"}}
