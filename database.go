@@ -77,7 +77,7 @@ type Client struct {
 func (c *Client) Get() store.TypeMap {
 	return store.TypeMap{
 		"id":        &c.ID,
-		"comapnyId": &c.CompanyId,
+		"companyID": &c.CompanyId,
 		"name":      &c.Name,
 		"ref":       &c.Reference,
 		"address":   &c.Address,
@@ -88,7 +88,7 @@ func (c *Client) Get() store.TypeMap {
 func (c *Client) ParserList() form.ParserList {
 	return form.ParserList{
 		"id":        form.Int{&c.ID},
-		"comapnyId": form.Int{&c.CompanyId},
+		"companyID": form.Int{&c.CompanyId},
 		"name":      form.String{&c.Name},
 		"ref":       form.String{&c.Reference},
 		"address":   form.String{&c.Address},
