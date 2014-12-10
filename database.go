@@ -70,14 +70,14 @@ func (Company) TableName() string {
 }
 
 type Client struct {
-	ID, CompanyId                   int
-	Name, Reference, Address, Phone string
+	ID, CompanyID                                int
+	Name, CompanyName, Reference, Address, Phone string
 }
 
 func (c *Client) Get() store.TypeMap {
 	return store.TypeMap{
 		"id":        &c.ID,
-		"companyID": &c.CompanyId,
+		"companyID": &c.CompanyID,
 		"name":      &c.Name,
 		"ref":       &c.Reference,
 		"address":   &c.Address,
@@ -87,14 +87,28 @@ func (c *Client) Get() store.TypeMap {
 
 func (c *Client) ParserList() form.ParserList {
 	return form.ParserList{
-		"id":        form.Int{&c.ID},
-		"companyID": form.Int{&c.CompanyId},
-		"name":      form.String{&c.Name},
-		"ref":       form.String{&c.Reference},
-		"address":   form.String{&c.Address},
-		"phone":     form.String{&c.Phone},
+		"id":          form.Int{&c.ID},
+		"companyName": form.String{&c.CompanyName},
+		"name":        form.String{&c.Name},
+		"ref":         form.String{&c.Reference},
+		"address":     form.String{&c.Address},
+		"phone":       form.String{&c.Phone},
 	}
 }
+
+func (c *Client) companyName(db *store.Store) {
+	comp := new(Company)
+	comp.ID = c.CompanyID
+	db.Get(comp)
+	c.CompanyName = comp.Name
+}
+
+func (c *Client) companyID(db *store.Store) {
+	comp := new(Company)
+	db.Search([]store.Interface{comp}, 0, store.MatchString("name", c.CompanyName))
+	c.CompanyID = comp.ID
+}
+
 func (Client) Key() string {
 	return "id"
 }
