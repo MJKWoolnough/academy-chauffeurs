@@ -8,14 +8,14 @@ import (
 )
 
 type parserStore interface {
-	form.Parser
+	form.ParserLister
 	store.Interface
 }
 
 func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interface, t string, v func(int, Pagination) interface{}) {
 	var page uint
 	r.ParseForm()
-	form.Parse(form.Single{"page": form.Uint{&page}}, r.Form)
+	form.Parse(form.Single{"page", form.Uint{&page}}, r.Form)
 	num, err := s.db.Count(d[0])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -25,10 +25,10 @@ func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interfac
 	if num%len(d) > 0 {
 		maxPage++
 	}
-	if page > maxPage {
-		page = maxPage
+	if page > uint(maxPage) {
+		page = uint(maxPage)
 	}
-	n, err := s.db.GetPage(d, int(page*p))
+	n, err := s.db.GetPage(d, int(page)*len(d))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -41,7 +41,7 @@ func (s *Server) add(w http.ResponseWriter, r *http.Request, f parserStore, v fu
 	if r.Method == "POST" {
 		form.Parse(f, r.PostForm)
 		if v() {
-			n, err := s.db.Set(f)
+			_, err := s.db.Set(f)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -64,7 +64,7 @@ func (s *Server) remove(w http.ResponseWriter, r *http.Request, f parserStore, r
 		http.Redirect(w, r, redirect, http.StatusFound)
 		return
 	}
-	if r.PostForm["confirm"] != "" {
+	if len(r.PostForm["confirm"]) != 0 {
 		s.pages.ExecuteTemplate(w, confirmation, nil)
 	} else if err = s.db.Delete(f); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -78,7 +78,7 @@ func (s *Server) update(w http.ResponseWriter, r *http.Request, f parserStore, v
 	if r.Method == "POST" {
 		form.Parse(f, r.PostForm)
 		if v() {
-			n, err := s.db.Set(f)
+			_, err := s.db.Set(f)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

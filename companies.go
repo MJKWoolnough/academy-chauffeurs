@@ -24,7 +24,7 @@ func (s *Server) companies(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < companiesPerPage; i++ {
 		data[i] = &companies[i]
 	}
-	n, err := s.list(w, r, data, "companies.html", func(n int, p Pagination) interface{} {
+	s.list(w, r, data, "companies.html", func(n int, p Pagination) interface{} {
 		return CompanyListPageVars{
 			companies[:n],
 			p,
@@ -65,11 +65,11 @@ func (s *Server) updateCompany(w http.ResponseWriter, r *http.Request) {
 			good = false
 			c.NameError = "Company Name required"
 		}
-		if c.Registration == "" {
+		if c.Address == "" {
 			good = false
 			c.AddressError = "Address required"
 		}
-		if c.Referencee == "" {
+		if c.Reference == "" {
 			good = false
 			c.ReferenceError = "Reference required"
 		}

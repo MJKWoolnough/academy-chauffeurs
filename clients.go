@@ -24,7 +24,7 @@ func (s *Server) clients(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < clientsPerPage; i++ {
 		data[i] = &clients[i]
 	}
-	n, err := s.list(w, r, data, "clients.html", func(n int, p Pagination) interface{} {
+	s.list(w, r, data, "clients.html", func(n int, p Pagination) interface{} {
 		for i := 0; i < n; i++ {
 			clients[i].companyName(s.db)
 		}
@@ -77,11 +77,11 @@ func (s *Server) updateClient(w http.ResponseWriter, r *http.Request) {
 			good = false
 			c.NameError = "Client Name required"
 		}
-		if c.Registration == "" {
+		if c.Address == "" {
 			good = false
 			c.AddressError = "Address required"
 		}
-		if c.Referencee == "" {
+		if c.Reference == "" {
 			good = false
 			c.ReferenceError = "Reference required"
 		}

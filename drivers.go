@@ -24,7 +24,7 @@ func (s *Server) drivers(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < driversPerPage; i++ {
 		data[i] = &drivers[i]
 	}
-	n, err := s.list(w, r, data, "drivers.html", func(n int, p Pagination) interface{} {
+	s.list(w, r, data, "drivers.html", func(n int, p Pagination) interface{} {
 		return DriverListPageVars{
 			drivers[:n],
 			p,
@@ -44,8 +44,8 @@ func (s *Server) addDriver(w http.ResponseWriter, r *http.Request) {
 			good = false
 			d.RegistrationError = "Registration required"
 		}
-		if d.Reference == "" {
-			phone = false
+		if d.Phone == "" {
+			good = false
 			d.PhoneError = "Phone required"
 		}
 		return good
@@ -58,7 +58,7 @@ func (s *Server) removeDriver(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) updateDriver(w http.ResponseWriter, r *http.Request) {
 	var d driverErrors
-	s.update(w, r, &c, func() bool {
+	s.update(w, r, &d, func() bool {
 		good := true
 		if d.Name == "" {
 			good = false
