@@ -1,6 +1,6 @@
 {{template "header.html" "Companies"}}
 		<div><a href="addcompany">Add Company</a></div>
-		{{.Pagination.HTML}}
+		{{pagination .currPage .lastPage}}
 		<table>
 			<tr>
 				<th>Company Name</th>
@@ -16,5 +16,5 @@
 			</tr>
 {{end}}{{end}}
 		</table>
-		{{.Pagination.HTML}}
+		{{pagination .currPage .lastPage}}
 {{template "footer.html"}}
