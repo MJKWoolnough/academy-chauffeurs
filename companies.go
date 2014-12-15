@@ -14,8 +14,8 @@ type companyErrors struct {
 }
 
 type CompanyListPageVars struct {
-	Companies []Company
-	Pagination
+	Companies          []Company
+	currPage, lastPage uint
 }
 
 func (s *Server) companies(w http.ResponseWriter, r *http.Request) {
@@ -24,10 +24,10 @@ func (s *Server) companies(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < companiesPerPage; i++ {
 		data[i] = &companies[i]
 	}
-	s.list(w, r, data, "companies.html", func(n int, p Pagination) interface{} {
+	s.list(w, r, data, "companies.html", func(n int, currPage, lastPage uint) interface{} {
 		return CompanyListPageVars{
 			companies[:n],
-			p,
+			currPage, lastPage,
 		}
 	})
 }

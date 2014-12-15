@@ -12,7 +12,7 @@ type parserStore interface {
 	store.Interface
 }
 
-func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interface, t string, v func(int, Pagination) interface{}) {
+func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interface, t string, v func(int, uint, uint) interface{}) {
 	var page uint
 	r.ParseForm()
 	form.Parse(form.Single{"page", form.Uint{&page}}, r.Form)
@@ -33,7 +33,7 @@ func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interfac
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	s.pages.ExecuteTemplate(w, t, v(n, Pagination{page, uint(maxPage)}))
+	s.pages.ExecuteTemplate(w, t, v(n, page, uint(maxPage)))
 }
 
 func (s *Server) add(w http.ResponseWriter, r *http.Request, f parserStore, v func() bool, redirect, template string) {

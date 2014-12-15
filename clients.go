@@ -14,8 +14,8 @@ type clientErrors struct {
 }
 
 type ClientListPageVars struct {
-	clients []Client
-	Pagination
+	clients            []Client
+	currPage, lastPage uint
 }
 
 func (s *Server) clients(w http.ResponseWriter, r *http.Request) {
@@ -24,13 +24,13 @@ func (s *Server) clients(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < clientsPerPage; i++ {
 		data[i] = &clients[i]
 	}
-	s.list(w, r, data, "clients.html", func(n int, p Pagination) interface{} {
+	s.list(w, r, data, "clients.html", func(n int, currPage, lastPage uint) interface{} {
 		for i := 0; i < n; i++ {
 			clients[i].companyName(s.db)
 		}
 		return ClientListPageVars{
 			clients[:n],
-			p,
+			currPage, lastPage,
 		}
 	})
 }

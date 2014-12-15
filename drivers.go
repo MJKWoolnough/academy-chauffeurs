@@ -14,8 +14,8 @@ type driverErrors struct {
 }
 
 type DriverListPageVars struct {
-	Drivers []Driver
-	Pagination
+	Drivers            []Driver
+	currPage, lastPage uint
 }
 
 func (s *Server) drivers(w http.ResponseWriter, r *http.Request) {
@@ -24,10 +24,10 @@ func (s *Server) drivers(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < driversPerPage; i++ {
 		data[i] = &drivers[i]
 	}
-	s.list(w, r, data, "drivers.html", func(n int, p Pagination) interface{} {
+	s.list(w, r, data, "drivers.html", func(n int, currPage, lastPage uint) interface{} {
 		return DriverListPageVars{
 			drivers[:n],
-			p,
+			currPage, lastPage,
 		}
 	})
 }
