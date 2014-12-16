@@ -1,0 +1,24 @@
+{{template "header.html" "Clients"}}
+		<div><a href="addclient">Add Client</a></div>
+		{{pagination .currPage .lastPage}}
+		<table>
+			<tr>
+				<th>Client Name</th>
+				<th>Company Name</th>
+				<th>Reference</th>
+				<th>Address</th>
+				<th>Phone Number</th>
+				<th>Actions</th>
+			</tr>
+{{range .Clients}}{{if ne .ID 0}}			<tr>
+				<td>{{.Name}}</td>
+				<td>{{.CompanyName}}</td>
+				<td>{{.Reference}}</td>
+				<td>{{.Address}}</td>
+				<td>{{.Phone}}</td>
+				<td><a href="updateclient?id={{.ID}}">Edit</a> <a href="removeclient?id={{.ID}}">Remove</a></td>
+			</tr>
+{{end}}{{end}}
+		</table>
+		{{pagination .currPage .lastPage}}
+{{template "footer.html"}}
