@@ -31,6 +31,16 @@ func main() {
 	http.HandleFunc("/updatedriver", s.updateDriver)
 	http.HandleFunc("/removedriver", s.removeDriver)
 
+	http.HandleFunc("/clients", s.clients)
+	http.HandleFunc("/addclient", s.addClient)
+	http.HandleFunc("/updateclient", s.updateClient)
+	http.HandleFunc("/removeclient", s.removeclient)
+
+	http.HandleFunc("/companies", s.companies)
+	http.HandleFunc("/addcompany", s.addCompany)
+	http.HandleFunc("/updatecompany", s.updateCompany)
+	http.HandleFunc("/removecompany", s.removeCompany)
+
 	l, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Println(err)
