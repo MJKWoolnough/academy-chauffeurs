@@ -55,7 +55,6 @@ func main() {
 
 		<-c
 		close(c)
-
 		log.Println("Closing")
 	}()
 
@@ -66,4 +65,5 @@ func main() {
 		close(c)
 		log.Println(err)
 	}
+	db.Close()
 }
