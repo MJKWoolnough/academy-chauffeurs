@@ -19,11 +19,12 @@ type Server struct {
 }
 
 func NewServer(db *store.Store) (*Server, error) {
-	t, err := template.New("templates").ParseGlob("templates/*.html")
+	t := template.New("templates")
+	t.Funcs(template.FuncMap{"pagination": paginationHTML})
+	_, err := t.ParseGlob("templates/*.html")
 	if err != nil {
 		return nil, err
 	}
-	t.Funcs(template.FuncMap{"pagination": paginationHTML})
 	return &Server{
 		db:    db,
 		pages: t,
