@@ -16,14 +16,17 @@ func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interfac
 	var page uint
 	r.ParseForm()
 	form.Parse(form.Single{"page", form.Uint{&page}}, r.Form)
+	if page > 0 {
+		page--
+	}
 	num, err := s.db.Count(d[0])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	maxPage := num / len(d)
-	if num%len(d) > 0 {
-		maxPage++
+	if num%len(d) == 0 {
+		maxPage--
 	}
 	if page > uint(maxPage) {
 		page = uint(maxPage)
