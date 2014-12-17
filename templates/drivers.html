@@ -1,6 +1,6 @@
 {{template "header.html" "Drivers"}}
 		<div><a href="adddriver">Add Driver</a></div>
-		{{pagination .currPage .lastPage}}
+		{{pagination "drivers?page=" .CurrPage .LastPage}}
 		<table>
 			<tr>
 				<th>Driver Name</th>
@@ -16,5 +16,5 @@
 			</tr>
 {{end}}{{end}}
 		</table>
-		{{pagination .currPage .lastPage}}
+		{{pagination "drivers?page=" .CurrPage .LastPage}}
 {{template "footer.html"}}
