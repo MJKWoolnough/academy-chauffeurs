@@ -32,7 +32,7 @@ func main() {
 	http.HandleFunc("/clients", s.clients)
 	http.HandleFunc("/addclient", s.addClient)
 	http.HandleFunc("/updateclient", s.updateClient)
-	http.HandleFunc("/removeclient", s.removeclient)
+	http.HandleFunc("/removeclient", s.removeClient)
 
 	http.HandleFunc("/companies", s.companies)
 	http.HandleFunc("/addcompany", s.addCompany)
