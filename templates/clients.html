@@ -1,6 +1,6 @@
 {{template "header.html" "Clients"}}
 		<div><a href="addclient">Add Client</a></div>
-		{{pagination "clients?page=" .CurrPage .LastPage}}
+		{{.Pagination.HTML "clients?page="}}
 		<table>
 			<tr>
 				<th>Client Name</th>
@@ -18,7 +18,6 @@
 				<td>{{.Phone}}</td>
 				<td><a href="updateclient?id={{.ID}}">Edit</a> <a href="removeclient?id={{.ID}}">Remove</a></td>
 			</tr>
-{{end}}{{end}}
-		</table>
-		{{pagination "clients?page=" .currPage .lastPage}}
+{{end}}{{end}}		</table>
+		{{.Pagination.HTML "clients?page="}}
 {{template "footer.html"}}

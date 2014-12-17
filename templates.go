@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/MJKWoolnough/form"
+	"github.com/MJKWoolnough/pagination"
 	"github.com/MJKWoolnough/store"
 )
 
@@ -12,7 +13,12 @@ type parserStore interface {
 	store.Interface
 }
 
-func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interface, t string, v func(int, uint, uint) interface{}) {
+type ListVars struct {
+	Drivers []store.Interface
+	pagination.Pagination
+}
+
+func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interface, t string, v func(int, pagination.Pagination) interface{}) {
 	var page uint
 	r.ParseForm()
 	form.Parse(form.Single{"page", form.Uint{&page}}, r.Form)
@@ -36,7 +42,8 @@ func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interfac
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	s.pages.ExecuteTemplate(w, t, v(n, page, uint(maxPage)))
+	_ = n
+	s.pages.ExecuteTemplate(w, t, v(n, s.pagination.Get(page, uint(maxPage))))
 }
 
 func (s *Server) add(w http.ResponseWriter, r *http.Request, f parserStore, v func() bool, redirect, template string) {

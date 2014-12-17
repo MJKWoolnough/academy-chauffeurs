@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/MJKWoolnough/pagination"
 	"github.com/MJKWoolnough/store"
 )
 
@@ -14,8 +15,8 @@ type driverErrors struct {
 }
 
 type DriverListPageVars struct {
-	Drivers            []Driver
-	CurrPage, LastPage uint
+	Drivers []Driver
+	pagination.Pagination
 }
 
 func (s *Server) drivers(w http.ResponseWriter, r *http.Request) {
@@ -24,10 +25,10 @@ func (s *Server) drivers(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < driversPerPage; i++ {
 		data[i] = &drivers[i]
 	}
-	s.list(w, r, data, "drivers.html", func(n int, currPage, lastPage uint) interface{} {
+	s.list(w, r, data, "drivers.html", func(n int, p pagination.Pagination) interface{} {
 		return DriverListPageVars{
 			drivers[:n],
-			currPage, lastPage,
+			p,
 		}
 	})
 }

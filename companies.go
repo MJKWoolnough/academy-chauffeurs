@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/MJKWoolnough/pagination"
 	"github.com/MJKWoolnough/store"
 )
 
@@ -14,8 +15,8 @@ type companyErrors struct {
 }
 
 type CompanyListPageVars struct {
-	Companies          []Company
-	CurrPage, LastPage uint
+	Companies []Company
+	pagination.Pagination
 }
 
 func (s *Server) companies(w http.ResponseWriter, r *http.Request) {
@@ -24,10 +25,10 @@ func (s *Server) companies(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < companiesPerPage; i++ {
 		data[i] = &companies[i]
 	}
-	s.list(w, r, data, "companies.html", func(n int, currPage, lastPage uint) interface{} {
+	s.list(w, r, data, "companies.html", func(n int, p pagination.Pagination) interface{} {
 		return CompanyListPageVars{
 			companies[:n],
-			currPage, lastPage,
+			p,
 		}
 	})
 }
