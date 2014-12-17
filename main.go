@@ -16,14 +16,12 @@ func main() {
 
 	db, err := SetupDatabase("test.db")
 	if err != nil {
-		log.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	s, err := NewServer(db)
 	if err != nil {
-		log.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	http.HandleFunc("/drivers", s.drivers)
@@ -43,29 +41,29 @@ func main() {
 
 	l, err := net.Listen("tcp", address)
 	if err != nil {
-		log.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
 
 	go func() {
-		err := http.Serve(l, nil)
-		select {
-		case <-c:
-		default:
-			close(c)
-			log.Println(err)
-		}
+		defer l.Close()
+		log.Println("Server Started")
+
+		signal.Notify(c, os.Interrupt)
+		defer signal.Stop(c)
+
+		<-c
+		close(c)
+
+		log.Println("Closing")
 	}()
 
-	log.Println("Server Started")
-
-	<-c
-	signal.Stop(c)
-	close(c)
-
-	log.Println("Closing")
-	l.Close()
+	err := http.Serve(l, nil)
+	select {
+	case <-c:
+	default:
+		close(c)
+		log.Println(err)
+	}
 }
