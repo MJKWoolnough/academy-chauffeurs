@@ -14,8 +14,8 @@ type clientErrors struct {
 }
 
 type ClientListPageVars struct {
-	clients            []Client
-	currPage, lastPage uint
+	Clients            []Client
+	CurrPage, LastPage uint
 }
 
 func (s *Server) clients(w http.ResponseWriter, r *http.Request) {

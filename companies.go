@@ -15,7 +15,7 @@ type companyErrors struct {
 
 type CompanyListPageVars struct {
 	Companies          []Company
-	currPage, lastPage uint
+	CurrPage, LastPage uint
 }
 
 func (s *Server) companies(w http.ResponseWriter, r *http.Request) {

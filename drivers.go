@@ -15,7 +15,7 @@ type driverErrors struct {
 
 type DriverListPageVars struct {
 	Drivers            []Driver
-	currPage, lastPage uint
+	CurrPage, LastPage uint
 }
 
 func (s *Server) drivers(w http.ResponseWriter, r *http.Request) {
