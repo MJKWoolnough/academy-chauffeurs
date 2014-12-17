@@ -59,7 +59,7 @@ func main() {
 		log.Println("Closing")
 	}()
 
-	err := http.Serve(l, nil)
+	err = http.Serve(l, nil)
 	select {
 	case <-c:
 	default:
