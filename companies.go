@@ -55,7 +55,7 @@ func (s *Server) addCompany(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) removeCompany(w http.ResponseWriter, r *http.Request) {
 	var c Company
-	s.remove(w, r, &c, "companies.html", "companyRemoveConfirmation.html", "companyRemove.html")
+	s.remove(w, r, &c, "companies", "companyRemoveConfirmation.html", "companyRemove.html")
 }
 
 func (s *Server) updateCompany(w http.ResponseWriter, r *http.Request) {

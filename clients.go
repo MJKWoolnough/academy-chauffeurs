@@ -67,7 +67,7 @@ func (s *Server) addClient(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) removeClient(w http.ResponseWriter, r *http.Request) {
 	var c Client
-	s.remove(w, r, &c, "clients.html", "clientRemoveConfirmation.html", "clientRemove.html")
+	s.remove(w, r, &c, "clients", "clientRemoveConfirmation.html", "clientRemove.html")
 }
 
 func (s *Server) updateClient(w http.ResponseWriter, r *http.Request) {

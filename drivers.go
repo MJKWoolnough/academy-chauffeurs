@@ -54,7 +54,7 @@ func (s *Server) addDriver(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) removeDriver(w http.ResponseWriter, r *http.Request) {
-	s.remove(w, r, new(Driver), "driver.html", "driverRemoveConfirmation.html", "driverRemove.html")
+	s.remove(w, r, new(Driver), "driver", "driverRemoveConfirmation.html", "driverRemove.html")
 }
 
 func (s *Server) updateDriver(w http.ResponseWriter, r *http.Request) {
