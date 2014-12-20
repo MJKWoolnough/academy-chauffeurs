@@ -39,6 +39,8 @@ func main() {
 	http.HandleFunc("/updatecompany", s.updateCompany)
 	http.HandleFunc("/removecompany", s.removeCompany)
 
+	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("/home/michael/Programming/Go/src/github.com/MJKWoolnough/academy-chauffeurs/resources/"))))
+
 	l, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalln(err)
