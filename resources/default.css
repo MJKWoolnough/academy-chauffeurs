@@ -1,0 +1,11 @@
+#menu ul {
+	list-style : none;
+	padding-left : 0;
+	clear : left;
+	overflow : hidden;
+}
+
+#menu li {
+	float : left;
+	padding-right : 20px;
+}
