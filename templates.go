@@ -32,7 +32,7 @@ func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interfac
 		return
 	}
 	maxPage := num / len(d)
-	if num%len(d) == 0 {
+	if num%len(d) == 0 && maxPage > 0 {
 		maxPage--
 	}
 	if page > uint(maxPage) {
@@ -43,7 +43,6 @@ func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interfac
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_ = n
 	s.pages.ExecuteTemplate(w, t, v(n, s.pagination.Get(page, uint(maxPage))))
 }
 
