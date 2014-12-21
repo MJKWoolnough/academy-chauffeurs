@@ -77,3 +77,12 @@ func (s *Server) updateCompany(w http.ResponseWriter, r *http.Request) {
 		return good
 	}, "companies", "companyUpdate.html")
 }
+
+func (s *Server) autocompleteCompanyName(w http.ResponseWriter, r *http.Request) {
+	companies := make([]Company, companiesPerPage)
+	data := make([]store.Interface, companiesPerPage)
+	for i := 0; i < companiesPerPage; i++ {
+		data[i] = &companies[i]
+	}
+	s.autocomplete(w, r, data, "name")
+}

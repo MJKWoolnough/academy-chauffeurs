@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/MJKWoolnough/form"
@@ -110,4 +111,37 @@ func (s *Server) update(w http.ResponseWriter, r *http.Request, f parserStore, v
 		return
 	}
 	s.pages.ExecuteTemplate(w, template, f)
+}
+
+func (s *Server) autocomplete(w http.ResponseWriter, r *http.Request, d []store.Interface, column string) {
+	r.ParseForm()
+	partial := r.PostForm.Get("partial")
+	store.Sort(d, column, true)
+	n, err := s.db.Search(d, 0, store.Like(column, partial+"%"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if n < len(d) {
+		m, err := s.db.Search(d[n:], 0, store.Like(column, "%"+partial+"%"), store.NotLike(column, partial+"%"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		n += m
+	}
+	values := make([]string, 0, n)
+	for i := 0; i < n; i++ {
+		if s, ok := d[0].Get()[column].(*string); ok {
+			values = append(values, *s)
+		}
+	}
+	wrap := r.PostForm.Get("wrap")
+	if wrap != "" {
+		w.Write([]byte(wrap + "("))
+	}
+	json.NewEncoder(w).Encode(values)
+	if wrap != "" {
+		w.Write([]byte{')', ';'})
+	}
 }

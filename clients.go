@@ -98,3 +98,12 @@ func (s *Server) updateClient(w http.ResponseWriter, r *http.Request) {
 		return good
 	}, "clients", "clientUpdate.html")
 }
+
+func (s *Server) autocompleteClientName(w http.ResponseWriter, r *http.Request) {
+	clients := make([]Client, clientsPerPage)
+	data := make([]store.Interface, clientsPerPage)
+	for i := 0; i < clientsPerPage; i++ {
+		data[i] = &clients[i]
+	}
+	s.autocomplete(w, r, data, "name")
+}

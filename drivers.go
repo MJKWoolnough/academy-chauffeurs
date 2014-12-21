@@ -76,3 +76,12 @@ func (s *Server) updateDriver(w http.ResponseWriter, r *http.Request) {
 		return good
 	}, "drivers", "driverUpdate.html")
 }
+
+func (s *Server) autocompleteDriveName(w http.ResponseWriter, r *http.Request) {
+	drivers := make([]Driver, driversPerPage)
+	data := make([]store.Interface, driversPerPage)
+	for i := 0; i < driversPerPage; i++ {
+		data[i] = &drivers[i]
+	}
+	s.autocomplete(w, r, data, "name")
+}
