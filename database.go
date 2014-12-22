@@ -54,10 +54,10 @@ func (c *Company) Get() store.TypeMap {
 
 func (c *Company) ParserList() form.ParserList {
 	return form.ParserList{
-		"id":      form.Int{&c.ID},
-		"name":    form.String{&c.Name},
-		"address": form.String{&c.Address},
-		"ref":     form.String{&c.Reference},
+		"id":        form.Int{&c.ID},
+		"name":      form.String{&c.Name},
+		"address":   form.String{&c.Address},
+		"reference": form.String{&c.Reference},
 	}
 }
 
