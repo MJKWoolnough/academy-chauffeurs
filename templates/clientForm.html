@@ -6,13 +6,13 @@
 			<br />
 
 			<label for="companyName">Company Name</label>
-			<input type="text" name="companyName" id="companyName" value="{{.CompanyName}}" />
+			<input class="autocomplete" autocomplete-url="/autocompleteClientCompanyName" type="text" name="companyName" id="companyName" value="{{.CompanyName}}" />
 			<div class="error">{{.CompanyNameError}}</div>
 			<br />
 
 			<label for="reference">Reference</label>
 			<input type="text" name="reference" id="reference" value="{{.Reference}}" />
-			<div class="error">{{.RefereneceError}}</div>
+			<div class="error">{{.ReferenceError}}</div>
 			<br />
 
 			<label for="address">Address</label>
@@ -27,3 +27,4 @@
 
 			<input type="submit" value="Submit" />
 		</form>
+		<script type="text/javascript" src="/resources/autocomplete.js"></script>
