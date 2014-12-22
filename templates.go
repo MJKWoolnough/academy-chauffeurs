@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/MJKWoolnough/form"
 	"github.com/MJKWoolnough/pagination"
@@ -129,17 +130,23 @@ func (s *Server) autocomplete(w http.ResponseWriter, r *http.Request, d []store.
 		}
 		n += m
 	}
-	values := make([]string, 0, n)
+	type JSONAutocomplete struct {
+		Time int64
+		Data []string
+	}
+	var ja JSONAutocomplete
+	ja.Data = make([]string, 0, n)
 	for i := 0; i < n; i++ {
-		if s, ok := d[0].Get()[column].(*string); ok {
-			values = append(values, *s)
+		if s, ok := d[i].Get()[column].(*string); ok {
+			ja.Data = append(ja.Data, *s)
 		}
 	}
 	wrap := r.PostForm.Get("wrap")
 	if wrap != "" {
 		w.Write([]byte(wrap + "("))
 	}
-	json.NewEncoder(w).Encode(values)
+	ja.Time = time.Now().UnixNano()
+	json.NewEncoder(w).Encode(ja)
 	if wrap != "" {
 		w.Write([]byte{')', ';'})
 	}
