@@ -33,6 +33,7 @@ func main() {
 	http.HandleFunc("/addclient", s.addClient)
 	http.HandleFunc("/updateclient", s.updateClient)
 	http.HandleFunc("/removeclient", s.removeClient)
+	http.HandleFunc("/autocompleteClientCompanyName", s.autocompleteCompanyName)
 
 	http.HandleFunc("/companies", s.companies)
 	http.HandleFunc("/addcompany", s.addCompany)
