@@ -9,3 +9,58 @@
 	float : left;
 	padding-right : 20px;
 }
+
+form label {
+	display : block;
+	float : left;
+	width : 200px;
+}
+
+form label + input, form label + div, form label + textarea {
+	float : left;
+	width : 200px;
+}
+
+form label + div input {
+	width : 200px;
+}
+
+form label + input + div.error, form label + div + div.error, form label + textarea + div.error {
+	color : #f00;
+	float : left;
+	padding-left : 10px;
+}
+
+form br {
+	clear : left;
+}
+
+form label + div {
+	height : 22px;
+	position : relative;
+	z-index : 10;
+}
+
+form label + div ul {
+	background-color : #fff;
+	cursor : pointer;
+	cursor : hand;
+	list-style : none;
+	margin : 1px 0 0 0;
+	padding : 0;
+}
+
+form label + div ul li {
+	border : 1px solid #000;
+	border-collapse: collapse;
+	text-align : center;
+	margin-top : -1px;
+}
+
+form label + div ul li.even {
+	background-color : #ddd;
+}
+
+form label + div ul li.odd {
+	background-color : #eee;
+}

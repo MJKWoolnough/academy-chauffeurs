@@ -44,6 +44,11 @@
 							jData = jsonData.Data[i],
 							startPos = jData.toUpperCase().indexOf(text.toUpperCase()),
 							matchHighlight = document.createElementNS(ns, "b");
+							if (i % 2 === 0) {
+								li.className = "even";
+							} else {
+								li.className = "odd";
+							}
 							li.appendChild(document.createTextNode(jData.slice(0, startPos)));
 							matchHighlight.appendChild(document.createTextNode(jData.slice(startPos, startPos+text.length)));
 							li.appendChild(matchHighlight);
@@ -66,6 +71,7 @@
 			autocompleteDiv = document.createElementNS(ns, "div"),
 			list = document.createElementNS(ns, "ul"),
 			url = allInputs[i].getAttribute("autocomplete-url");
+			list.className = "autocompleter";
 			while (errDiv.nodeType !== 1) {
 				errDiv = errDiv.nextSibling;
 			}
