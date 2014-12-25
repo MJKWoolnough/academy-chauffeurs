@@ -13,6 +13,7 @@ const clientsPerPage = 20
 type Client struct {
 	ID, CompanyID                                int
 	Name, CompanyName, Reference, Address, Phone string
+	db                                           *store.Store
 }
 
 func (c *Client) Get() store.TypeMap {
@@ -37,16 +38,24 @@ func (c *Client) ParserList() form.ParserList {
 	}
 }
 
-func (c *Client) companyName(db *store.Store) {
+func (c *Client) GetCompanyName() string {
+	if c.CompanyID == 0 || c.CompanyName != "" {
+		return c.CompanyName
+	}
 	comp := Company{ID: c.CompanyID}
-	db.Get(&comp)
+	c.db.Get(&comp)
 	c.CompanyName = comp.Name
+	return c.CompanyName
 }
 
-func (c *Client) companyID(db *store.Store) {
+func (c *Client) GetCompanyID() int {
+	if c.CompanyName == "" || c.CompanyID > 0 {
+		return c.CompanyID
+	}
 	var comp Company
-	db.Search([]store.Interface{&comp}, 0, store.MatchString("name", c.CompanyName))
+	c.db.Search([]store.Interface{&comp}, 0, store.MatchString("name", c.CompanyName))
 	c.CompanyID = comp.ID
+	return c.CompanyID
 }
 
 func (Client) Key() string {
@@ -75,7 +84,8 @@ func (s *Server) clients(w http.ResponseWriter, r *http.Request) {
 	}
 	s.list(w, r, data, "clients.html", func(n int, p pagination.Pagination) interface{} {
 		for i := 0; i < n; i++ {
-			clients[i].companyName(s.db)
+			clients[i].db = s.db
+			clients[i].GetCompanyName()
 		}
 		return ClientListPageVars{
 			clients[:n],
@@ -85,7 +95,7 @@ func (s *Server) clients(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) addClient(w http.ResponseWriter, r *http.Request) {
-	var c clientErrors
+	c := clientErrors{Client: Client{db: s.db}}
 	s.add(w, r, &c, func() bool {
 		good := true
 		if c.Name == "" {
@@ -104,7 +114,7 @@ func (s *Server) addClient(w http.ResponseWriter, r *http.Request) {
 			good = false
 			c.PhoneError = "Valid Phone Number Required"
 		}
-		c.companyID(s.db)
+		c.GetCompanyID()
 		if c.CompanyID == 0 {
 			good = false
 			c.CompanyNameError = "Unknown Company"
@@ -119,7 +129,7 @@ func (s *Server) removeClient(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) updateClient(w http.ResponseWriter, r *http.Request) {
-	var c clientErrors
+	c := clientErrors{Client: Client{db: s.db}}
 	s.update(w, r, &c, func() bool {
 		good := true
 		if c.Name == "" {
@@ -138,7 +148,7 @@ func (s *Server) updateClient(w http.ResponseWriter, r *http.Request) {
 			good = false
 			c.PhoneError = "Phone Number Required"
 		}
-		c.companyID(s.db)
+		c.GetCompanyID()
 		if c.CompanyID == 0 {
 			good = false
 			c.CompanyNameError = "Unknown Company"
