@@ -3,11 +3,43 @@ package main
 import (
 	"net/http"
 
+	"github.com/MJKWoolnough/form"
 	"github.com/MJKWoolnough/pagination"
 	"github.com/MJKWoolnough/store"
 )
 
 const companiesPerPage = 20
+
+type Company struct {
+	ID                       int
+	Name, Address, Reference string
+}
+
+func (c *Company) Get() store.TypeMap {
+	return store.TypeMap{
+		"id":      &c.ID,
+		"name":    &c.Name,
+		"address": &c.Address,
+		"ref":     &c.Reference,
+	}
+}
+
+func (c *Company) ParserList() form.ParserList {
+	return form.ParserList{
+		"id":        form.Int{&c.ID},
+		"name":      form.String{&c.Name},
+		"address":   form.String{&c.Address},
+		"reference": form.String{&c.Reference},
+	}
+}
+
+func (Company) Key() string {
+	return "id"
+}
+
+func (Company) TableName() string {
+	return "companies"
+}
 
 type companyErrors struct {
 	Company

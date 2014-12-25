@@ -3,11 +3,59 @@ package main
 import (
 	"net/http"
 
+	"github.com/MJKWoolnough/form"
 	"github.com/MJKWoolnough/pagination"
 	"github.com/MJKWoolnough/store"
 )
 
 const clientsPerPage = 20
+
+type Client struct {
+	ID, CompanyID                                int
+	Name, CompanyName, Reference, Address, Phone string
+}
+
+func (c *Client) Get() store.TypeMap {
+	return store.TypeMap{
+		"id":        &c.ID,
+		"companyID": &c.CompanyID,
+		"name":      &c.Name,
+		"ref":       &c.Reference,
+		"address":   &c.Address,
+		"phone":     &c.Phone,
+	}
+}
+
+func (c *Client) ParserList() form.ParserList {
+	return form.ParserList{
+		"id":          form.Int{&c.ID},
+		"companyName": form.String{&c.CompanyName},
+		"name":        form.String{&c.Name},
+		"reference":   form.String{&c.Reference},
+		"address":     form.String{&c.Address},
+		"phone":       form.String{&c.Phone},
+	}
+}
+
+func (c *Client) companyName(db *store.Store) {
+	comp := Company{ID: c.CompanyID}
+	db.Get(&comp)
+	c.CompanyName = comp.Name
+}
+
+func (c *Client) companyID(db *store.Store) {
+	var comp Company
+	db.Search([]store.Interface{&comp}, 0, store.MatchString("name", c.CompanyName))
+	c.CompanyID = comp.ID
+}
+
+func (Client) Key() string {
+	return "id"
+}
+
+func (Client) TableName() string {
+	return "clients"
+}
 
 type clientErrors struct {
 	Client

@@ -3,11 +3,43 @@ package main
 import (
 	"net/http"
 
+	"github.com/MJKWoolnough/form"
 	"github.com/MJKWoolnough/pagination"
 	"github.com/MJKWoolnough/store"
 )
 
 const driversPerPage = 20
+
+type Driver struct {
+	ID                        int
+	Name, Registration, Phone string
+}
+
+func (d *Driver) Get() store.TypeMap {
+	return store.TypeMap{
+		"id":           &d.ID,
+		"name":         &d.Name,
+		"registration": &d.Registration,
+		"phone":        &d.Phone,
+	}
+}
+
+func (d *Driver) ParserList() form.ParserList {
+	return form.ParserList{
+		"id":           form.Int{&d.ID},
+		"name":         form.String{&d.Name},
+		"registration": form.String{&d.Registration},
+		"phone":        form.String{&d.Phone},
+	}
+}
+
+func (Driver) Key() string {
+	return "id"
+}
+
+func (Driver) TableName() string {
+	return "drivers"
+}
 
 type driverErrors struct {
 	Driver
