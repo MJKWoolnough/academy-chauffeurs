@@ -90,22 +90,21 @@ func (c *Client) ParserList() form.ParserList {
 		"id":          form.Int{&c.ID},
 		"companyName": form.String{&c.CompanyName},
 		"name":        form.String{&c.Name},
-		"ref":         form.String{&c.Reference},
+		"reference":   form.String{&c.Reference},
 		"address":     form.String{&c.Address},
 		"phone":       form.String{&c.Phone},
 	}
 }
 
 func (c *Client) companyName(db *store.Store) {
-	comp := new(Company)
-	comp.ID = c.CompanyID
-	db.Get(comp)
+	comp := Company{ID: c.CompanyID}
+	db.Get(&comp)
 	c.CompanyName = comp.Name
 }
 
 func (c *Client) companyID(db *store.Store) {
-	comp := new(Company)
-	db.Search([]store.Interface{comp}, 0, store.MatchString("name", c.CompanyName))
+	var comp Company
+	db.Search([]store.Interface{&comp}, 0, store.MatchString("name", c.CompanyName))
 	c.CompanyID = comp.ID
 }
 

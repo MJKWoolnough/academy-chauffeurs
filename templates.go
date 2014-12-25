@@ -101,7 +101,6 @@ func (s *Server) update(w http.ResponseWriter, r *http.Request, f parserStore, v
 		form.Parse(f, r.Form)
 		err := s.db.Get(f)
 		if err != nil {
-
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
