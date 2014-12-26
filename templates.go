@@ -23,7 +23,7 @@ type ListVars struct {
 func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interface, t string, v func(int, pagination.Pagination) interface{}) {
 	var page uint
 	r.ParseForm()
-	form.Parse(form.Single{"page", form.Uint{&page}}, r.Form)
+	form.Parse(form.ParserList{"page": form.Uint{&page}}, r.Form)
 	if page > 0 {
 		page--
 	}
