@@ -1,6 +1,6 @@
-{{ template "header.html" "Remove Driver" }}
+{{template "header.html" args "Remove Driver" "default"}}
 		<div>Are you sure you wish to remove driver "{{.Name}}"?</div>
 		<form action="?" method="POST">
 			<input type="submit" name="confirm" value="Yes" /><a href="drivers.html">No</a>
 		</form>
-{{ template "footer.html" }}
+{{template "footer.html"}}

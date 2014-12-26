@@ -1,7 +1,8 @@
-<html>
+ <!DOCTYPE html>
+ <html>
 	<head>
-		<title>{{ . }}</title>
-		<link rel="stylesheet" type="text/css" media="screen" href="/resources/default.css" title="Default Style" />
+		<title>{{index . 0}}</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="/resources/{{index . 1}}.css" title="Default Style" />
 	</head>
 	<body>
 		<h1>Acadamy Chauffeurs</h1>
@@ -13,4 +14,4 @@
 				<li><a href="clients">Clients</a></li>
 			</ul>
 		</div>
-		<h2>{{ . }}</h2>
+		<h2>{{index . 0}}</h2>
