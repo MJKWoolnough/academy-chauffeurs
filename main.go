@@ -48,11 +48,9 @@ func main() {
 
 	s := &Server{
 		db:         db,
-		pages:      template.Must(template.New("templates").ParseGlob("templates/*.html")),
+		pages:      template.Must(template.New("templates").Funcs(template.FuncMap{"args": func(s ...string) []string { return s }}).ParseGlob("templates/*.html")),
 		pagination: pagination.New(),
 	}
-
-	s.pages.Funcs(template.FuncMap{"args": func(s ...string) []string { return s }})
 
 	http.HandleFunc("/drivers", s.drivers)
 	http.HandleFunc("/adddriver", s.addDriver)
