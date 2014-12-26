@@ -52,6 +52,8 @@ func main() {
 		pagination: pagination.New(),
 	}
 
+	s.pages.Funcs(template.FuncMap{"args": func(s ...string) []string { return s }})
+
 	http.HandleFunc("/drivers", s.drivers)
 	http.HandleFunc("/adddriver", s.addDriver)
 	http.HandleFunc("/updatedriver", s.updateDriver)
