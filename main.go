@@ -6,15 +6,34 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+
+	"github.com/MJKWoolnough/store"
 )
 
 func main() {
 
 	//load config
 
-	address := "127.0.0.1:8080"
+	const address = "127.0.0.1:8080"
+	const dbFName = "test.db"
 
-	db, err := SetupDatabase("test.db")
+	db, err := store.NewStore(dbFName)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = db.Register(new(Driver))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = db.Register(new(Company))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = db.Register(new(Client))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = db.Register(new(Event))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -39,6 +58,10 @@ func main() {
 	http.HandleFunc("/addcompany", s.addCompany)
 	http.HandleFunc("/updatecompany", s.updateCompany)
 	http.HandleFunc("/removecompany", s.removeCompany)
+
+	http.HandleFunc("/events", s.events)
+	http.HandleFunc("/addEvent", s.addEvent)
+	http.HandleFunc("/removeevent", s.removeEvent)
 
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("/home/michael/Programming/Go/src/github.com/MJKWoolnough/academy-chauffeurs/resources/"))))
 
