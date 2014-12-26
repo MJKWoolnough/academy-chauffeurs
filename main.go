@@ -6,9 +6,17 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"text/template"
 
+	"github.com/MJKWoolnough/pagination"
 	"github.com/MJKWoolnough/store"
 )
+
+type Server struct {
+	db         *store.Store
+	pages      *template.Template
+	pagination pagination.Config
+}
 
 func main() {
 
@@ -38,9 +46,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	s, err := NewServer(db)
-	if err != nil {
-		log.Fatalln(err)
+	s := &Server{
+		db:         db,
+		pages:      template.Must(template.New("templates").ParseGlob("templates/*.html")),
+		pagination: pagination.New(),
 	}
 
 	http.HandleFunc("/drivers", s.drivers)
