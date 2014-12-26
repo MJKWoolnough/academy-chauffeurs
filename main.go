@@ -61,6 +61,7 @@ func main() {
 
 	http.HandleFunc("/events", s.events)
 	http.HandleFunc("/addEvent", s.addEvent)
+	http.HandleFunc("/updateEvent", s.updateEvent)
 	http.HandleFunc("/removeevent", s.removeEvent)
 
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("/home/michael/Programming/Go/src/github.com/MJKWoolnough/academy-chauffeurs/resources/"))))
