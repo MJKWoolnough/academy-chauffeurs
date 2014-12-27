@@ -71,6 +71,14 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func (s *Server) removeEvent(w http.ResponseWriter, r *http.Request) {
 	s.remove(w, r, new(Event), "event", "eventRemoveConfirmation.html", "eventRemove.html")
 }
