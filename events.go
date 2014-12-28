@@ -74,7 +74,11 @@ type EventTemplateVars struct {
 
 const dateFormat = "2006-01-02"
 
-var location = time.LoadLocation("") // "" == UTC
+var location *time.Location
+
+func init() {
+	location, _ = time.LoadLocation("") // "" == UTC
+}
 
 func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	var (
