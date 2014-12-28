@@ -67,7 +67,28 @@ func (Event) TableName() string {
 	return "events"
 }
 
+type EventTemplateVars struct {
+	PrevStr, NowStr, NextStr string
+	Drivers                  []byte
+}
+
+const dateFormat = "2006-01-02"
+
+var location = time.LoadLocation("") // "" == UTC
+
 func (s *Server) events(w http.ResponseWriter, r *http.Request) {
+	var (
+		t time.Time
+		e EventTemplateVars
+	)
+	form.Parse(form.ParserList{"date": form.TimeFormat{&t, dateFormat}}, r.Form)
+	if t.Unix() == 0 {
+		t = time.Now()
+	}
+	t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
+	e.PrevStr = t.AddDate(0, 0, -1).Format(dateFormat)
+	e.NowStr = t.Format(dateFormat)
+	e.NextStr = t.AddDate(0, 0, 1).Format(dateFormat)
 
 }
 
