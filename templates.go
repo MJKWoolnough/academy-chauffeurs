@@ -64,24 +64,27 @@ func (s *Server) add(w http.ResponseWriter, r *http.Request, f parserStore, v fu
 	s.pages.ExecuteTemplate(w, template, f)
 }
 func (s *Server) remove(w http.ResponseWriter, r *http.Request, f parserStore, redirect, confirmation, template string) {
-	r.ParseForm()
-	form.Parse(f, r.PostForm)
-	err := s.db.Get(f)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if r.Method == "POST" {
+		r.ParseForm()
+		form.Parse(f, r.PostForm)
+		err := s.db.Get(f)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if i, ok := f.Get()[f.Key()].(*int); !ok || *i == 0 {
+			http.Redirect(w, r, redirect, http.StatusFound)
+			return
+		}
+		if err = s.db.Delete(f); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		} else if len(r.PostForm["confirm"]) != 0 {
+			s.pages.ExecuteTemplate(w, confirmation, nil)
+			return
+		}
 	}
-	if i, ok := f.Get()[f.Key()].(*int); !ok || *i == 0 {
-		http.Redirect(w, r, redirect, http.StatusFound)
-		return
-	}
-	if len(r.PostForm["confirm"]) != 0 {
-		s.pages.ExecuteTemplate(w, confirmation, nil)
-	} else if err = s.db.Delete(f); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	} else {
-		s.pages.ExecuteTemplate(w, template, f)
-	}
+	s.pages.ExecuteTemplate(w, template, f)
 }
 
 func (s *Server) update(w http.ResponseWriter, r *http.Request, f parserStore, v func() bool, redirect, template string) {
@@ -113,6 +116,9 @@ func (s *Server) update(w http.ResponseWriter, r *http.Request, f parserStore, v
 }
 
 func (s *Server) autocomplete(w http.ResponseWriter, r *http.Request, d []store.Interface, column string) {
+	if r.Method != "POST" {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
 	r.ParseForm()
 	partial := r.PostForm.Get("partial")
 	store.Sort(d, column, true)
