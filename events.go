@@ -67,9 +67,33 @@ func (Event) TableName() string {
 	return "events"
 }
 
+type SimpleEventInfo struct {
+	TimeStart, Duration int
+	ClientName          string
+	Pickup, Destination string
+}
+
 type EventTemplateVars struct {
 	PrevStr, NowStr, NextStr string
-	Drivers                  []byte
+	Drivers                  []SimpleEventInfo
+}
+
+func (e *EventTemplateVars) BlockFilled(driver, time int) bool {
+	for _, e := range e.Drivers[driver] {
+		if time >= e.timeStart && e <= e.timeStart+e.duration {
+			return true
+		}
+	}
+	return false
+}
+
+func (e *EventTemplateVars) BlockInfo(driver, time int) SimpleEventInfo {
+	for _, e := range e.Drivers[driver] {
+		if time >= e.timeStart && e <= e.timeStart+e.duration {
+			return e
+		}
+	}
+	return nil
 }
 
 const dateFormat = "2006-01-02"
