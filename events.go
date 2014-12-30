@@ -9,15 +9,15 @@ import (
 )
 
 type Event struct {
-	ID        int
-	Start     time.Time
-	From, To  string
-	EDuration int64
-	Pickup    time.Time
-	Waiting   int64
-	Parking   int
-	Miles     int
-	ClientId  int
+	ID       int
+	Start    time.Time
+	End      time.Time
+	From, To string
+	Pickup   time.Time
+	Waiting  int64
+	Parking  int
+	Miles    int
+	ClientId int
 	Driver
 }
 
@@ -25,9 +25,9 @@ func (e *Event) Get() store.TypeMap {
 	return store.TypeMap{
 		"id":                 &e.ID,
 		"start":              &e.Start,
+		"end":                &e.End,
 		"from":               &e.From,
 		"to":                 &e.To,
-		"estimatedDuration":  &e.EDuration,
 		"pickupTime":         &e.Pickup,
 		"waitingTime":        &e.Waiting,
 		"parkingCosts":       &e.Parking,
@@ -44,9 +44,9 @@ func (e *Event) ParserList() form.ParserList {
 	return form.ParserList{
 		"id":                 form.Int{&e.ID},
 		"start":              form.Time{&e.Start},
+		"end":                form.Time{&e.End},
 		"from":               form.String{&e.From},
 		"to":                 form.String{&e.To},
-		"estimatedDuration":  form.Int64{&e.EDuration},
 		"pickupTime":         form.Time{&e.Pickup},
 		"waitingTime":        form.Int64{&e.Waiting},
 		"parkingCosts":       form.Int{&e.Parking},
@@ -67,30 +67,25 @@ func (Event) TableName() string {
 	return "events"
 }
 
-type SimpleEventInfo struct {
-	TimeStart, Duration int
-	ClientName          string
-	Pickup, Destination string
-}
-
 type EventTemplateVars struct {
 	PrevStr, NowStr, NextStr string
-	Drivers                  []SimpleEventInfo
+	Drivers                  []Driver
+	DriverEvents             [][]Event
 }
 
 func (e *EventTemplateVars) BlockFilled(driver, time int) bool {
-	for _, e := range e.Drivers[driver] {
-		if time >= e.timeStart && e <= e.timeStart+e.duration {
+	for _, event := range e.DriverEvents[driver] {
+		if time >= int(event.Start.Unix()) && time <= int(event.End.Unix()) {
 			return true
 		}
 	}
 	return false
 }
 
-func (e *EventTemplateVars) BlockInfo(driver, time int) SimpleEventInfo {
-	for _, e := range e.Drivers[driver] {
-		if time >= e.timeStart && e <= e.timeStart+e.duration {
-			return e
+func (e *EventTemplateVars) BlockInfo(driver, time int) *Event {
+	for _, e := range e.DriverEvents[driver] {
+		if time >= int(e.Start.Unix()) && time <= int(e.End.Unix()) {
+			return &e
 		}
 	}
 	return nil
@@ -117,7 +112,49 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	e.PrevStr = t.AddDate(0, 0, -1).Format(dateFormat)
 	e.NowStr = t.Format(dateFormat)
 	e.NextStr = t.AddDate(0, 0, 1).Format(dateFormat)
-
+	numDrivers, err := s.db.SearchCount(new(Driver))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	e.Drivers = make([]Driver, numDrivers)
+	driversI := make([]store.Interface, numDrivers)
+	for i := 0; i < numDrivers; i++ {
+		driversI[i] = &e.Drivers[i]
+	}
+	_, err = s.db.Search(store.Sort(driversI, "name", true), 0)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	e.DriverEvents = make([][]Event, numDrivers)
+	startTime := int(t.Unix())
+	endTime := int(t.AddDate(0, 0, 1).Unix())
+	for i := 0; i < numDrivers; i++ {
+		searchers := []store.Searcher{
+			store.MatchInt("driverId", e.Drivers[i].ID),
+			store.Or(
+				store.Between("start", startTime, endTime),
+				store.Between("end", startTime, endTime),
+			),
+		}
+		numEvents, err := s.db.SearchCount(new(Event), searchers...)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		e.DriverEvents[i] = make([]Event, numEvents)
+		eventsI := make([]store.Interface, numEvents)
+		for j := 0; j < numEvents; j++ {
+			eventsI[j] = &e.DriverEvents[i][j]
+		}
+		_, err = s.db.Search(eventsI, 0, searchers...)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+	s.pages.ExecuteTemplate(w, "events.html", &e)
 }
 
 func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
