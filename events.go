@@ -67,15 +67,19 @@ func (Event) TableName() string {
 	return "events"
 }
 
-type EventTemplateVars struct {
-	PrevStr, NowStr, NextStr string
-	Drivers                  []Driver
-	DriverEvents             [][]Event
+func (e *Event) NumBlocks() time.Duration {
+	return e.End.Sub(e.Start) / blockDuration
 }
 
-func (e *EventTemplateVars) BlockFilled(driver, time int) bool {
+type EventTemplateVars struct {
+	today        time.Time
+	Drivers      []Driver
+	DriverEvents [][]Event
+}
+
+func (e *EventTemplateVars) BlockFilled(driver int, t int) bool {
 	for _, event := range e.DriverEvents[driver] {
-		if time >= int(event.Start.Unix()) && time <= int(event.End.Unix()) {
+		if t >= int(event.Start.Unix()) && t <= int(event.End.Unix()) {
 			return true
 		}
 	}
@@ -91,7 +95,26 @@ func (e *EventTemplateVars) BlockInfo(driver, time int) *Event {
 	return nil
 }
 
-const dateFormat = "2006-01-02"
+func (e *EventTemplateVars) Date(d int) string {
+	e.today.AddDate(0, 0, d).Format(dateFormat)
+}
+
+func (e *EventTemplateVars) BlockTimes() []time.Time {
+	t := e.today.AddDate(0, 0, 0)
+	tomorrow := e.today.AddDate(0, 0, 1)
+	times := make([]time.Time, 0, time.Hour*24/blockDuration)
+	for t.Before(tomorrow) {
+		times = append(times, t)
+		t = t.Add(blockDuration)
+	}
+	return times
+}
+
+const (
+	blockDuration = time.Minute * 15
+	dateFormat    = "2006-01-02"
+	timeFormat    = "15:04"
+)
 
 var location *time.Location
 
@@ -108,10 +131,7 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	if t.Unix() == 0 {
 		t = time.Now()
 	}
-	t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
-	e.PrevStr = t.AddDate(0, 0, -1).Format(dateFormat)
-	e.NowStr = t.Format(dateFormat)
-	e.NextStr = t.AddDate(0, 0, 1).Format(dateFormat)
+	e.today = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
 	numDrivers, err := s.db.SearchCount(new(Driver))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
