@@ -1,0 +1,12 @@
+{{template "header.html" args "Events" "default"}}
+		<table>
+			<tr>
+				<th>Time</th>
+{{range .Drivers}}				<th><a href="updatedriver?id={{.ID}}">{{.Name}}</a></th>
+{{end}}			</tr>
+{{$data := .}}{{range .BlockTimes}}			<tr>
+				<td>{{.Format "15:04"}}</td>
+{{range $driverNum, $driver := $data.Drivers}}				<td></td>
+{{end}}{{end}}
+		</table>
+{{template "footer.html"}}
