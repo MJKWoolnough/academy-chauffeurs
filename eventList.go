@@ -37,7 +37,7 @@ func (e *EventTemplateVars) BlockInfo(driver, time int) *Event {
 }
 
 func (e *EventTemplateVars) Date(d int) string {
-	e.today.AddDate(0, 0, d).Format(dateFormat)
+	return e.today.AddDate(0, 0, d).Format(dateFormat)
 }
 
 func (e *EventTemplateVars) BlockTimes() []time.Time {
