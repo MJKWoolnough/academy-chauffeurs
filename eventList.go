@@ -89,8 +89,8 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	e.DriverEvents = make([][]Event, numDrivers)
-	startTime := int(t.Unix())
-	endTime := int(t.AddDate(0, 0, 1).Unix())
+	startTime := int(e.today.Unix())
+	endTime := int(e.today.AddDate(0, 0, 1).Unix())
 	for i := 0; i < numDrivers; i++ {
 		searchers := []store.Searcher{
 			store.MatchInt("driverId", e.Drivers[i].ID),
