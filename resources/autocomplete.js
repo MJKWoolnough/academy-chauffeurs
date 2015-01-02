@@ -1,6 +1,7 @@
 (function () {
 	"use strict";
 	var ns = document.getElementsByTagName("HTML")[0].namespaceURI,
+	cache = {},
 	removeChildren = function (node) {
 		while (node.hasChildNodes()) {
 			node.removeChild(node.firstChild);
@@ -11,6 +12,31 @@
 			input.value = data;
 			errDiv.textContent = "";
 			removeChildren(list);
+		}
+	},
+	writeSuggestions = function(data, text, input, list, errDiv) {
+		removeChildren(list);
+		if (data.length === 0) {
+			errDiv.textContent = "No matching company";
+		} else if (data.length === 1 && data[0] === text) {
+			return;
+		}
+		for (var i = 0; i < data.length; i++) {
+			var li = document.createElementNS(ns, "li"),
+			jData = data[i],
+			startPos = jData.toUpperCase().indexOf(text.toUpperCase()),
+			matchHighlight = document.createElementNS(ns, "b");
+			if (i % 2 === 0) {
+				li.className = "even";
+			} else {
+				li.className = "odd";
+			}
+			li.appendChild(document.createTextNode(jData.slice(0, startPos)));
+			matchHighlight.appendChild(document.createTextNode(jData.slice(startPos, startPos+text.length)));
+			li.appendChild(matchHighlight);
+			li.appendChild(document.createTextNode(jData.slice(startPos+text.length)));
+			li.addEventListener("click", setCompleted(data[i], input, list, errDiv));
+			list.appendChild(li);
 		}
 	},
 	autocompleteIt = function (url, input, list, errDiv) {
@@ -24,38 +50,21 @@
 			var xh = new XMLHttpRequest(),
 			text = input.value,
 			data = "partial="+encodeURIComponent(text).replace(/%20/g, '+');
+			if (cache.hasOwnProperty(text.toLowerCase())) {
+				writeSuggestions(cache[text.toLowerCase()], text, input, list, errDiv);
+				return;
+			}
 			xh.open("POST", url, true);
 			xh.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			xh.setRequestHeader("Content-length", data.length);
 			xh.setRequestHeader("Connection", "close");
 			xh.onreadystatechange = function() {
 				if (xh.readyState === 4 && xh.status === 200) {
-					var jsonData = JSON.parse(xh.responseText), i;
+					var jsonData = JSON.parse(xh.responseText);
+					cache[text.toLowerCase()] = jsonData.Data;
 					if (jsonData.Time > latest) {
 						latest = jsonData.Time;
-						removeChildren(list);
-						if (jsonData.Data.length === 0) {
-							errDiv.textContent = "No matching company";
-						} else if (jsonData.Data.length === 1 && jsonData.Data[0] === text) {
-							return;
-						}
-						for (i = 0; i < jsonData.Data.length; i++) {
-							var li = document.createElementNS(ns, "li"),
-							jData = jsonData.Data[i],
-							startPos = jData.toUpperCase().indexOf(text.toUpperCase()),
-							matchHighlight = document.createElementNS(ns, "b");
-							if (i % 2 === 0) {
-								li.className = "even";
-							} else {
-								li.className = "odd";
-							}
-							li.appendChild(document.createTextNode(jData.slice(0, startPos)));
-							matchHighlight.appendChild(document.createTextNode(jData.slice(startPos, startPos+text.length)));
-							li.appendChild(matchHighlight);
-							li.appendChild(document.createTextNode(jData.slice(startPos+text.length)));
-							li.addEventListener("click", setCompleted(jsonData.Data[i], input, list, errDiv));
-							list.appendChild(li);
-						}
+						writeSuggestions(jsonData.Data, text, input, list, errDiv)
 					}
 				}
 			};
