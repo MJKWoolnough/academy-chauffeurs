@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -8,8 +9,29 @@ import (
 	"github.com/MJKWoolnough/store"
 )
 
-func (e *Event) NumBlocks() time.Duration {
-	return e.End.Sub(e.Start) / blockDuration
+const (
+	blockDuration = time.Minute * 15
+	maxBlocks     = int(time.Hour * 24 / blockDuration)
+	dateFormat    = "2006-01-02"
+	timeFormat    = "15:04"
+)
+
+func (e *Event) Empty() bool {
+	return e == nil
+}
+
+func (e *Event) NumBlocks(t time.Time) int {
+	if e == nil {
+		return 1
+	}
+	var nb int
+	if t.Equal(e.Start) || t.Hour() == 0 && t.Minute() == 0 {
+		nb = int(e.End.Sub(t) / blockDuration)
+		if nb > maxBlocks {
+			nb = maxBlocks
+		}
+	}
+	return nb
 }
 
 type EventTemplateVars struct {
@@ -18,18 +40,9 @@ type EventTemplateVars struct {
 	DriverEvents [][]Event
 }
 
-func (e *EventTemplateVars) BlockFilled(driver int, t int) bool {
-	for _, event := range e.DriverEvents[driver] {
-		if t >= int(event.Start.Unix()) && t <= int(event.End.Unix()) {
-			return true
-		}
-	}
-	return false
-}
-
-func (e *EventTemplateVars) BlockInfo(driver, time int) *Event {
+func (e *EventTemplateVars) BlockInfo(driver int, time time.Time) *Event {
 	for _, e := range e.DriverEvents[driver] {
-		if time >= int(e.Start.Unix()) && time <= int(e.End.Unix()) {
+		if !time.Before(e.Start) && !time.After(e.End) {
 			return &e
 		}
 	}
@@ -51,12 +64,6 @@ func (e *EventTemplateVars) BlockTimes() []time.Time {
 	return times
 }
 
-const (
-	blockDuration = time.Minute * 15
-	dateFormat    = "2006-01-02"
-	timeFormat    = "15:04"
-)
-
 var location *time.Location
 
 func init() {
@@ -68,8 +75,8 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 		t time.Time
 		e EventTemplateVars
 	)
-	form.Parse(form.ParserList{"date": form.TimeFormat{&t, dateFormat}}, r.Form)
-	if t.Unix() == 0 {
+	err := form.Parse(form.ParserList{"date": form.TimeFormat{&t, dateFormat}}, r.Form)
+	if err != nil || r.Form.Get("date") == "" {
 		t = time.Now()
 	}
 	e.today = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
@@ -115,5 +122,7 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	s.pages.ExecuteTemplate(w, "events.html", &e)
+	if err := s.pages.ExecuteTemplate(w, "events.html", &e); err != nil {
+		log.Println(err)
+	}
 }
