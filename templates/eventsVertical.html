@@ -7,7 +7,7 @@
 {{end}}				<th><a href="adddriver">+</a></td>
 			</tr>
 {{$data := .}}{{range .BlockTimes}}			<tr>
-				<td>{{.Format "15:04"}}</td>
+				<th>{{.Format "15:04"}}</th>
 {{$time := .}}{{range $driverNum, $driver := $data.Drivers}}{{$event := $data.BlockInfo $driverNum $time}}{{if $event.Empty}}				<td><a href="addevent?time={{$time.Unix}}">Empty</a></td>
 {{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}				<td rowspan="{{$numBlocks}}">Event</td>
 {{end}}{{end}}{{end}}				<td><td>
