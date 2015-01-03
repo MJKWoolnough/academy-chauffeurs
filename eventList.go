@@ -14,6 +14,7 @@ const (
 	maxBlocks     = int(time.Hour * 24 / blockDuration)
 	dateFormat    = "2006-01-02"
 	timeFormat    = "15:04"
+	eventLayout   = "eventsHorizontal.html"
 )
 
 func (e *Event) Empty() bool {
@@ -122,7 +123,7 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if err := s.pages.ExecuteTemplate(w, "events.html", &e); err != nil {
+	if err := s.pages.ExecuteTemplate(w, eventLayout, &e); err != nil {
 		log.Println(err)
 	}
 }
