@@ -43,8 +43,8 @@ func (e *Event) Get() store.TypeMap {
 func (e *Event) ParserList() form.ParserList {
 	return form.ParserList{
 		"id":                 form.Int{&e.ID},
-		"start":              form.Time{&e.Start},
-		"end":                form.Time{&e.End},
+		"start":              form.UnixTime{&e.Start},
+		"end":                form.UnixTime{&e.End},
 		"from":               form.String{&e.From},
 		"to":                 form.String{&e.To},
 		"pickupTime":         form.Time{&e.Pickup},

@@ -8,7 +8,7 @@
 			</tr>
 {{range $driverNum, $driver := .Drivers}}			<tr>
 				<th><a href="updatedriver?id={{.ID}}">{{.Name}}</a></th>
-{{range $times}}{{$event := $data.BlockInfo $driverNum .}}{{if $event.Empty}}				<td><a href="addevent?time={{.Unix}}">Empty</a></td>
+{{range $times}}{{$event := $data.BlockInfo $driverNum .}}{{if $event.Empty}}				<td><a href="addevent?start={{.Unix}}">Empty</a></td>
 {{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}					<td rowspan="{{$numBlocks}}">Event</td>
 {{end}}{{end}}{{end}}
 			</tr>
