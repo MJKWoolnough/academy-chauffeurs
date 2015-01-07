@@ -76,7 +76,7 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 		t time.Time
 		e EventTemplateVars
 	)
-	err := form.Parse(form.ParserList{"date": form.TimeFormat{&t, dateFormat}}, r.Form)
+	err := form.ParseValue("date", form.TimeFormat{&t, dateFormat}, r.Form)
 	if err != nil || r.Form.Get("date") == "" {
 		t = time.Now()
 	}
