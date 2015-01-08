@@ -67,6 +67,16 @@ func (Event) TableName() string {
 	return "events"
 }
 
+func (s *Server) events(w http.ResponseWriter, r *http.Request) {
+	var t time.Time
+	r.ParseForm()
+	err := form.ParseValue("date", form.TimeFormat{&t, dateFormat}, r.Form)
+	if err != nil || r.Form.Get("date") == "" {
+		t = time.Now()
+	}
+	s.eventList(w, r, t, 0)
+}
+
 func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
 
 }

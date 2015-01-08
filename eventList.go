@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/MJKWoolnough/form"
 	"github.com/MJKWoolnough/store"
 )
 
@@ -39,6 +38,7 @@ type EventTemplateVars struct {
 	today        time.Time
 	Drivers      []Driver
 	DriverEvents [][]Event
+	Mode         int
 }
 
 func (e *EventTemplateVars) BlockInfo(driver int, time time.Time) *Event {
@@ -71,16 +71,16 @@ func init() {
 	location, _ = time.LoadLocation("") // "" == UTC
 }
 
-func (s *Server) events(w http.ResponseWriter, r *http.Request) {
-	var (
-		t time.Time
-		e EventTemplateVars
-	)
-	err := form.ParseValue("date", form.TimeFormat{&t, dateFormat}, r.Form)
-	if err != nil || r.Form.Get("date") == "" {
-		t = time.Now()
-	}
+const (
+	ModeNormal int = iota
+	ModeAddStart
+	ModeAddEnd
+)
+
+func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, mode int) {
+	var e EventTemplateVars
 	e.today = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
+	e.Mode = mode
 	numDrivers, err := s.db.SearchCount(new(Driver))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
