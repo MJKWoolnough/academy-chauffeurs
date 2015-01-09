@@ -35,6 +35,7 @@ func (e *Event) NumBlocks(t time.Time) int {
 }
 
 type EventTemplateVars struct {
+	Event        *Event
 	today        time.Time
 	Drivers      []Driver
 	DriverEvents [][]Event
@@ -77,8 +78,9 @@ const (
 	ModeAddEnd
 )
 
-func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, mode int) {
+func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, mode int, event *Event) {
 	var e EventTemplateVars
+	e.Event = event
 	e.today = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
 	e.Mode = mode
 	numDrivers, err := s.db.SearchCount(new(Driver))

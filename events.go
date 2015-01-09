@@ -74,7 +74,7 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	if err != nil || r.Form.Get("date") == "" {
 		t = time.Now()
 	}
-	s.eventList(w, r, t, 0)
+	s.eventList(w, r, t, ModeNormal, nil)
 }
 
 func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
