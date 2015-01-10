@@ -77,14 +77,62 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	s.eventList(w, r, t, ModeNormal, nil)
 }
 
-func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
+type EventErrors struct {
+	Event
+	FromError, ToError string
+}
 
+func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
+	var e EventErrors
+	r.ParseForm()
+	form.Parse(&e, r.PostForm)
+	s.addUpdateEvent(w, r, &e, 0)
+}
+
+func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, e *EventErrors, forcePage int) {
+	date := time.Now()
+	form.ParseValue("date", form.TimeFormat{&date, dateFormat}, r.PostForm)
+	if e.Start.IsZero() {
+		forcePage = 1
+		e.Start = time.Now()
+	}
+	if forcePage == 1 {
+		e.Start = normaliseDay(e.Start)
+		s.eventList(w, r, date, ModeStart, &e.Event)
+		return
+	}
+	if e.End.IsZero() || !e.End.After(e.Start) || forcePage == 2 {
+		e.End = normaliseDay(e.Start)
+		s.eventList(w, r, date, ModeEnd, &e.Event)
+		return
+	}
+	if r.PostForm.Get("submit") != "" {
+		good := true
+		// Check values for errors - set errors
+		if good {
+			// add to/update store
+			http.Redirect(w, r, "events?date="+e.Start.Format(dateFormat), http.StatusFound)
+			return
+		}
+	}
+	s.pages.ExecuteTemplate(w, "addUpdateEvent.html", e)
 }
 
 func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
-
+	var (
+		e         EventErrors
+		forcePage int
+	)
+	r.ParseForm()
+	form.Parse(&e, r.PostForm)
+	form.ParseValue("force", form.Int{&forcePage}, r.PostForm)
+	s.addUpdateEvent(w, r, &e, forcePage)
 }
 
 func (s *Server) removeEvent(w http.ResponseWriter, r *http.Request) {
 	s.remove(w, r, new(Event), "event", "eventRemoveConfirmation.html", "eventRemove.html")
+}
+
+func normaliseDay(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
 }
