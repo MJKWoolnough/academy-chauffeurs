@@ -74,8 +74,8 @@ func init() {
 
 const (
 	ModeNormal int = iota
-	ModeAddStart
-	ModeAddEnd
+	ModeStart
+	ModeEnd
 )
 
 func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, mode int, event *Event) {
