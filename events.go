@@ -124,6 +124,20 @@ func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
 		forcePage int
 	)
 	r.ParseForm()
+	form.ParseValue("id", form.Int{&e.ID})
+	if e.ID == 0 {
+		http.Redirect(w, r, "events", http.StatusFound)
+		return
+	}
+	err := s.db.Get(e)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if e.ID == 0 {
+		http.Redirect(w, r, "events", http.StatusFound)
+		return
+	}
 	form.Parse(&e, r.PostForm)
 	form.ParseValue("force", form.Int{&forcePage}, r.PostForm)
 	s.addUpdateEvent(w, r, &e, forcePage)
