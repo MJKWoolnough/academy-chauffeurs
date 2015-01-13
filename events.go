@@ -79,19 +79,27 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 
 type EventErrors struct {
 	Event
-	FromError, ToError string
+	ClientName                                   string
+	FromError, ToError, ClientError, DriverError string
+}
+
+func (e *EventErrors) ParserList() form.ParserList {
+	pl := e.Event.ParserList()
+	pl["clientName"] = form.String{&e.ClientName}
+	return pl
 }
 
 func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
-	var e EventErrors
 	r.ParseForm()
-	form.Parse(&e, r.PostForm)
-	s.addUpdateEvent(w, r, &e, 0)
+	s.addUpdateEvent(w, r, Event{}, 0)
 }
 
-func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, e *EventErrors, forcePage int) {
+func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event, forcePage int) {
 	date := time.Now()
+	e := EventErrors{Event: ev}
+	form.Parse(&e, r.PostForm)
 	form.ParseValue("date", form.TimeFormat{&date, dateFormat}, r.PostForm)
+	form.ParseValue("clientName", form.String{&e.ClientName}, r.PostForm)
 	if e.Start.IsZero() {
 		forcePage = 1
 		e.Start = time.Now()
@@ -108,28 +116,69 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, e *Event
 	}
 	if r.PostForm.Get("submit") != "" {
 		good := true
-		// Check values for errors - set errors
+		if e.From == "" {
+			good = false
+			e.FromError = "From Address Required"
+		}
+		if e.To == "" {
+			good = false
+			e.ToError = "Destination Address Required"
+		}
+		var c Client
+		_, err := s.db.Search([]store.Interface{&c}, 0, store.MatchString("name", e.ClientName))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		e.ClientId = c.ID
+		var d Driver
+		_, err = s.db.Search([]store.Interface{&d}, 0, store.MatchString("name", e.Driver.Name))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		e.Driver.ID = d.ID
+		if e.ClientId == 0 {
+			good = false
+			e.ClientError = "Unknown Client Name"
+		}
+		if e.Driver.ID == 0 {
+			good = false
+			e.DriverError = "Unknown Driver Name"
+		}
 		if good {
-			// add to/update store
+			_, err := s.db.Set(&e)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 			http.Redirect(w, r, "events?date="+e.Start.Format(dateFormat), http.StatusFound)
 			return
 		}
+	} else {
+		c := Client{ID: e.ClientId}
+		err := s.db.Get(&c)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		e.ClientName = c.Name
 	}
 	s.pages.ExecuteTemplate(w, "addUpdateEvent.html", e)
 }
 
 func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
 	var (
-		e         EventErrors
+		e         Event
 		forcePage int
 	)
 	r.ParseForm()
-	form.ParseValue("id", form.Int{&e.ID})
+	form.ParseValue("id", form.Int{&e.ID}, r.PostForm)
 	if e.ID == 0 {
 		http.Redirect(w, r, "events", http.StatusFound)
 		return
 	}
-	err := s.db.Get(e)
+	err := s.db.Get(&e)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -138,9 +187,8 @@ func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "events", http.StatusFound)
 		return
 	}
-	form.Parse(&e, r.PostForm)
 	form.ParseValue("force", form.Int{&forcePage}, r.PostForm)
-	s.addUpdateEvent(w, r, &e, forcePage)
+	s.addUpdateEvent(w, r, e, forcePage)
 }
 
 func (s *Server) removeEvent(w http.ResponseWriter, r *http.Request) {
