@@ -69,12 +69,13 @@ func main() {
 	http.HandleFunc("/removecompany", s.removeCompany)
 
 	http.HandleFunc("/events", s.events)
-	http.HandleFunc("/addEvent", s.addEvent)
-	http.HandleFunc("/updateEvent", s.updateEvent)
+	http.HandleFunc("/addevent", s.addEvent)
+	http.HandleFunc("/updateevent", s.updateEvent)
 	http.HandleFunc("/removeevent", s.removeEvent)
 
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("/home/michael/Programming/Go/src/github.com/MJKWoolnough/academy-chauffeurs/resources/"))))
 
+	http.Handle("/", http.RedirectHandler("/events", http.StatusFound))
 	l, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalln(err)
