@@ -70,8 +70,8 @@ func (Event) TableName() string {
 func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	var t time.Time
 	r.ParseForm()
-	err := form.ParseValue("date", form.TimeFormat{&t, dateFormat}, r.Form)
-	if err != nil || r.Form.Get("date") == "" {
+	form.ParseValue("date", form.TimeFormat{&t, dateFormat}, r.Form)
+	if t.IsZero() {
 		t = time.Now()
 	}
 	s.eventList(w, r, t, ModeNormal, nil)
