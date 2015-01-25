@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/MJKWoolnough/store"
@@ -13,7 +14,7 @@ const (
 	maxBlocks     = int(time.Hour * 24 / blockDuration)
 	dateFormat    = "2006-01-02"
 	timeFormat    = "15:04"
-	eventLayout   = "eventsHorizontal.html"
+	eventLayout   = "eventsHorizontal"
 )
 
 func (e *Event) Empty() bool {
@@ -37,9 +38,9 @@ func (e *Event) NumBlocks(t time.Time) int {
 type EventTemplateVars struct {
 	Event        *Event
 	today        time.Time
+	nextEvent    time.Time
 	Drivers      []Driver
 	DriverEvents [][]Event
-	Mode         int
 }
 
 func (e *EventTemplateVars) BlockInfo(driver int, time time.Time) *Event {
@@ -66,6 +67,10 @@ func (e *EventTemplateVars) BlockTimes() []time.Time {
 	return times
 }
 
+func (e *EventTemplateVars) ValidEnd(t time.Time) bool {
+	return e.Event.Start.Before(t) && t.Before(e.nextEvent)
+}
+
 var location *time.Location
 
 func init() {
@@ -82,7 +87,6 @@ func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, 
 	var e EventTemplateVars
 	e.Event = event
 	e.today = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
-	e.Mode = mode
 	numDrivers, err := s.db.SearchCount(new(Driver))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -125,7 +129,16 @@ func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, 
 			return
 		}
 	}
-	if err := s.pages.ExecuteTemplate(w, eventLayout, &e); err != nil {
+	if mode == ModeEnd {
+		var p Event
+		s.db.Search(store.Sort([]store.Interface{&p}, "start", true), 0, store.MatchInt("driverId", e.Event.Driver.ID), store.GreaterThan("start", int(e.Event.Start.Unix())))
+		if p.Start.IsZero() {
+			e.nextEvent = e.Event.Start.Add(time.Hour * 24 * 28)
+		} else {
+			e.nextEvent = p.Start
+		}
+	}
+	if err := s.pages.ExecuteTemplate(w, eventLayout+strconv.Itoa(mode)+".html", &e); err != nil {
 		log.Println(err)
 	}
 }

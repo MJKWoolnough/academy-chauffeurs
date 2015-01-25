@@ -164,7 +164,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 		}
 		e.ClientName = c.Name
 	}
-	s.pages.ExecuteTemplate(w, "addUpdateEvent.html", e)
+	s.pages.ExecuteTemplate(w, "eventEditDetails.html", e)
 }
 
 func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
