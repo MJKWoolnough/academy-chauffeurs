@@ -1,6 +1,10 @@
 {{template "header.html" args "Events" "default"}}{{$data := .}}{{$times := .BlockTimes}}
-		<h2>{{.Date 0}}</h2>
 		<form action="?" method="post">
+			<div id="dates">
+				<input type="submit" name="date" value="{{.Date -1}}" />
+				{{.Date 0}}
+				<input type="submit" name="date" value="{{.Date 1}}" />
+			</div>
 {{if ne .Event.ID 0}}			<input type="hidden" name="id" value="{{.Event.ID}}" />
 {{end}}			<input type="hidden" name="driver" value="{{$data.Event.Driver.ID}}" />
 			<input type="hidden" name="start" value="{{.Event.Start.Unix}}" />

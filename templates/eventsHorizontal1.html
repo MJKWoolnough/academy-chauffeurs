@@ -1,5 +1,12 @@
 {{template "header.html" args "Events" "default"}}{{$data := .}}{{$times := .BlockTimes}}
-		<h2>{{.Date 0}}</h2>
+		<form action="?" method="get">
+{{if ne .Event.ID 0}}			<input type="hidden" name="id" value="{{.Event.ID}}" />
+{{end}}			<div id="dates">
+				<input type="submit" name="date" value="{{.Date -1}}" />
+				{{.Date 0}}
+				<input type="submit" name="date" value="{{.Date 1}}" />
+			</div>
+		</form>
 		<table>
 			<tr>
 				<th>Driver</th>
