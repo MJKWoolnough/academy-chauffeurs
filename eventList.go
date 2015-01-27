@@ -37,8 +37,8 @@ func (e *Event) NumBlocks(t time.Time) int {
 
 type EventTemplateVars struct {
 	Event        *Event
-	today        time.Time
-	nextEvent    time.Time
+	Today        time.Time
+	NextEvent    time.Time
 	Drivers      []Driver
 	DriverEvents [][]Event
 }
@@ -53,12 +53,12 @@ func (e *EventTemplateVars) BlockInfo(driver int, time time.Time) *Event {
 }
 
 func (e *EventTemplateVars) Date(d int) string {
-	return e.today.AddDate(0, 0, d).Format(dateFormat)
+	return e.Today.AddDate(0, 0, d).Format(dateFormat)
 }
 
 func (e *EventTemplateVars) BlockTimes() []time.Time {
-	t := e.today.AddDate(0, 0, 0)
-	tomorrow := e.today.AddDate(0, 0, 1)
+	t := e.Today.AddDate(0, 0, 0)
+	tomorrow := e.Today.AddDate(0, 0, 1)
 	times := make([]time.Time, 0, time.Hour*24/blockDuration)
 	for t.Before(tomorrow) {
 		times = append(times, t)
@@ -68,7 +68,7 @@ func (e *EventTemplateVars) BlockTimes() []time.Time {
 }
 
 func (e *EventTemplateVars) ValidEnd(t time.Time) bool {
-	return e.Event.Start.Before(t) && t.Before(e.nextEvent)
+	return e.Event.Start.Before(t) && t.Before(e.NextEvent)
 }
 
 var location *time.Location
@@ -86,7 +86,7 @@ const (
 func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, mode int, event *Event) {
 	var e EventTemplateVars
 	e.Event = event
-	e.today = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
+	e.Today = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
 	numDrivers, err := s.db.SearchCount(new(Driver))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -103,8 +103,8 @@ func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, 
 		return
 	}
 	e.DriverEvents = make([][]Event, numDrivers)
-	startTime := int(e.today.Unix())
-	endTime := int(e.today.AddDate(0, 0, 1).Unix())
+	startTime := int(e.Today.Unix())
+	endTime := int(e.Today.AddDate(0, 0, 1).Unix())
 	for i := 0; i < numDrivers; i++ {
 		searchers := []store.Searcher{
 			store.MatchInt("driverId", e.Drivers[i].ID),
@@ -133,9 +133,9 @@ func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, 
 		var p Event
 		s.db.Search(store.Sort([]store.Interface{&p}, "start", true), 0, store.MatchInt("driverId", e.Event.Driver.ID), store.GreaterThan("start", int(e.Event.Start.Unix())))
 		if p.Start.IsZero() {
-			e.nextEvent = e.Event.Start.Add(time.Hour * 24 * 28)
+			e.NextEvent = e.Event.Start.Add(time.Hour * 24 * 28)
 		} else {
-			e.nextEvent = p.Start
+			e.NextEvent = p.Start
 		}
 	}
 	if err := s.pages.ExecuteTemplate(w, eventLayout+strconv.Itoa(mode)+".html", &e); err != nil {

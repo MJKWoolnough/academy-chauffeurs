@@ -1,9 +1,9 @@
 {{template "header.html" args "Events" "default"}}{{$data := .}}{{$times := .BlockTimes}}
 		<form action="?" method="post">
 			<div id="dates">
-				<input type="submit" name="date" value="{{.Date -1}}" />
+				<input type="submit" name="date" value="{{.Date -1}}" {{if .Event.Start.Before .Today}}{{else}}disabled="disabled" {{end}}/>
 				{{.Date 0}}
-				<input type="submit" name="date" value="{{.Date 1}}" />
+				<input type="submit" name="date" value="{{.Date 1}}" {{if .Today.Before .NextEvent }}{{else}}disabled="disabled" {{end}}/>
 			</div>
 {{if ne .Event.ID 0}}			<input type="hidden" name="id" value="{{.Event.ID}}" />
 {{end}}			<input type="hidden" name="driver" value="{{$data.Event.Driver.ID}}" />
@@ -20,4 +20,4 @@
 {{end}}{{end}}{{end}}					</tr>
 {{end}}			</table>
 		</form>
-{{template "footer.html"}}
+		{{template "footer.html"}}
