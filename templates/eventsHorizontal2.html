@@ -1,4 +1,4 @@
-{{template "header.html" args "Events" "default"}}{{$data := .}}{{$times := .BlockTimes}}
+{{template "header.html" args "Events" "eventListH"}}{{$data := .}}{{$times := .BlockTimes}}
 		<form action="?" method="post">
 			<div id="dates">
 				<input type="submit" name="date" value="{{.Date -1}}" {{if .Event.Start.Before .Today}}{{else}}disabled="disabled" {{end}}/>
@@ -15,7 +15,7 @@
 {{end}}					</tr>
 {{range $driverNum, $driver := .Drivers}}					<tr>
 						<th>{{.Name}}</th>
-{{range $times}}{{$event := $data.BlockInfo $driverNum .}}{{if $event.Empty}}						<td>{{if eq $driverNum $data.Event.Driver.ID}}{{if $data.ValidEnd .}}<input type="submit" name="end" value="{{.Unix}}" />{{end}}{{end}}</td>
+{{range $times}}{{$event := $data.BlockInfo $driverNum .}}{{if $event.Empty}}						<td{{if eq $driverNum $data.Event.Driver.ID}}{{if .Equal $data.Event.Start}} id="start"{{end}}{{end}}>{{if eq $driverNum $data.Event.Driver.ID}}{{if $data.ValidEnd .}}<input type="submit" name="end" value="{{.Unix}}" />{{else}}&nbsp;{{end}}{{else}}&nbsp;{{end}}</td>
 {{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}							<td rowspan="{{$numBlocks}}">Event</td>
 {{end}}{{end}}{{end}}					</tr>
 {{end}}			</table>
