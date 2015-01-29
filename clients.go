@@ -13,7 +13,6 @@ const clientsPerPage = 20
 type Client struct {
 	ID, CompanyID                                int
 	Name, CompanyName, Reference, Address, Phone string
-	db                                           *store.Store
 }
 
 func (c *Client) Get() store.TypeMap {
@@ -38,22 +37,22 @@ func (c *Client) ParserList() form.ParserList {
 	}
 }
 
-func (c *Client) GetCompanyName() string {
+func (c *Client) GetCompanyName(db *store.Store) string {
 	if c.CompanyID == 0 || c.CompanyName != "" {
 		return c.CompanyName
 	}
 	comp := Company{ID: c.CompanyID}
-	c.db.Get(&comp)
+	db.Get(&comp)
 	c.CompanyName = comp.Name
 	return c.CompanyName
 }
 
-func (c *Client) GetCompanyID() int {
+func (c *Client) GetCompanyID(db *store.Store) int {
 	if c.CompanyName == "" || c.CompanyID > 0 {
 		return c.CompanyID
 	}
 	var comp Company
-	c.db.Search([]store.Interface{&comp}, 0, store.MatchString("name", c.CompanyName))
+	db.Search([]store.Interface{&comp}, 0, store.MatchString("name", c.CompanyName))
 	c.CompanyID = comp.ID
 	return c.CompanyID
 }
@@ -84,8 +83,7 @@ func (s *Server) clients(w http.ResponseWriter, r *http.Request) {
 	}
 	s.list(w, r, data, "clients.html", func(n int, p pagination.Pagination) interface{} {
 		for i := 0; i < n; i++ {
-			clients[i].db = s.db
-			clients[i].GetCompanyName()
+			clients[i].GetCompanyName(s.db)
 		}
 		return ClientListPageVars{
 			clients[:n],
@@ -95,7 +93,7 @@ func (s *Server) clients(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) addClient(w http.ResponseWriter, r *http.Request) {
-	c := clientErrors{Client: Client{db: s.db}}
+	var c clientErrors
 	s.add(w, r, &c, func() bool {
 		good := true
 		if c.Name == "" {
@@ -114,7 +112,7 @@ func (s *Server) addClient(w http.ResponseWriter, r *http.Request) {
 			good = false
 			c.PhoneError = "Valid Phone Number Required"
 		}
-		c.GetCompanyID()
+		c.GetCompanyID(s.db)
 		if c.CompanyID == 0 {
 			good = false
 			c.CompanyNameError = "Unknown Company"
