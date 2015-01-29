@@ -9,15 +9,16 @@ import (
 )
 
 type Event struct {
-	ID       int
-	Start    time.Time
-	End      time.Time
-	From, To string
-	Pickup   time.Time
-	Waiting  int64
-	Parking  int
-	Miles    int
-	ClientId int
+	ID         int
+	Start      time.Time
+	End        time.Time
+	From, To   string
+	Pickup     time.Time
+	Waiting    int64
+	Parking    int
+	Miles      int
+	ClientID   int
+	ClientName string
 	Driver
 }
 
@@ -32,7 +33,7 @@ func (e *Event) Get() store.TypeMap {
 		"waitingTime":        &e.Waiting,
 		"parkingCosts":       &e.Parking,
 		"milesDriver":        &e.Miles,
-		"clientId":           &e.ClientId,
+		"clientId":           &e.ClientID,
 		"driverId":           &e.Driver.ID,
 		"driverName":         &e.Driver.Name,
 		"driverRegistration": &e.Driver.Registration,
@@ -51,7 +52,7 @@ func (e *Event) ParserList() form.ParserList {
 		"waitingTime":        form.Int64{&e.Waiting},
 		"parkingCosts":       form.Int{&e.Parking},
 		"milesDriver":        form.Int{&e.Miles},
-		"clientId":           form.Int{&e.ClientId},
+		"clientName":         form.String{&e.ClientName},
 		"driverId":           form.Int{&e.Driver.ID},
 		"driverName":         form.String{&e.Driver.Name},
 		"driverRegistration": form.String{&e.Driver.Registration},
@@ -65,6 +66,26 @@ func (Event) Key() string {
 
 func (Event) TableName() string {
 	return "events"
+}
+
+func (e *Event) GetClientName(db *store.Store) string {
+	if e.ClientID == 0 || e.ClientName != "" {
+		return e.ClientName
+	}
+	cli := Client{ID: e.ClientID}
+	db.Get(&cli)
+	e.ClientName = cli.Name
+	return e.ClientName
+}
+
+func (e *Event) GetClientID(db *store.Store) int {
+	if e.ClientName == "" || e.ClientID > 0 {
+		return e.ClientID
+	}
+	var cli Client
+	db.Search([]store.Interface{&cli}, 0, store.MatchString("name", e.ClientName))
+	e.ClientID = cli.ID
+	return cli.ID
 }
 
 func (s *Server) events(w http.ResponseWriter, r *http.Request) {
@@ -130,7 +151,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		e.ClientId = c.ID
+		e.ClientID = c.ID
 		var d Driver
 		_, err = s.db.Search([]store.Interface{&d}, 0, store.MatchString("name", e.Driver.Name))
 		if err != nil {
@@ -138,7 +159,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 			return
 		}
 		e.Driver.ID = d.ID
-		if e.ClientId == 0 {
+		if e.ClientID == 0 {
 			good = false
 			e.ClientError = "Unknown Client Name"
 		}
@@ -156,7 +177,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 			return
 		}
 	} else {
-		c := Client{ID: e.ClientId}
+		c := Client{ID: e.ClientID}
 		err := s.db.Get(&c)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -164,6 +185,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 		}
 		e.ClientName = c.Name
 	}
+	e.GetClientName()
 	s.pages.ExecuteTemplate(w, "eventEditDetails.html", e)
 }
 
