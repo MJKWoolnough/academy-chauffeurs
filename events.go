@@ -185,7 +185,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 		}
 		e.ClientName = c.Name
 	}
-	e.GetClientName()
+	e.GetClientName(s.db)
 	s.pages.ExecuteTemplate(w, "eventEditDetails.html", e)
 }
 

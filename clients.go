@@ -127,7 +127,7 @@ func (s *Server) removeClient(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) updateClient(w http.ResponseWriter, r *http.Request) {
-	c := clientErrors{Client: Client{db: s.db}}
+	var c clientErrors
 	s.update(w, r, &c, func() bool {
 		good := true
 		if c.Name == "" {
@@ -146,7 +146,7 @@ func (s *Server) updateClient(w http.ResponseWriter, r *http.Request) {
 			good = false
 			c.PhoneError = "Phone Number Required"
 		}
-		c.GetCompanyID()
+		c.GetCompanyID(s.db)
 		if c.CompanyID == 0 {
 			good = false
 			c.CompanyNameError = "Unknown Company"
