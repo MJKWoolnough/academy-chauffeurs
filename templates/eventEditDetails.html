@@ -1,7 +1,7 @@
 {{template "header.html" args "Event Details" "form"}}
 		<form action="?" method="post">
 {{if ne .Event.ID 0}}			<input type="hidden" name="id" value="{{.Event.ID}}" />
-			<input type="hidden" name="driverId" value="{{.Event.Driver.ID}}" />
+{{end}}			<input type="hidden" name="driverId" value="{{.Event.Driver.ID}}" />
 			<input type="hidden" name="start" value="{{.Event.Start.Unix}}" />
 			<input type="hidden" name="start" value="{{.Event.End.Unix}}" />
 			<label>Start Time</label><input type="text" readonly="readonly" value="{{.Event.Start.Format "2006/01/02 15:04"}}" /><br />
