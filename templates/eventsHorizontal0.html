@@ -15,7 +15,7 @@
 				<th><a href="updatedriver?id={{.ID}}">{{.Name}}</a></th>
 {{range $times}}{{$event := $data.BlockInfo $driverNum .}}{{if $event.Empty}}				<td>
 					<form action="addevent" method="post">
-						<input type="hidden" name="driverId" value="{{$driverNum}}" />
+						<input type="hidden" name="driverId" value="{{$driver.ID}}" />
 						<input type="submit" name="start" value="{{.Unix}}" />
 					</form>
 				</td>

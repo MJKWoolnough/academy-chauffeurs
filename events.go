@@ -9,35 +9,31 @@ import (
 )
 
 type Event struct {
-	ID         int
-	Start      time.Time
-	End        time.Time
-	From, To   string
-	Pickup     time.Time
-	Waiting    int64
-	Parking    int
-	Miles      int
-	ClientID   int
-	ClientName string
+	ID       int
+	Start    time.Time
+	End      time.Time
+	From, To string
+	Pickup   time.Time
+	Waiting  int64
+	Parking  int
+	Miles    int
 	Driver
+	Client
 }
 
 func (e *Event) Get() store.TypeMap {
 	return store.TypeMap{
-		"id":                 &e.ID,
-		"start":              &e.Start,
-		"end":                &e.End,
-		"from":               &e.From,
-		"to":                 &e.To,
-		"pickupTime":         &e.Pickup,
-		"waitingTime":        &e.Waiting,
-		"parkingCosts":       &e.Parking,
-		"milesDriver":        &e.Miles,
-		"clientId":           &e.ClientID,
-		"driverId":           &e.Driver.ID,
-		"driverName":         &e.Driver.Name,
-		"driverRegistration": &e.Driver.Registration,
-		"driverPhone":        &e.Driver.Phone,
+		"id":           &e.ID,
+		"start":        &e.Start,
+		"end":          &e.End,
+		"from":         &e.From,
+		"to":           &e.To,
+		"pickupTime":   &e.Pickup,
+		"waitingTime":  &e.Waiting,
+		"parkingCosts": &e.Parking,
+		"milesDriver":  &e.Miles,
+		"clientId":     &e.Client.ID,
+		"driverId":     &e.Driver.ID,
 	}
 }
 
@@ -52,7 +48,7 @@ func (e *Event) ParserList() form.ParserList {
 		"waitingTime":        form.Int64{&e.Waiting},
 		"parkingCosts":       form.Int{&e.Parking},
 		"milesDriver":        form.Int{&e.Miles},
-		"clientName":         form.String{&e.ClientName},
+		"clientName":         form.String{&e.Client.Name},
 		"driverId":           form.Int{&e.Driver.ID},
 		"driverName":         form.String{&e.Driver.Name},
 		"driverRegistration": form.String{&e.Driver.Registration},
@@ -72,9 +68,7 @@ func (e *Event) GetClientName(db *store.Store) string {
 	if e.ClientID == 0 || e.ClientName != "" {
 		return e.ClientName
 	}
-	cli := Client{ID: e.ClientID}
-	db.Get(&cli)
-	e.ClientName = cli.Name
+	db.Get(&e.Client)
 	return e.ClientName
 }
 
@@ -86,6 +80,13 @@ func (e *Event) GetClientID(db *store.Store) int {
 	db.Search([]store.Interface{&cli}, 0, store.MatchString("name", e.ClientName))
 	e.ClientID = cli.ID
 	return cli.ID
+}
+
+func (e *Event) GetDriverDetails(db *store.Store) {
+	if e.Driver.ID == 0 || e.Driver.Name != "" {
+		return
+	}
+	db.Get(&e.Driver)
 }
 
 func (s *Server) events(w http.ResponseWriter, r *http.Request) {
@@ -116,20 +117,26 @@ func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event, forcePage int) {
-	date := time.Now()
+	var date time.Time
 	e := EventErrors{Event: ev}
 	form.Parse(&e, r.PostForm)
-	form.ParseValue("date", form.TimeFormat{&date, dateFormat}, r.PostForm)
 	form.ParseValue("clientName", form.String{&e.ClientName}, r.PostForm)
 	if e.Start.IsZero() {
 		forcePage = 1
 		e.Start = time.Now()
+		date = normaliseDay(time.Now())
+	} else {
+		date = normaliseDay(e.Start)
 	}
+
+	//check dates are valid for driver
+
 	if forcePage == 1 {
 		e.Start = normaliseDay(e.Start)
 		s.eventList(w, r, date, ModeStart, &e.Event)
 		return
 	}
+	form.ParseValue("date", form.TimeFormat{&date, dateFormat}, r.PostForm)
 	if e.End.IsZero() || !e.End.After(e.Start) || forcePage == 2 {
 		e.End = normaliseDay(e.Start)
 		s.eventList(w, r, date, ModeEnd, &e.Event)
@@ -145,21 +152,17 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 			good = false
 			e.ToError = "Destination Address Required"
 		}
-		var c Client
-		_, err := s.db.Search([]store.Interface{&c}, 0, store.MatchString("name", e.ClientName))
+		_, err := s.db.Search([]store.Interface{&e.Client}, 0, store.MatchString("name", e.Client.Name))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		e.ClientID = c.ID
-		var d Driver
-		_, err = s.db.Search([]store.Interface{&d}, 0, store.MatchString("name", e.Driver.Name))
+		_, err = s.db.Search([]store.Interface{&e.Driver}, 0, store.MatchString("name", e.Driver.Name))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		e.Driver.ID = d.ID
-		if e.ClientID == 0 {
+		if e.Client.ID == 0 {
 			good = false
 			e.ClientError = "Unknown Client Name"
 		}
@@ -177,15 +180,9 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 			return
 		}
 	} else {
-		c := Client{ID: e.ClientID}
-		err := s.db.Get(&c)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		e.ClientName = c.Name
+		e.GetClientName(s.db)
+		e.GetDriverDetails(s.db)
 	}
-	e.GetClientName(s.db)
 	s.pages.ExecuteTemplate(w, "eventEditDetails.html", e)
 }
 
