@@ -64,22 +64,20 @@ func (Event) TableName() string {
 	return "events"
 }
 
-func (e *Event) GetClientName(db *store.Store) string {
-	if e.ClientID == 0 || e.ClientName != "" {
-		return e.ClientName
+func (e *Event) GetClientDetails(db *store.Store) string {
+	if e.Client.ID == 0 || e.Client.Name != "" {
+		return e.Client.Name
 	}
 	db.Get(&e.Client)
-	return e.ClientName
+	return e.Client.Name
 }
 
 func (e *Event) GetClientID(db *store.Store) int {
-	if e.ClientName == "" || e.ClientID > 0 {
-		return e.ClientID
+	if e.Client.Name == "" || e.Client.ID > 0 {
+		return e.Client.ID
 	}
-	var cli Client
-	db.Search([]store.Interface{&cli}, 0, store.MatchString("name", e.ClientName))
-	e.ClientID = cli.ID
-	return cli.ID
+	db.Search([]store.Interface{&e.Client}, 0, store.MatchString("name", e.Client.Name))
+	return e.Client.ID
 }
 
 func (e *Event) GetDriverDetails(db *store.Store) {
@@ -180,7 +178,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 			return
 		}
 	} else {
-		e.GetClientName(s.db)
+		e.GetClientDetails(s.db)
 		e.GetDriverDetails(s.db)
 	}
 	s.pages.ExecuteTemplate(w, "eventEditDetails.html", e)
