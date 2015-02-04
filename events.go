@@ -125,18 +125,35 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 		date = normaliseDay(e.Start)
 	}
 
-	//check dates are valid for driver
+	form.ParseValue("date", form.TimeFormat{&date, dateFormat}, r.PostForm)
 
 	if forcePage == 1 {
 		e.Start = normaliseDay(e.Start)
 		s.eventList(w, r, date, ModeStart, &e.Event)
 		return
 	}
-	form.ParseValue("date", form.TimeFormat{&date, dateFormat}, r.PostForm)
+
+	e.GetDriverDetails(s.db)
+	if e.Driver.ID == 0 { //bad driver
+		http.Redirect(w, r, "/events", http.StatusFound)
+	}
+
+	if n, _ := s.db.SearchCount(new(Event),
+		store.GreaterThanEqual("start", int(e.Event.Start.Unix())),
+		store.LessThanEqual("end", int(e.Event.Start.Unix()))); n > 0 { //start in invalid position
+		http.Redirect(w, r, "/events", http.StatusFound)
+	}
+
 	if e.End.IsZero() || !e.End.After(e.Start) || forcePage == 2 {
 		e.End = normaliseDay(e.Start)
 		s.eventList(w, r, date, ModeEnd, &e.Event)
 		return
+	}
+
+	if n, _ := s.db.SearchCount(new(Event),
+		store.GreaterThanEqual("start", int(e.Event.End.Unix())),
+		store.LessThanEqual("end", int(e.Event.End.Unix()))); n > 0 { //start in invalid position
+		http.Redirect(w, r, "/events", http.StatusFound)
 	}
 	if r.PostForm.Get("submit") != "" {
 		good := true
@@ -168,7 +185,6 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 		}
 	} else {
 		e.GetClientDetails(s.db)
-		e.GetDriverDetails(s.db)
 	}
 	s.pages.ExecuteTemplate(w, "eventEditDetails.html", e)
 }
