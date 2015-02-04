@@ -47,7 +47,7 @@ func (s *Server) list(w http.ResponseWriter, r *http.Request, d []store.Interfac
 	s.pages.ExecuteTemplate(w, t, v(n, s.pagination.Get(page, uint(maxPage))))
 }
 
-func (s *Server) add(w http.ResponseWriter, r *http.Request, f parserStore, v func() bool, redirect, template string) {
+func (s *Server) add(w http.ResponseWriter, r *http.Request, f parserStore, v func() bool, d func(), redirect, template string) {
 	r.ParseForm()
 	if r.Method == "POST" {
 		form.Parse(f, r.PostForm)
@@ -60,6 +60,9 @@ func (s *Server) add(w http.ResponseWriter, r *http.Request, f parserStore, v fu
 			http.Redirect(w, r, redirect, http.StatusFound)
 			return
 		}
+	}
+	if d != nil {
+		d()
 	}
 	s.pages.ExecuteTemplate(w, template, f)
 }
@@ -87,7 +90,7 @@ func (s *Server) remove(w http.ResponseWriter, r *http.Request, f parserStore, r
 	s.pages.ExecuteTemplate(w, template, f)
 }
 
-func (s *Server) update(w http.ResponseWriter, r *http.Request, f parserStore, v func() bool, redirect, template string) {
+func (s *Server) update(w http.ResponseWriter, r *http.Request, f parserStore, v func() bool, d func(), redirect, template string) {
 	r.ParseForm()
 	if r.Method == "POST" {
 		form.Parse(f, r.PostForm)
@@ -111,6 +114,9 @@ func (s *Server) update(w http.ResponseWriter, r *http.Request, f parserStore, v
 	if i, ok := f.Get()[f.Key()].(*int); !ok || *i == 0 {
 		http.Redirect(w, r, redirect, http.StatusFound)
 		return
+	}
+	if d != nil {
+		d()
 	}
 	s.pages.ExecuteTemplate(w, template, f)
 }

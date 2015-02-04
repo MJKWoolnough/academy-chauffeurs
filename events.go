@@ -64,20 +64,18 @@ func (Event) TableName() string {
 	return "events"
 }
 
-func (e *Event) GetClientDetails(db *store.Store) string {
+func (e *Event) GetClientDetails(db *store.Store) {
 	if e.Client.ID == 0 || e.Client.Name != "" {
-		return e.Client.Name
+		return
 	}
 	db.Get(&e.Client)
-	return e.Client.Name
 }
 
-func (e *Event) GetClientID(db *store.Store) int {
+func (e *Event) GetClientID(db *store.Store) {
 	if e.Client.Name == "" || e.Client.ID > 0 {
-		return e.Client.ID
+		return
 	}
 	db.Search([]store.Interface{&e.Client}, 0, store.MatchString("name", e.Client.Name))
-	return e.Client.ID
 }
 
 func (e *Event) GetDriverDetails(db *store.Store) {

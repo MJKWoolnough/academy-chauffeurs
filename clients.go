@@ -11,14 +11,15 @@ import (
 const clientsPerPage = 20
 
 type Client struct {
-	ID, CompanyID                                int
-	Name, CompanyName, Reference, Address, Phone string
+	ID                              int
+	Name, Reference, Address, Phone string
+	Company                         Company
 }
 
 func (c *Client) Get() store.TypeMap {
 	return store.TypeMap{
 		"id":        &c.ID,
-		"companyID": &c.CompanyID,
+		"companyID": &c.Company.ID,
 		"name":      &c.Name,
 		"ref":       &c.Reference,
 		"address":   &c.Address,
@@ -29,7 +30,7 @@ func (c *Client) Get() store.TypeMap {
 func (c *Client) ParserList() form.ParserList {
 	return form.ParserList{
 		"id":          form.Int{&c.ID},
-		"companyName": form.String{&c.CompanyName},
+		"companyName": form.String{&c.Company.Name},
 		"name":        form.String{&c.Name},
 		"reference":   form.String{&c.Reference},
 		"address":     form.String{&c.Address},
@@ -37,24 +38,18 @@ func (c *Client) ParserList() form.ParserList {
 	}
 }
 
-func (c *Client) GetCompanyName(db *store.Store) string {
-	if c.CompanyID == 0 || c.CompanyName != "" {
-		return c.CompanyName
+func (c *Client) GetCompanyDetails(db *store.Store) {
+	if c.Company.ID == 0 || c.Company.Name != "" {
+		return
 	}
-	comp := Company{ID: c.CompanyID}
-	db.Get(&comp)
-	c.CompanyName = comp.Name
-	return c.CompanyName
+	db.Get(&c.Company)
 }
 
-func (c *Client) GetCompanyID(db *store.Store) int {
-	if c.CompanyName == "" || c.CompanyID > 0 {
-		return c.CompanyID
+func (c *Client) GetCompanyID(db *store.Store) {
+	if c.Company.Name == "" || c.Company.ID > 0 {
+		return
 	}
-	var comp Company
-	db.Search([]store.Interface{&comp}, 0, store.MatchString("name", c.CompanyName))
-	c.CompanyID = comp.ID
-	return c.CompanyID
+	db.Search([]store.Interface{&c.Company}, 0, store.MatchString("name", c.Company.Name))
 }
 
 func (Client) Key() string {
@@ -83,7 +78,7 @@ func (s *Server) clients(w http.ResponseWriter, r *http.Request) {
 	}
 	s.list(w, r, data, "clients.html", func(n int, p pagination.Pagination) interface{} {
 		for i := 0; i < n; i++ {
-			clients[i].GetCompanyName(s.db)
+			clients[i].GetCompanyDetails(s.db)
 		}
 		return ClientListPageVars{
 			clients[:n],
@@ -94,31 +89,41 @@ func (s *Server) clients(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) addClient(w http.ResponseWriter, r *http.Request) {
 	var c clientErrors
-	s.add(w, r, &c, func() bool {
-		good := true
-		if c.Name == "" {
-			good = false
-			c.NameError = "Client Name required"
-		}
-		if c.Address == "" {
-			good = false
-			c.AddressError = "Address required"
-		}
-		if c.Reference == "" {
-			good = false
-			c.ReferenceError = "Reference required"
-		}
-		if c.Phone == "" {
-			good = false
-			c.PhoneError = "Valid Phone Number Required"
-		}
-		c.GetCompanyID(s.db)
-		if c.CompanyID == 0 {
-			good = false
-			c.CompanyNameError = "Unknown Company"
-		}
-		return good
-	}, "clients", "clientAdd.html")
+	s.add(
+		w,
+		r,
+		&c,
+		func() bool {
+			good := true
+			if c.Name == "" {
+				good = false
+				c.NameError = "Client Name required"
+			}
+			if c.Address == "" {
+				good = false
+				c.AddressError = "Address required"
+			}
+			if c.Reference == "" {
+				good = false
+				c.ReferenceError = "Reference required"
+			}
+			if c.Phone == "" {
+				good = false
+				c.PhoneError = "Valid Phone Number Required"
+			}
+			c.GetCompanyID(s.db)
+			if c.Company.ID == 0 {
+				good = false
+				c.CompanyNameError = "Unknown Company"
+			}
+			return good
+		},
+		func() {
+			c.GetCompanyDetails(s.db)
+		},
+		"clients",
+		"clientAdd.html",
+	)
 }
 
 func (s *Server) removeClient(w http.ResponseWriter, r *http.Request) {
@@ -128,31 +133,41 @@ func (s *Server) removeClient(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) updateClient(w http.ResponseWriter, r *http.Request) {
 	var c clientErrors
-	s.update(w, r, &c, func() bool {
-		good := true
-		if c.Name == "" {
-			good = false
-			c.NameError = "Client Name required"
-		}
-		if c.Address == "" {
-			good = false
-			c.AddressError = "Address required"
-		}
-		if c.Reference == "" {
-			good = false
-			c.ReferenceError = "Reference required"
-		}
-		if c.Phone == "" {
-			good = false
-			c.PhoneError = "Phone Number Required"
-		}
-		c.GetCompanyID(s.db)
-		if c.CompanyID == 0 {
-			good = false
-			c.CompanyNameError = "Unknown Company"
-		}
-		return good
-	}, "clients", "clientUpdate.html")
+	s.update(
+		w,
+		r,
+		&c,
+		func() bool {
+			good := true
+			if c.Name == "" {
+				good = false
+				c.NameError = "Client Name required"
+			}
+			if c.Address == "" {
+				good = false
+				c.AddressError = "Address required"
+			}
+			if c.Reference == "" {
+				good = false
+				c.ReferenceError = "Reference required"
+			}
+			if c.Phone == "" {
+				good = false
+				c.PhoneError = "Phone Number Required"
+			}
+			c.GetCompanyID(s.db)
+			if c.Company.ID == 0 {
+				good = false
+				c.CompanyNameError = "Unknown Company"
+			}
+			return good
+		},
+		func() {
+			c.GetCompanyDetails(s.db)
+		},
+		"clients",
+		"clientUpdate.html",
+	)
 }
 
 func (s *Server) autocompleteClientName(w http.ResponseWriter, r *http.Request) {

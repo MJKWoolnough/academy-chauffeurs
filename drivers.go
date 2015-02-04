@@ -82,7 +82,7 @@ func (s *Server) addDriver(w http.ResponseWriter, r *http.Request) {
 			d.PhoneError = "Phone required"
 		}
 		return good
-	}, "drivers", "driverAdd.html")
+	}, nil, "drivers", "driverAdd.html")
 }
 
 func (s *Server) removeDriver(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +106,7 @@ func (s *Server) updateDriver(w http.ResponseWriter, r *http.Request) {
 			d.PhoneError = "Phone required"
 		}
 		return good
-	}, "drivers", "driverUpdate.html")
+	}, nil, "drivers", "driverUpdate.html")
 }
 
 func (s *Server) autocompleteDriveName(w http.ResponseWriter, r *http.Request) {

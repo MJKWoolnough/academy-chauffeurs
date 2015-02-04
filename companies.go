@@ -82,7 +82,7 @@ func (s *Server) addCompany(w http.ResponseWriter, r *http.Request) {
 			c.ReferenceError = "Reference required"
 		}
 		return good
-	}, "companies", "companyAdd.html")
+	}, nil, "companies", "companyAdd.html")
 }
 
 func (s *Server) removeCompany(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +107,7 @@ func (s *Server) updateCompany(w http.ResponseWriter, r *http.Request) {
 			c.ReferenceError = "Reference required"
 		}
 		return good
-	}, "companies", "companyUpdate.html")
+	}, nil, "companies", "companyUpdate.html")
 }
 
 func (s *Server) autocompleteCompanyName(w http.ResponseWriter, r *http.Request) {
