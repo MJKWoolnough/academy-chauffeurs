@@ -153,18 +153,9 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		_, err = s.db.Search([]store.Interface{&e.Driver}, 0, store.MatchString("name", e.Driver.Name))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 		if e.Client.ID == 0 {
 			good = false
 			e.ClientError = "Unknown Client Name"
-		}
-		if e.Driver.ID == 0 {
-			good = false
-			e.DriverError = "Unknown Driver Name"
 		}
 		if good {
 			_, err := s.db.Set(&e)
