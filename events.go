@@ -97,14 +97,7 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 
 type EventErrors struct {
 	Event
-	ClientName                                   string
-	FromError, ToError, ClientError, DriverError string
-}
-
-func (e *EventErrors) ParserList() form.ParserList {
-	pl := e.Event.ParserList()
-	pl["clientName"] = form.String{&e.ClientName}
-	return pl
+	FromError, ToError, ClientError string
 }
 
 func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +109,6 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 	var date time.Time
 	e := EventErrors{Event: ev}
 	form.Parse(&e, r.PostForm)
-	form.ParseValue("clientName", form.String{&e.ClientName}, r.PostForm)
 	if e.Start.IsZero() {
 		forcePage = 1
 		e.Start = time.Now()
@@ -170,6 +162,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		e.GetClientID(s.db)
 		if e.Client.ID == 0 {
 			good = false
 			e.ClientError = "Unknown Client Name"

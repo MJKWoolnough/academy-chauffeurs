@@ -3,13 +3,35 @@
 {{if ne .Event.ID 0}}			<input type="hidden" name="id" value="{{.Event.ID}}" />
 {{end}}			<input type="hidden" name="driverId" value="{{.Event.Driver.ID}}" />
 			<input type="hidden" name="start" value="{{.Event.Start.Unix}}" />
-			<input type="hidden" name="start" value="{{.Event.End.Unix}}" />
-			<label>Start Time</label><input type="text" readonly="readonly" value="{{.Event.Start.Format "2006/01/02 15:04"}}" /><br />
-			<label>(Estimated) End Time</label><input type="text" readonly="readonly" value="{{.Event.End.Format "2006/01/02 15:04"}}" /><br />
-			<label>Driver Name</label><input type="text" readonly="readonly" value="{{.Event.Driver.Name}}" /><br />
-			<label for="clientName">Client Name</label><input class="autocomplete" autocomplete-url="/autocompleteClientName" type="text" name="clientName" id="clientName" value="{{.Event.ClientName}}" /><br />
-			<label for="from">From</label><input class="autocomplate" autocomplete-url="/autocompleteAddress" type="text" name="from" id="from" value="{{.Event.From}}" /><br />
-			<label for="To">To</label><input class="autocomplate" autocomplete-url="/autocompleteAddress" type="text" name="to" id="to" value="{{.Event.To}}" /><br />
+			<input type="hidden" name="end" value="{{.Event.End.Unix}}" />
+
+			<label>Start Time</label>
+			<input type="text" readonly="readonly" value="{{.Event.Start.Format "2006/01/02 15:04"}}" />
+			<br />
+
+			<label>(Estimated) End Time</label>
+			<input type="text" readonly="readonly" value="{{.Event.End.Format "2006/01/02 15:04"}}" />
+			<br />
+
+			<label>Driver Name</label>
+			<input type="text" readonly="readonly" value="{{.Event.Driver.Name}}" />
+			<br />
+
+			<label for="clientName">Client Name</label>
+			<input class="autocomplete" autocomplete-url="/autocompleteClientName" type="text" name="clientName" id="clientName" value="{{.Event.Client.Name}}" />
+			<div class="error">{{.ClientError}}</div>
+			<br />
+
+			<label for="from">From</label>
+			<input class="autocomplate" autocomplete-url="/autocompleteAddress" type="text" name="from" id="from" value="{{.Event.From}}" />
+			<div class="error">{{.FromError}}</div>
+			<br />
+
+			<label for="To">To</label>
+			<input class="autocomplate" autocomplete-url="/autocompleteAddress" type="text" name="to" id="to" value="{{.Event.To}}" />
+			<div class="error">{{.ToError}}</div>
+			<br />
+
 			<input type="submit" name="submit" value="Submit" />
 
 		</form>
