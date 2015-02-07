@@ -18,17 +18,17 @@
 			<br />
 
 			<label for="clientName">Client Name</label>
-			<input class="autocomplete" autocomplete-url="/autocompleteClientName" type="text" name="clientName" id="clientName" value="{{.Event.Client.Name}}" />
+			<input class="autocomplete" autocomplete-url="/autocompleteClientName" type="text" name="clientName" id="clientName" value="{{.Event.Client.Name}}" autocomplete="off" />
 			<div class="error">{{.ClientError}}</div>
 			<br />
 
 			<label for="from">From</label>
-			<input class="autocomplate" autocomplete-url="/autocompleteAddress" type="text" name="from" id="from" value="{{.Event.From}}" />
+			<input class="autocomplate" autocomplete-url="/autocompleteAddress" type="text" name="from" id="from" value="{{.Event.From}}" autocomplete="off" />
 			<div class="error">{{.FromError}}</div>
 			<br />
 
 			<label for="To">To</label>
-			<input class="autocomplate" autocomplete-url="/autocompleteAddress" type="text" name="to" id="to" value="{{.Event.To}}" />
+			<input class="autocomplate" autocomplete-url="/autocompleteAddress" type="text" name="to" id="to" value="{{.Event.To}}" autocomplete="off" />
 			<div class="error">{{.ToError}}</div>
 			<br />
 
