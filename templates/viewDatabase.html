@@ -1,0 +1,15 @@
+<html>
+	<body>
+		<table>
+			<tr>
+{{range $key, $value := (index .Data 0).Get}}				<th>{{$key}}</th>
+{{end}}
+			</tr>
+{{range .Data}}				<tr>
+{{range .Get}}				<td>{{.}}</td>
+{{end}}			</tr>
+{{end}}
+		</table>
+		{{.Pagination.HTML "?page="}}
+	</body>
+</html>

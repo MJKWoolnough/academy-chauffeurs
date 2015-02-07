@@ -76,6 +76,8 @@ func main() {
 
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("/home/michael/Programming/Go/src/github.com/MJKWoolnough/academy-chauffeurs/resources/"))))
 
+	setupView(s)
+
 	http.Handle("/", http.RedirectHandler("/events", http.StatusFound))
 	l, err := net.Listen("tcp", address)
 	if err != nil {

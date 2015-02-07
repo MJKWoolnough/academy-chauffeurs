@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"github.com/MJKWoolnough/form"
@@ -15,31 +14,13 @@ type viewVars struct {
 	pagination.Pagination
 }
 
-var viewTemplate *template.Template
-
 const perPage = 10
-
-func init() {
-	viewTemplate = template.Must(template.New("viewDatabase").Parse(`<html>
-	<body>
-		<table>
-			<tr>
-{{range (index .Data 0).Get}}				<th>{{.}}</th>
-{{end}}
-			</tr>
-{{_, $data := range .Data}}				<tr>
-{{range .Get}}				<td>{{.}}</td>
-			</tr>
-{{end}}
-		</table>
-		{{.Pagination.HTML "?page="}}
-	</body>
-</html>
-`))
-}
 
 func setupView(s *Server) {
 	http.HandleFunc("/databaseDrivers", s.viewDrivers)
+	http.HandleFunc("/databaseCompanies", s.viewCompanies)
+	http.HandleFunc("/databaseClients", s.viewClients)
+	http.HandleFunc("/databaseEvents", s.viewEvents)
 }
 
 func (s *Server) databaseDisplay(w http.ResponseWriter, r *http.Request, data []store.Interface) {
@@ -63,7 +44,7 @@ func (s *Server) databaseDisplay(w http.ResponseWriter, r *http.Request, data []
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	data = data[:num]
-	err = viewTemplate.Execute(w, viewVars{data, s.pagination.Get(page, maxPage)})
+	err = s.pages.ExecuteTemplate(w, "viewDatabase.html", viewVars{data, s.pagination.Get(page, maxPage)})
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -71,6 +52,33 @@ func (s *Server) databaseDisplay(w http.ResponseWriter, r *http.Request, data []
 
 func (s *Server) viewDrivers(w http.ResponseWriter, r *http.Request) {
 	var data [perPage]Driver
+	iData := make([]store.Interface, perPage)
+	for i := 0; i < perPage; i++ {
+		iData[i] = &data[i]
+	}
+	s.databaseDisplay(w, r, iData)
+}
+
+func (s *Server) viewCompanies(w http.ResponseWriter, r *http.Request) {
+	var data [perPage]Company
+	iData := make([]store.Interface, perPage)
+	for i := 0; i < perPage; i++ {
+		iData[i] = &data[i]
+	}
+	s.databaseDisplay(w, r, iData)
+}
+
+func (s *Server) viewClients(w http.ResponseWriter, r *http.Request) {
+	var data [perPage]Client
+	iData := make([]store.Interface, perPage)
+	for i := 0; i < perPage; i++ {
+		iData[i] = &data[i]
+	}
+	s.databaseDisplay(w, r, iData)
+}
+
+func (s *Server) viewEvents(w http.ResponseWriter, r *http.Request) {
+	var data [perPage]Event
 	iData := make([]store.Interface, perPage)
 	for i := 0; i < perPage; i++ {
 		iData[i] = &data[i]
