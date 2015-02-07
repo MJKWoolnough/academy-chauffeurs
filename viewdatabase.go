@@ -31,17 +31,22 @@ func (s *Server) databaseDisplay(w http.ResponseWriter, r *http.Request, data []
 		page--
 	}
 	num, err := s.db.Count(data[0])
+	if num == 0 {
+		w.Write([]byte("no data"))
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	maxPage := uint(num / len(data))
 	if num%len(data) == 0 && maxPage > 0 {
 		maxPage--
-	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	num, err = s.db.GetPage(data, int(page)*len(data))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	data = data[:num]
 	err = s.pages.ExecuteTemplate(w, "viewDatabase.html", viewVars{data, s.pagination.Get(page, maxPage)})
