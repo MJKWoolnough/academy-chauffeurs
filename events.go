@@ -131,6 +131,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 	}
 
 	if n, _ := s.db.SearchCount(new(Event),
+		store.NotMatchInt("id", e.ID),
 		store.GreaterThanEqual("start", int(e.Event.Start.Unix())),
 		store.LessThanEqual("end", int(e.Event.Start.Unix()))); n > 0 { //start in invalid position
 		http.Redirect(w, r, "/events", http.StatusFound)
