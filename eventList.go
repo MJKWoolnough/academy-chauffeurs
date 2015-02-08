@@ -27,7 +27,7 @@ func (e *Event) NumBlocks(t time.Time) int {
 	}
 	var nb int
 	if t.Equal(e.Start) || t.Hour() == 0 && t.Minute() == 0 {
-		nb = int(e.End.Sub(t) / blockDuration)
+		nb = int(e.End.Sub(t)/blockDuration) + 1
 		if nb > maxBlocks {
 			nb = maxBlocks
 		}
