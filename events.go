@@ -92,7 +92,7 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	if t.IsZero() {
 		t = time.Now()
 	}
-	s.eventList(w, r, t, ModeNormal, nil)
+	s.eventList(w, r, t, ModeNormal, nil, false)
 }
 
 type EventErrors struct {
@@ -102,10 +102,10 @@ type EventErrors struct {
 
 func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	s.addUpdateEvent(w, r, Event{}, 0)
+	s.addUpdateEvent(w, r, Event{}, 0, false)
 }
 
-func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event, forcePage int) {
+func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event, forcePage int, isUpdate bool) {
 	var date time.Time
 	e := EventErrors{Event: ev}
 	form.Parse(&e, r.PostForm)
@@ -121,7 +121,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 
 	if forcePage == 1 {
 		e.Start = normaliseDay(e.Start)
-		s.eventList(w, r, date, ModeStart, &e.Event)
+		s.eventList(w, r, date, ModeStart, &e.Event, isUpdate)
 		return
 	}
 
@@ -139,7 +139,7 @@ func (s *Server) addUpdateEvent(w http.ResponseWriter, r *http.Request, ev Event
 
 	if e.End.IsZero() || !e.End.After(e.Start) || forcePage == 2 {
 		e.End = normaliseDay(e.Start)
-		s.eventList(w, r, date, ModeEnd, &e.Event)
+		s.eventList(w, r, date, ModeEnd, &e.Event, isUpdate)
 		return
 	}
 
@@ -204,7 +204,7 @@ func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	form.ParseValue("force", form.Int{&forcePage}, r.PostForm)
-	s.addUpdateEvent(w, r, e, forcePage)
+	s.addUpdateEvent(w, r, e, forcePage, true)
 }
 
 func (s *Server) removeEvent(w http.ResponseWriter, r *http.Request) {

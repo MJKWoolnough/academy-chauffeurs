@@ -41,12 +41,15 @@ type EventTemplateVars struct {
 	NextEvent    time.Time
 	Drivers      []Driver
 	DriverEvents [][]Event
+	isUpdate     bool
 }
 
-func (e *EventTemplateVars) BlockInfo(driver int, time time.Time) *Event {
-	for _, e := range e.DriverEvents[driver] {
-		if !time.Before(e.Start) && !time.After(e.End) {
-			return &e
+func (ev *EventTemplateVars) BlockInfo(driver int, time time.Time) *Event {
+	if !ev.isUpdate || driver != ev.Event.Driver.ID || time.Before(ev.Event.Start) || time.After(ev.Event.End) {
+		for _, e := range ev.DriverEvents[driver] {
+			if !time.Before(e.Start) && !time.After(e.End) {
+				return &e
+			}
 		}
 	}
 	return nil
@@ -83,10 +86,11 @@ const (
 	ModeEnd
 )
 
-func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, mode int, event *Event) {
+func (s *Server) eventList(w http.ResponseWriter, r *http.Request, t time.Time, mode int, event *Event, isUpdate bool) {
 	var e EventTemplateVars
 	e.Event = event
 	e.Today = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, location)
+	e.isUpdate = isUpdate
 	numDrivers, err := s.db.SearchCount(new(Driver))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
