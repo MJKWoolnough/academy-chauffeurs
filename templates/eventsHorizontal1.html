@@ -21,7 +21,7 @@
 						<input type="submit" name="start" value="{{.Unix}}" />
 					</form>
 				</td>
-{{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}				<td colspan="{{$numBlocks}}">Event</td>
+{{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}				<td class="event" colspan="{{$numBlocks}}">Event</td>
 {{end}}{{end}}{{end}}			</tr>
 {{end}}		</table>
 {{template "footer.html"}}

@@ -8,7 +8,7 @@
 {{if ne .Event.ID 0}}			<input type="hidden" name="id" value="{{.Event.ID}}" />
 {{end}}			<input type="hidden" name="driverId" value="{{$data.Event.Driver.ID}}" />
 			<input type="hidden" name="start" value="{{.Event.Start.Unix}}" />
-			<table>
+			<table class="selectEnd">
 				<tr>
 					<th>Driver</th>
 {{range $times}}						<th>{{.Format "15:04"}}</th>
