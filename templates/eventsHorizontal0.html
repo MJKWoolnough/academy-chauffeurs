@@ -19,7 +19,19 @@
 						<input type="submit" name="start" value="{{.Unix}}" />
 					</form>
 				</td>
-{{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}				<td class="event" colspan="{{$numBlocks}}">{{.Event.Client.Name}}<br />{{.Event.From}} -> {{.Event.To}}</td>
+				{{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}				<td class="event" colspan="{{$numBlocks}}">
+					<div class="eventControls">
+						<form action="/updatevent" method="post">
+							<input type="hidden" name="id" value="{{.Event.ID}}" />
+							<input type="submit" value="E" />
+						</form>
+						<form action="/removeevent" method="post">
+							<input type="hidden" name="id" value="{{.Event.ID}}" />
+							<input type="submit" value="X" />
+						</form>
+					</div>
+					<div class="eventData">{{.Event.Client.Name}}<br />{{.Event.From}} -> {{.Event.To}}</div>
+				</td>
 {{end}}{{end}}{{end}}			</tr>
 {{end}}		</table>
 {{template "footer.html"}}
