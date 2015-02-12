@@ -22,15 +22,15 @@
 				{{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}				<td class="event" colspan="{{$numBlocks}}">
 					<div class="eventControls">
 						<form action="/updatevent" method="post">
-							<input type="hidden" name="id" value="{{.Event.ID}}" />
+							<input type="hidden" name="id" value="{{$event.ID}}" />
 							<input type="submit" value="E" />
 						</form>
 						<form action="/removeevent" method="post">
-							<input type="hidden" name="id" value="{{.Event.ID}}" />
+							<input type="hidden" name="id" value="{{$event.ID}}" />
 							<input type="submit" value="X" />
 						</form>
 					</div>
-					<div class="eventData">{{.Event.Client.Name}}<br />{{.Event.From}} -> {{.Event.To}}</div>
+					<div class="eventData">{{$event.Client.Name}}<br />{{$event.From}} -> {{$event.To}}</div>
 				</td>
 {{end}}{{end}}{{end}}			</tr>
 {{end}}		</table>

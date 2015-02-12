@@ -16,7 +16,7 @@
 {{range $driverNum, $driver := .Drivers}}					<tr>
 						<th>{{.Name}}</th>
 {{range $times}}{{$event := $data.BlockInfo $driverNum .}}{{if $event.Empty}}						<td{{if eq $driver.ID $data.Event.Driver.ID}}{{if .Equal $data.Event.Start}} id="start"{{end}}{{end}}>{{if eq $driver.ID $data.Event.Driver.ID}}{{if $data.ValidEnd .}}<input type="submit" name="end" value="{{.Unix}}" />{{else}}&nbsp;{{end}}{{else}}&nbsp;{{end}}</td>
-{{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}						<td class="event" colspan="{{$numBlocks}}">{{.Event.Client.Name}}<br />{{.Event.From}} -> {{.Event.To}}</td>
+{{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}						<td class="event" colspan="{{$numBlocks}}">{{$event.Client.Name}}<br />{{$event.From}} -> {{$event.To}}</td>
 {{end}}{{end}}{{end}}					</tr>
 {{end}}			</table>
 		</form>

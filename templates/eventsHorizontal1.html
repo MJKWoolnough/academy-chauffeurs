@@ -21,7 +21,7 @@
 						<input type="submit" name="start" value="{{.Unix}}" />
 					</form>
 				</td>
-{{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}				<td class="event" colspan="{{$numBlocks}}">{{.Event.Client.Name}}<br />{{.Event.From}} -> {{.Event.To}}</td>
+{{else}}{{$numBlocks := $event.NumBlocks .}}{{if gt $numBlocks 0}}				<td class="event" colspan="{{$numBlocks}}">{{$event.Client.Name}}<br />{{$event.From}} -> {{$event.To}}</td>
 {{end}}{{end}}{{end}}			</tr>
 {{end}}		</table>
 {{template "footer.html"}}
