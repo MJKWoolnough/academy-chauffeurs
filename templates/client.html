@@ -1,0 +1,19 @@
+{{template "header.html" args "Client View" "form"}}
+		<h2>{{.Client.Company.Name}}</h2>
+		<h3>{{.Client.Name}}</h3>
+		<form action="?" method="post">
+			<label for="from">From</label>
+			<input type="text" name="from" id="from" value="{{.From}}" />
+			<br />
+
+			<label for="to">To</label>
+			<input type="text" name="to" id="to" value="{{.to}}" />
+			<br />
+			<input type="submit" value="Get" />
+		</form>
+
+		<ul>
+{{range .Events}}			<li>{{.Start}} - {{.From}} -> {{.To}}</li>
+{{end}}
+		</ul>
+{{template "footer.html"}}
