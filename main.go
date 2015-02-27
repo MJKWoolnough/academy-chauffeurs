@@ -4,88 +4,52 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/rpc/jsonrpc"
 	"os"
 	"os/signal"
-	"text/template"
 
-	"github.com/MJKWoolnough/pagination"
-	"github.com/MJKWoolnough/store"
+	_ "github.com/mxk/go-sqlite/sqlite3"
+	"golang.org/x/net/websocket"
 )
 
-type Server struct {
-	db         *store.Store
-	pages      *template.Template
-	pagination pagination.Config
+type file struct {
+	filename, header string
+}
+
+func (f file) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", f.header)
+	http.ServeFile(w, r, f.filename)
+}
+
+func rpcHandler(conn *websocket.Conn) {
+	jsonrpc.ServeConn(conn)
 }
 
 func main() {
+	const (
+		address = "127.0.0.1:8080"
+		dbFName = "test.db"
+	)
 
-	//load config
+	nc, err := newCalls(dbFName)
 
-	const address = "127.0.0.1:8080"
-	const dbFName = "test.db"
-
-	db, err := store.NewStore(dbFName)
 	if err != nil {
-		log.Fatalln(err)
-	}
-	err = db.Register(new(Driver))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	err = db.Register(new(Company))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	err = db.Register(new(Client))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	err = db.Register(new(Event))
-	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 
-	s := &Server{
-		db:         db,
-		pages:      template.Must(template.New("templates").Funcs(template.FuncMap{"args": func(s ...string) []string { return s }}).ParseGlob("templates/*.html")),
-		pagination: pagination.New(),
-	}
+	http.Handle("/", file{"page.html", "application/xhtml+xml; charset=utf-8"})
+	http.Handle("/code.js", file{"code.js", "text/javascript; charset=utf-8"})
+	http.Handle("/style.css", file{"style.css", "text/css; charset=utf-8"})
+	http.Handle("/rpc", websocket.Handler(rpcHandler))
 
-	http.HandleFunc("/drivers", s.drivers)
-	http.HandleFunc("/adddriver", s.addDriver)
-	http.HandleFunc("/updatedriver", s.updateDriver)
-	http.HandleFunc("/removedriver", s.removeDriver)
-
-	http.HandleFunc("/clients", s.clients)
-	http.HandleFunc("/addclient", s.addClient)
-	http.HandleFunc("/updateclient", s.updateClient)
-	http.HandleFunc("/removeclient", s.removeClient)
-	http.HandleFunc("/autocompleteClientCompanyName", s.autocompleteCompanyName)
-	http.HandleFunc("/autocompleteClientName", s.autocompleteClientName)
-
-	http.HandleFunc("/companies", s.companies)
-	http.HandleFunc("/addcompany", s.addCompany)
-	http.HandleFunc("/updatecompany", s.updateCompany)
-	http.HandleFunc("/removecompany", s.removeCompany)
-
-	http.HandleFunc("/events", s.events)
-	http.HandleFunc("/addevent", s.addEvent)
-	http.HandleFunc("/updateevent", s.updateEvent)
-	http.HandleFunc("/removeevent", s.removeEvent)
-
-	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("/home/michael/Programming/Go/src/github.com/MJKWoolnough/academy-chauffeurs/resources/"))))
-
-	setupView(s)
-
-	http.Handle("/", http.RedirectHandler("/events", http.StatusFound))
 	l, err := net.Listen("tcp", address)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 
 	c := make(chan os.Signal, 1)
-
 	go func() {
 		defer l.Close()
 		log.Println("Server Started")
@@ -105,5 +69,5 @@ func main() {
 		close(c)
 		log.Println(err)
 	}
-	db.Close()
+	nc.close()
 }
