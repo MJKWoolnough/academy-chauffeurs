@@ -35,16 +35,16 @@ type Calls struct {
 func newCalls(dbFName string) (Calls, error) {
 	s, err := store.New(dbFName)
 	if err != nil {
-		return calls{}, err
+		return Calls{}, err
 	}
 	err = s.Register(new(Event))
 	if err != nil {
-		return calls{}, err
+		return Calls{}, err
 	}
-	c := calls{s}
+	c := Calls{s}
 	err = rpc.Register(c)
 	if err != nil {
-		return calls{}, err
+		return Calls{}, err
 	}
 	return c, nil
 }
