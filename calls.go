@@ -28,11 +28,11 @@ type Event struct {
 	Client Client
 }
 
-type calls struct {
+type Calls struct {
 	s *store.Store
 }
 
-func newCalls(dbFName string) (calls, error) {
+func newCalls(dbFName string) (Calls, error) {
 	s, err := store.New(dbFName)
 	if err != nil {
 		return calls{}, err
@@ -49,11 +49,11 @@ func newCalls(dbFName string) (calls, error) {
 	return c, nil
 }
 
-func (c calls) close() {
+func (c Calls) close() {
 	c.s.Close()
 }
 
-func (c calls) Test(testID *int, response *int) error {
+func (c Calls) Test(testID *int, response *int) error {
 	*response = *testID + 1
 	return nil
 }
