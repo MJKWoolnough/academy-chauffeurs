@@ -1,8 +1,19 @@
+"use strict";
 window.onload = function() {
 	var rpc = new (function(onload){
 		var ws = new WebSocket("ws://127.0.0.1:8080/rpc", "rpc"),
 		requests = [],
-		nextID = 0;
+		nextID = 0,
+		request = function (method, params, callback) {
+			var msg = {
+				"method": "Calls." + method,
+				"id": nextID,
+				"params": [params],
+			};
+			requests[nextID] = callback;
+			ws.send(JSON.stringify(msg));
+			nextID++;
+		};
 		ws.onmessage = function (event) {
 			var data = JSON.parse(event.data),
 			req = requests[data.id];
@@ -15,16 +26,6 @@ window.onload = function() {
 				return;
 			}
 			req(data.result);
-		},
-		request = function (method, params, callback) {
-			var msg = {
-				"method": "Calls." + method,
-				"id": nextID,
-				"params": [params],
-			};
-			requests[nextID] = callback;
-			ws.send(JSON.stringify(msg));
-			nextID++;
 		};
 		this.setDriver = function(driver, callback) {
 			request("SetDriver", driver, callback);
@@ -37,17 +38,15 @@ window.onload = function() {
 		}
 		ws.onopen = onload;
 	})(function() {
-		eventList(Date.now());
+		eventList();
 	}),
 	drivers = [],
 	companies = [],
 	clients = [],
 	events = [],
+	layer,
 	stack = new (function(){
-		var stack = [],
-		layer = document.createElement("div"),
-		layers = 0;
-		layer.id = "fadeLayer";
+		var stack = [];
 		this.append = function(callback) {
 			stack.push(callback);
 		};
@@ -58,29 +57,25 @@ window.onload = function() {
 			var callback = stack.pop();
 			callback.apply(arguments);
 		};
-		this.addLayer() {
-			layers += 2
-			layer.style.zindex = layers - 1;
-			document.body.addChild(layer);
-			return layer;
+		this.addLayer = function() {
+			layer = document.createElement("div");
+			layer.className = "layer";
+			document.body.appendChild(layer);
 		};
-		this.removeLayer() {
-			if (layers === 0) {
-				return 0;
-			}
-			layers -= 2;
-			if (layers === 0) {
-				document.body.removeChild(layer);
-			}
-			layer.style.zindex = layer - 1;
-			return layer;
+		this.removeLayer = function() {
+			document.body.removeChild(document.body.lastChild);
+			layer = document.body.lastChild;
 		};
+		this.addLayer();
 	})(),
 	eventList = function(date) {
+		if (arguments.length == 0) {
+			date = Date.now()
+		}
 		rpc.drivers(function(d) {
 			drivers = d;
 			if (drivers.length === 0) {
-				addDriver();
+				//addDriver();
 			} else {
 				
 			}
