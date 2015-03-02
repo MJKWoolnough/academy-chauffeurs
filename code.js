@@ -19,7 +19,6 @@ window.onload = function() {
 			req = requests[data.id];
 			delete requests[data.id];
 			if (typeof req === "undefined") {
-				alert("!undefined!");
 				return;
 			} else if (data.error !== null) {
 				alert(data.error);
@@ -47,22 +46,20 @@ window.onload = function() {
 	layer,
 	stack = new (function(){
 		var stack = [];
-		this.append = function(callback) {
+		this.addLayer = function(callback) {
 			stack.push(callback);
-		};
-		this.doStack = function() {
-			if (stack.length === 0) {
-				return;
-			}
-			var callback = stack.pop();
-			callback.apply(arguments);
-		};
-		this.addLayer = function() {
 			layer = document.createElement("div");
 			layer.className = "layer";
 			document.body.appendChild(layer);
 		};
 		this.removeLayer = function() {
+			if (stack.length === 0) {
+				return;
+			}
+			var callback = stack.pop();
+			if (typeof callback !== "underfined") {
+				callback.apply(arguments);
+			}
 			document.body.removeChild(document.body.lastChild);
 			layer = document.body.lastChild;
 		};
