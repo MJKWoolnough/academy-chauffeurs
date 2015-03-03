@@ -72,10 +72,35 @@ window.onload = function() {
 		rpc.drivers(function(d) {
 			drivers = d;
 			if (drivers.length === 0) {
-				//addDriver();
+				stack.addLayer(eventList);
+				addDriver();
 			} else {
 				
 			}
 		});
-	}
+	},
+	addFormElement = function(name, type, id, contents) {
+		var label = document.createElement("label"),
+		error = document.createElement("error"),
+		input;
+		if (type === "textarea") {
+			input = document.createElement("textarea");
+			input.innerHTML = contents;
+		} else {
+			input = document.createElement("input");
+			input.setAttribute("type", type);
+			input.setAttribute("value", contents);
+		}
+		label.innerHTML = name;
+		label.setAttribute("for", id);
+		input.setAttribute("id", id);
+		error.setAttribute("class", "error");
+		error.setAttribute("id", "error_"+id);
+		layer.appendChild(label);
+		layer.appendChild(input);
+		layer.appendChild(error);
+		return input;
+	},
+	addDriver = function() {
+	};
 };
