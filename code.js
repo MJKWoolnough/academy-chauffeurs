@@ -46,11 +46,14 @@ window.onload = function() {
 	layer,
 	stack = new (function(){
 		var stack = [];
-		this.addLayer = function(callback) {
+		this.addLayer = function(layerID, callback) {
 			stack.push(callback);
+			var outerLayer = document.createElement("div");
+			outerLayer.className = "layer";
 			layer = document.createElement("div");
-			layer.className = "layer";
-			document.body.appendChild(layer);
+			layer.setAttribute("id", layerID);
+			outerLayer.appendChild(layer);
+			document.body.appendChild(outerLayer);
 		};
 		this.removeLayer = function() {
 			if (stack.length === 0) {
@@ -61,9 +64,9 @@ window.onload = function() {
 				callback.apply(arguments);
 			}
 			document.body.removeChild(document.body.lastChild);
-			layer = document.body.lastChild;
+			layer = document.body.lastChild.firstChild;
 		};
-		this.addLayer();
+		this.addLayer("eventList");
 	})(),
 	eventList = function(date) {
 		if (arguments.length == 0) {
@@ -72,14 +75,14 @@ window.onload = function() {
 		rpc.drivers(function(d) {
 			drivers = d;
 			if (drivers.length === 0) {
-				stack.addLayer(eventList);
+				stack.addLayer("addDriver", eventList);
 				addDriver();
 			} else {
 				
 			}
 		});
 	},
-	addFormElement = function(name, type, id, contents) {
+	addFormElement = function(name, type, id, contents, onChange, onBlur) {
 		var label = document.createElement("label"),
 		error = document.createElement("error"),
 		input;
@@ -94,13 +97,35 @@ window.onload = function() {
 		label.innerHTML = name;
 		label.setAttribute("for", id);
 		input.setAttribute("id", id);
+		if (typeof onChange === "function") {
+			input.addEventListener("change", onChange.bind(input));
+		}
+		if (typeof onBlur === "function") {
+			input.addEventListener("blur", onBlur.bind(input));
+		}
 		error.setAttribute("class", "error");
 		error.setAttribute("id", "error_"+id);
 		layer.appendChild(label);
 		layer.appendChild(input);
 		layer.appendChild(error);
+		layer.appendChild(document.createElement("br"));
 		return input;
 	},
+	addFormSubmit = function(value, onClick) {
+		var button = document.createElement("input");
+		button.setAttribute("value", value);
+		button.setAttribute("type", "button");
+		button.addEventListener("click", onClick);
+		return layer.appendChild(button);
+	},
 	addDriver = function() {
+		layer.appendChild(document.createElement("h1")).innerHTML = "Add Driver";
+		addFormElement("Driver Name", "text", "driver_name", "", null, driverCheck);
+		addFormElement("Registration Number", "text", "driver_reg", "", null, driverCheck);
+		addFormElement("Phone Number", "text", "driver_phone", "", null, driverCheck);
+		addFormSubmit("Add Driver", function() {});
+	},
+	driverCheck = function() {
+		alert(this.id);
 	};
 };
