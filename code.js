@@ -82,7 +82,7 @@ window.onload = function() {
 			}
 		});
 	},
-	addFormElement = function(name, type, id, contents, onChange, onBlur) {
+	addFormElement = function(name, type, id, contents, onBlur, onChange) {
 		var label = document.createElement("label"),
 		error = document.createElement("div"),
 		input;
@@ -119,9 +119,9 @@ window.onload = function() {
 	},
 	addDriver = function() {
 		layer.appendChild(document.createElement("h1")).innerHTML = "Add Driver";
-		addFormElement("Driver Name", "text", "driver_name", "", null, regexpCheck(/.*/, "Please enter a valid name"));
-		addFormElement("Registration Number", "text", "driver_reg", "", null, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number"));
-		addFormElement("Phone Number", "text", "driver_phone", "", null, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
+		addFormElement("Driver Name", "text", "driver_name", "", regexpCheck(/.*/, "Please enter a valid name"));
+		addFormElement("Registration Number", "text", "driver_reg", "", regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number"));
+		addFormElement("Phone Number", "text", "driver_phone", "", regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
 		addFormSubmit("Add Driver", function() {});
 	},
 	regexpCheck = function(regexp, error) {
