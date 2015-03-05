@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"net/rpc"
 	"sync"
 	"time"
@@ -9,49 +8,9 @@ import (
 	"github.com/MJKWoolnough/store"
 )
 
-var ErrInvalidPhoneNumber = errors.New("Invalid Phone Number Format")
-
-type PhoneNumber uint64
-
-func (p PhoneNumber) MarshalJSON() ([]byte, error) {
-	var digits [21]byte
-	pos := 21
-	for num := uint64(p); num > 0; num /= 10 {
-		pos--
-		digits[pos] = '0' + byte(num%10)
-	}
-	if pos == 11 {
-		pos--
-		digits[pos] = '0'
-	} else if pos == 10 && digits[10] == '4' && digits[11] == '4' {
-		pos--
-		digits[pos] = '+'
-	} else {
-		return digits[pos:], ErrInvalidPhoneNumber
-	}
-	return digits[pos:], nil
-}
-
-func (p *PhoneNumber) UnmarshalJSON(a []byte) error {
-	var num uint64
-	for _, digit := range a {
-		if digit >= '0' && digit <= '9' {
-			num *= 10
-			num += uint64(digit - '0')
-		}
-	}
-	*p = PhoneNumber(num)
-	if (num < 7000000000 || num >= 8000000000) && (num < 447000000000 || num >= 448000000000) {
-		return ErrInvalidPhoneNumber
-	}
-	return nil
-}
-
 type Driver struct {
-	ID                 int64
-	Name               string
-	RegistrationNumber string
-	PhoneNumber        PhoneNumber
+	ID                                    int64
+	Name, RegistrationNumber, PhoneNumber string
 }
 
 type Company struct {
@@ -173,9 +132,30 @@ func (c Calls) Drivers(_ byte, drivers *[]Driver) error {
 	return nil
 }
 
-func (c Calls) SetDriver(d Driver, id *int64) error {
-	err := c.s.Set(&d)
-	*id = d.ID
+type SetDriverResponse struct {
+	Errors                          bool
+	ID                              int64
+	NameError, RegError, PhoneError string
+}
+
+func (c Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
+	if d.Name == "" {
+		resp.Errors = true
+		resp.NameError = "Name Required"
+	}
+	if d.RegistrationNumber == "" {
+		resp.Errors = true
+		resp.RegError = "Registration Number Required"
+	}
+	if !ValidiMobileNumber(d.PhoneNumber) {
+		resp.Errors = true
+		resp.PhoneError = "Valid Mobile Phone Number Required"
+	}
+	var err error
+	if !resp.Errors {
+		err = c.s.Set(&d)
+		resp.DriverID = d.ID
+	}
 	return err
 }
 
