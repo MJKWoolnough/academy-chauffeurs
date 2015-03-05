@@ -45,8 +45,8 @@ label + input, label + div, label + textarea {
 }
 
 div.error {
+	clear : left;
 	color : #f00;
-	float : left;	
 	padding-left : 10px;
 }
 

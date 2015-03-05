@@ -84,7 +84,7 @@ window.onload = function() {
 	},
 	addFormElement = function(name, type, id, contents, onChange, onBlur) {
 		var label = document.createElement("label"),
-		error = document.createElement("error"),
+		error = document.createElement("div"),
 		input;
 		if (type === "textarea") {
 			input = document.createElement("textarea");
@@ -108,7 +108,6 @@ window.onload = function() {
 		layer.appendChild(label);
 		layer.appendChild(input);
 		layer.appendChild(error);
-		layer.appendChild(document.createElement("br"));
 		return input;
 	},
 	addFormSubmit = function(value, onClick) {
