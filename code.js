@@ -141,6 +141,7 @@ window.onload = function() {
 						parts[i].removeAttribute("disabled");
 					}
 				} else {
+					// add driver to a list?
 					stack.removeLayer();
 				}
 			});

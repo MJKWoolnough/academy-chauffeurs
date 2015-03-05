@@ -33,7 +33,6 @@ func ParseMobileNumber(a string) (MobileNumber, error) {
 			num += MobileNumber(digit - '0')
 		}
 	}
-	*p = MobileNumber(num)
 	if (num < 7000000000 || num >= 8000000000) && (num < 447000000000 || num >= 448000000000) {
 		return 0, ErrInvalidMobileNumber
 	}
