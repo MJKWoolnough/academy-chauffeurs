@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/rpc"
 	"sync"
 	"time"
@@ -8,9 +9,49 @@ import (
 	"github.com/MJKWoolnough/store"
 )
 
+var ErrInvalidPhoneNumber = errors.New("Invalid Phone Number Format")
+
+type PhoneNumber uint64
+
+func (p PhoneNumber) MarshalJSON() ([]byte, error) {
+	var digits [21]byte
+	pos := 21
+	for num := uint64(p); num > 0; num /= 10 {
+		pos--
+		digits[pos] = '0' + byte(num%10)
+	}
+	if pos == 11 {
+		pos--
+		digits[pos] = '0'
+	} else if pos == 10 && digits[10] == '4' && digits[11] == '4' {
+		pos--
+		digits[pos] = '+'
+	} else {
+		return digits[pos:], ErrInvalidPhoneNumber
+	}
+	return digits[pos:], nil
+}
+
+func (p *PhoneNumber) UnmarshalJSON(a []byte) error {
+	var num uint64
+	for _, digit := range a {
+		if digit >= '0' && digit <= '9' {
+			num *= 10
+			num += uint64(digit - '0')
+		}
+	}
+	*p = PhoneNumber(num)
+	if (num < 7000000000 || num >= 8000000000) && (num < 447000000000 || num >= 448000000000) {
+		return ErrInvalidPhoneNumber
+	}
+	return nil
+}
+
 type Driver struct {
-	ID   int64
-	Name string
+	ID                 int64
+	Name               string
+	RegistrationNumber string
+	PhoneNumber        PhoneNumber
 }
 
 type Company struct {
@@ -66,15 +107,15 @@ func newCalls(dbFName string) (*Calls, error) {
 	ns.Filter = store.And{
 		idEqual{"ID", &ef.DriverID},
 		store.Or{
-			betweenTime{"Start", &ef.From, &e.To},
-			betweenTime{"End", &ef.From, &e.To},
+			betweenTime{"Start", &ef.From, &ef.To},
+			betweenTime{"End", &ef.From, &ef.To},
 		},
 	}
 	ps, err := ns.Prepare()
 	if err != nil {
 		return nil, err
 	}
-	c.searches["events"] = search{ps, e}
+	c.searches["events"] = search{ps, ef}
 
 	return c, nil
 }
@@ -158,10 +199,10 @@ type idEqual struct {
 	id  *int64
 }
 
-func (i idEqual) SQL() strign {
+func (i idEqual) SQL() string {
 	return "[" + i.col + "] = ?"
 }
 
 func (i idEqual) Vars() []interface{} {
-	return []interface{}{b.id}
+	return []interface{}{i.id}
 }

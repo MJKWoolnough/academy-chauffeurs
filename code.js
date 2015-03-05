@@ -119,10 +119,29 @@ window.onload = function() {
 	},
 	addDriver = function() {
 		layer.appendChild(document.createElement("h1")).innerHTML = "Add Driver";
-		addFormElement("Driver Name", "text", "driver_name", "", regexpCheck(/.*/, "Please enter a valid name"));
-		addFormElement("Registration Number", "text", "driver_reg", "", regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number"));
-		addFormElement("Phone Number", "text", "driver_phone", "", regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
-		addFormSubmit("Add Driver", function() {});
+		var driverName = addFormElement("Driver Name", "text", "driver_name", "", regexpCheck(/.*/, "Please enter a valid name")),
+		regNumber = addFormElement("Registration Number", "text", "driver_reg", "", regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
+		phoneNumber = addFormElement("Phone Number", "text", "driver_phone", "", regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
+		addFormSubmit("Add Driver", function() {
+			var parts = [this, driverName, regNumber, phoneNumber],
+			i;
+			for (i = 0; i < parts.length; i++) {
+				parts[i].setAttribute("enabled", "false");
+			}
+			rpc.setDriver({
+				"Name": driverName.value,
+				"RegistrationNumber": regNumber.value,
+				"PhoneNumber": phoneNumber.value,
+			}, function(resp) {
+				if (resp.Errors) {
+					document.getElementById("error_driver_name").innerHTML = resp.NameError;
+					document.getElementById("error_driver_reg").innerHTML = resp.RegError;
+					document.getElementById("error_driver_phone").innerHTML = resp.PhoneError;
+				} else {
+					stack.removeLayer();
+				}
+			});
+		});
 	},
 	regexpCheck = function(regexp, error) {
 		return function() {
