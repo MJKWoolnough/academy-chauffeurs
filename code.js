@@ -126,7 +126,7 @@ window.onload = function() {
 			var parts = [this, driverName, regNumber, phoneNumber],
 			i;
 			for (i = 0; i < parts.length; i++) {
-				parts[i].setAttribute("enabled", "false");
+				parts[i].setAttribute("disabled", "disabled");
 			}
 			rpc.setDriver({
 				"Name": driverName.value,
@@ -137,6 +137,9 @@ window.onload = function() {
 					document.getElementById("error_driver_name").innerHTML = resp.NameError;
 					document.getElementById("error_driver_reg").innerHTML = resp.RegError;
 					document.getElementById("error_driver_phone").innerHTML = resp.PhoneError;
+					for (i = 0; i < parts.length; i++) {
+						parts[i].removeAttribute("disabled");
+					}
 				} else {
 					stack.removeLayer();
 				}
