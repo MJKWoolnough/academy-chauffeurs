@@ -60,7 +60,7 @@ window.onload = function() {
 				return;
 			}
 			var callback = stack.pop();
-			if (typeof callback !== "underfined") {
+			if (typeof callback === "function") {
 				callback.apply(arguments);
 			}
 			document.body.removeChild(document.body.lastChild);
