@@ -119,12 +119,19 @@ window.onload = function() {
 	},
 	addDriver = function() {
 		layer.appendChild(document.createElement("h1")).innerHTML = "Add Driver";
-		addFormElement("Driver Name", "text", "driver_name", "", null, driverCheck);
-		addFormElement("Registration Number", "text", "driver_reg", "", null, driverCheck);
-		addFormElement("Phone Number", "text", "driver_phone", "", null, driverCheck);
+		addFormElement("Driver Name", "text", "driver_name", "", null, regexpCheck(/.*/));
+		addFormElement("Registration Number", "text", "driver_reg", "", null, regexpCheck(/[a-zA-Z0-9 ]+/));
+		addFormElement("Phone Number", "text", "driver_phone", "", null, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/));
 		addFormSubmit("Add Driver", function() {});
 	},
-	driverCheck = function() {
-		alert(this.id);
+	regexpCheck = function(regexp, error) {
+		return function() {
+			var errorDiv = document.getElementById("error_" + this.getAttribute("id"));
+			if (regexp.match(this.value)) {
+				errorDiv.innerHTML = "";
+			} else {
+				errorDiv.innerHTML = error;
+			}
+		}
 	};
 };
