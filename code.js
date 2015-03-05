@@ -114,7 +114,7 @@ window.onload = function() {
 		var button = document.createElement("input");
 		button.setAttribute("value", value);
 		button.setAttribute("type", "button");
-		button.addEventListener("click", onClick);
+		button.addEventListener("click", onClick.bind(button));
 		return layer.appendChild(button);
 	},
 	addDriver = function() {
