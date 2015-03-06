@@ -108,6 +108,7 @@ window.onload = function() {
 		layer.appendChild(label);
 		layer.appendChild(input);
 		layer.appendChild(error);
+		layer.appendChild(document.createElement("br"));
 		return input;
 	},
 	addFormSubmit = function(value, onClick) {
