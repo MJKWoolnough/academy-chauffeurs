@@ -60,7 +60,7 @@ func newCalls(dbFName string) (*Calls, error) {
 	}
 	// setup searches
 
-	ef := new(eventsFilter)
+	ef := new(EventsFilter)
 	ns := s.NewSearch(new(Event))
 	ns.Sort = []store.SortBy{{Column: "Start", Asc: true}}
 	ns.Filter = store.And{
@@ -83,19 +83,19 @@ func (c Calls) close() {
 	c.s.Close()
 }
 
-type eventsFilter struct {
+type EventsFilter struct {
 	DriverID int64
 	From, To time.Time
 	mu       sync.Mutex
 }
 
-func (c Calls) Events(f eventsFilter, eventList *[]Event) error {
+func (c Calls) Events(f EventsFilter, eventList *[]Event) error {
 	s := c.searches["events"]
 	n, err := s.ps.Count()
 	if err != nil {
 		return err
 	}
-	e := s.params.(*eventsFilter)
+	e := s.params.(*EventsFilter)
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.DriverID = f.DriverID
