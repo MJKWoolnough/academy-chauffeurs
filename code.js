@@ -78,7 +78,6 @@ window.onload = function() {
 				stack.addLayer("addDriver", eventList);
 				addDriver();
 			} else {
-				
 			}
 		});
 	},
@@ -118,17 +117,20 @@ window.onload = function() {
 		button.addEventListener("click", onClick.bind(button));
 		return layer.appendChild(button);
 	},
+	disableElement = function(part) {
+		part.setAttribute("disabled", "disabled");
+	},
+	enableElement = function(part) {
+		part.removeAttribute("disabled");
+	},
 	addDriver = function() {
 		layer.appendChild(document.createElement("h1")).innerHTML = "Add Driver";
 		var driverName = addFormElement("Driver Name", "text", "driver_name", "", regexpCheck(/.+/, "Please enter a valid name")),
 		regNumber = addFormElement("Registration Number", "text", "driver_reg", "", regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
 		phoneNumber = addFormElement("Phone Number", "text", "driver_phone", "", regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
 		addFormSubmit("Add Driver", function() {
-			var parts = [this, driverName, regNumber, phoneNumber],
-			i;
-			for (i = 0; i < parts.length; i++) {
-				parts[i].setAttribute("disabled", "disabled");
-			}
+			var parts = [this, driverName, regNumber, phoneNumber];
+			parts.map(disableElement);
 			rpc.setDriver({
 				"Name": driverName.value,
 				"RegistrationNumber": regNumber.value,
@@ -138,9 +140,7 @@ window.onload = function() {
 					document.getElementById("error_driver_name").innerHTML = resp.NameError;
 					document.getElementById("error_driver_reg").innerHTML = resp.RegError;
 					document.getElementById("error_driver_phone").innerHTML = resp.PhoneError;
-					for (i = 0; i < parts.length; i++) {
-						parts[i].removeAttribute("disabled");
-					}
+					parts.map(enableElement);
 				} else {
 					// add driver to a list?
 					stack.removeLayer();
