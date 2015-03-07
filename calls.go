@@ -122,7 +122,7 @@ func (c Calls) Drivers(_ byte, drivers *[]Driver) error {
 	d := make([]Driver, n)
 	di := make([]interface{}, 0, n)
 	for i := 0; i < n; i++ {
-		di = append(di, &d)
+		di = append(di, &d[i])
 	}
 	_, err = c.s.GetPage(di, 0)
 	if err != nil {
