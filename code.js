@@ -26,8 +26,29 @@ window.onload = function() {
 			}
 			req(data.result);
 		};
+		this.getDriver = function(id, callback) {
+			request("GetDriver", id, callback);
+		}
+		this.getClient = function(id, callback) {
+			request("GetClient", client, callback);
+		}
+		this.getCompany = function(id, callback) {
+			request("GetCompany", id, callback);
+		}
+		this.getEvent = function(id, callback) {
+			request("GetEvent", id, callback);
+		}
 		this.setDriver = function(driver, callback) {
 			request("SetDriver", driver, callback);
+		}
+		this.setClient = function(client, callback) {
+			request("SetClient", client, callback);
+		}
+		this.setCompany = function(company, callback) {
+			request("SetCompany", company, callback);
+		}
+		this.setEvent = function(event, callback) {
+			request("SetEvent", event, callback);
 		}
 		this.drivers = function(callback) {
 			request("Drivers", 0, callback);
@@ -39,21 +60,28 @@ window.onload = function() {
 	})(function() {
 		eventList();
 	}),
+	createElement = (function(){
+		var ns = document.getElementsByTagName("html")[0].namespaceURI;
+		return function(elementName) {
+			return createElementNS(ns, elementName);
+		};
+	}()),
 	drivers = [],
 	companies = [],
 	clients = [],
 	events = [],
 	layer,
+	body = document.body,
 	stack = new (function(){
 		var stack = [];
 		this.addLayer = function(layerID, callback) {
 			stack.push(callback);
-			var outerLayer = document.createElement("div");
+			var outerLayer = createElement("div");
 			outerLayer.className = "layer";
-			layer = document.createElement("div");
+			layer = createElement("div");
 			layer.setAttribute("id", layerID);
 			outerLayer.appendChild(layer);
-			document.body.appendChild(outerLayer);
+			body.appendChild(outerLayer);
 		};
 		this.removeLayer = function() {
 			if (stack.length === 0) {
@@ -63,8 +91,8 @@ window.onload = function() {
 			if (typeof callback === "function") {
 				callback.apply(arguments);
 			}
-			document.body.removeChild(document.body.lastChild);
-			layer = document.body.lastChild.firstChild;
+			body.removeChild(body.lastChild);
+			layer = body.lastChild.firstChild;
 		};
 		this.addLayer("eventList");
 	})(),
@@ -76,29 +104,26 @@ window.onload = function() {
 			drivers = d;
 			if (drivers.length === 0) {
 				stack.addLayer("addDriver", eventList);
-				addDriver();
+				setDriver();
 			} else {
 			}
 		});
 	},
-	addFormElement = function(name, type, id, contents, onBlur, onChange) {
-		var label = document.createElement("label"),
-		error = document.createElement("div"),
+	addFormElement = function(name, type, id, contents, onBlur) {
+		var label = createElement("label"),
+		error = createElement("div"),
 		input;
 		if (type === "textarea") {
-			input = document.createElement("textarea");
+			input = createElement("textarea");
 			input.innerHTML = contents;
 		} else {
-			input = document.createElement("input");
+			input = createElement("input");
 			input.setAttribute("type", type);
 			input.setAttribute("value", contents);
 		}
 		label.innerHTML = name;
 		label.setAttribute("for", id);
 		input.setAttribute("id", id);
-		if (typeof onChange === "function") {
-			input.addEventListener("change", onChange.bind(input));
-		}
 		if (typeof onBlur === "function") {
 			input.addEventListener("blur", onBlur.bind(input));
 		}
@@ -107,11 +132,11 @@ window.onload = function() {
 		layer.appendChild(label);
 		layer.appendChild(input);
 		layer.appendChild(error);
-		layer.appendChild(document.createElement("br"));
+		layer.appendChild(createElement("br"));
 		return input;
 	},
 	addFormSubmit = function(value, onClick) {
-		var button = document.createElement("input");
+		var button = createElement("input");
 		button.setAttribute("value", value);
 		button.setAttribute("type", "button");
 		button.addEventListener("click", onClick.bind(button));
@@ -123,23 +148,38 @@ window.onload = function() {
 	enableElement = function(part) {
 		part.removeAttribute("disabled");
 	},
-	addDriver = function() {
-		layer.appendChild(document.createElement("h1")).innerHTML = "Add Driver";
-		var driverName = addFormElement("Driver Name", "text", "driver_name", "", regexpCheck(/.+/, "Please enter a valid name")),
-		regNumber = addFormElement("Registration Number", "text", "driver_reg", "", regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
-		phoneNumber = addFormElement("Phone Number", "text", "driver_phone", "", regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
+	setDriver = function(id) {
+		var driver;
+		if (typeof id === "number" && id > 0) {
+			rpc.getDriver(id, function(resp) {
+				driver = resp;
+			});
+			layer.appendChild(createElement("h1")).innerHTML = "Edit Driver";
+		} else {
+			id = 0;
+			driver = {
+				"Name": "",
+				"RegistrationNumber": "",
+				"PhoneNumber": "",
+			};
+			layer.appendChild(createElement("h1")).innerHTML = "Add Driver";
+		}
+		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
+		regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
+		phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
 		addFormSubmit("Add Driver", function() {
 			var parts = [this, driverName, regNumber, phoneNumber];
 			parts.map(disableElement);
 			rpc.setDriver({
+				"ID": id,
 				"Name": driverName.value,
 				"RegistrationNumber": regNumber.value,
 				"PhoneNumber": phoneNumber.value,
 			}, function(resp) {
 				if (resp.Errors) {
-					document.getElementById("error_driver_name").innerHTML = resp.NameError;
-					document.getElementById("error_driver_reg").innerHTML = resp.RegError;
-					document.getElementById("error_driver_phone").innerHTML = resp.PhoneError;
+					layer.getElementById("error_driver_name").innerHTML = resp.NameError;
+					layer.getElementById("error_driver_reg").innerHTML = resp.RegError;
+					layer.getElementById("error_driver_phone").innerHTML = resp.PhoneError;
 					parts.map(enableElement);
 				} else {
 					// add driver to a list?
@@ -147,6 +187,89 @@ window.onload = function() {
 				}
 			});
 		});
+	},
+	setClient = function(id) {
+		var client;
+		if (typeof id === "number" && id > 0) {
+			rpc.getClient(id, function(resp) {
+				client = resp;
+			});
+			layer.appendChild(createElement("h1")).innerHTML = "Edit Client";
+		} else {
+			id = 0;
+			client = {
+				"Name": "",
+				"CompanyName": "",
+				"CompanyID": 0,
+				"PhoneNumber": "",
+				"Reference": "",
+			};
+			layer.appendChild(createElement("h1")).innerHTML = "Add Client";
+		}
+		var clientName = addFormElement("Client Name", "text", "client_name", client.Name, regexpCheck(/.+/, "Please enter a valid name")),
+		companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
+		companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
+		clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
+		clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code");
+		autocomplete(rpc.autocompleteCompanyName, companyName, companyID);
+		addFormSubmit("Add Client", function() {
+			var parts = [this, clientName, companyID, companyName];
+			parts.map(disableElement);
+			rpc.setClient({
+				"ID": id,
+				"Name": clientName.value,
+				"CompanyID": companyID.value,
+				"PhoneNumber": clientPhone.value,
+				"Reference": clientRef.value,
+			}, function (resp) {
+				if (resp.errors) {
+					layer.getElementById("error_name").innerHTML = resp.NameError;
+					layer.getElementById("error_company_name").innerHTML = resp.CompanyNameError;
+					layer.getElementById("error_phone").innerHTML = resp.PhoneError;
+					layer.getElementById("error_ref").innerHTML = resp.RefError;
+					parts.map(enableElement);
+				} else {
+					stack.removeLayer(resp.ID, clientName.value);
+				}
+			});
+		});
+	},
+	setCompany = function(id) {
+		var company;
+		if (typeof id === "number" && id > 0) {
+			rpc.getCompany(id, function(resp) {
+				company = resp;
+			});
+			layer.appendChild(createElement("h1")).innerHTML = "Edit Company";
+		} else {
+			company = {
+				"Name": "",
+				"Address": "",
+			};
+			layer.appendChild(createElement("h1")).innerHTML = "Add Company";
+		}
+		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
+		address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address"));
+		addFormSubmit("Add Company", function() {
+			var parts = [this, companyName, address];
+			parts.map(disableElement);
+			rpc.setCompany({
+				"ID": id,
+				"Name", companyName.value,
+				"Address", address.innerHTML,
+			}, function(resp) {
+				if (resp.Errors) {
+					layer.getElementById("error_company_name").innerHTML = resp.NameError;
+					layer.getElementById("error_company_address").innerHTML = resp.AddressError;
+					parts.map(enableElement);
+				} else {
+					stack.removeLayer(resp.ID, companyName.value);
+				}
+			});
+		});
+	},
+	setEvent = function(driverID, startTime, endTime, id) {
+
 	},
 	regexpCheck = function(regexp, error) {
 		return function() {
@@ -157,5 +280,8 @@ window.onload = function() {
 				errorDiv.innerHTML = error;
 			}
 		}
+	},
+	autocomplete = function(rpcCall, name, id) {
+		
 	};
 };
