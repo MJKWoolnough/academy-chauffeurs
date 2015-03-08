@@ -284,7 +284,38 @@ window.onload = function() {
 			});
 		});
 	},
-	setEvent = function(driverID, startTime, endTime, id) {
+	setEvent = function(id, startTime, endTime) {
+		if (arguments.length > 1) {
+			rpc.getDriver(id, function(resp) {
+				setEventWithData({
+					"ID": 0,
+					"Start": startTime,
+					"End": endTime,
+					"From": "",
+					"To": "",
+					"ClientID": 0,
+					"ClientName": "",
+					"DriverID": resp.ID,
+					"DriverName": resp.Name,
+				});
+			});
+		} else {
+			rpc.getEvent(id, function(resp) {
+				var event = resp;
+				rpc.getClient(event.ClientID, function(resp) {
+					event.ClientID = resp.ID;
+					event.ClientName = resp.Name;
+					rpc.getDriver(event.DriverID, function(resp) {
+						event.DriverID = resp.ID;
+						event.DriverName = resp.Name;
+						setEventWithData(event);
+					});
+				});
+			});
+		}
+	},
+	setEventWithData = function(event) {
+		addTitle(event.ID, "Add Event", "Edit Event");
 
 	},
 	regexpCheck = function(regexp, error) {
