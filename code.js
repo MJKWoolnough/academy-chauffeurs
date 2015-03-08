@@ -94,6 +94,17 @@ window.onload = function() {
 			body.removeChild(body.lastChild);
 			layer = body.lastChild.firstChild;
 		};
+		this.addFragment() {
+			if (typeof layer == "object" && layer.nodeType !== 11) {
+				layer = document.createDocumentFragment();
+			}
+		}
+		this.setFragment() {
+			if (typeof layer == "object" && layer.nodeType === 11) {
+				body.lastChild.firstChild.appendChild(layer);
+				layer = body.lastChild.firstChild;
+			}
+		}
 		this.addLayer("eventList");
 	})(),
 	eventList = function(date) {
