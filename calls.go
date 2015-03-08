@@ -14,21 +14,19 @@ type Driver struct {
 }
 
 type Company struct {
-	ID   int64
-	Name string
+	ID            int64
+	Name, Address string
 }
 
 type Client struct {
-	ID      int64
-	Name    string
-	Company Company
+	ID, CompanyID                int64
+	Name, PhoneNumber, Reference string
 }
 
 type Event struct {
-	ID         int64
-	Start, End time.Time
-	Driver     Driver
-	Client     Client
+	ID, DriverID, ClientID int64
+	Start, End             time.Time
+	From, To               string
 }
 
 type search struct {
@@ -46,7 +44,7 @@ func newCalls(dbFName string) (*Calls, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = s.Register(new(Event))
+	err = s.Register(new(Driver), new(Company), new(Client), new(Event))
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +62,8 @@ func newCalls(dbFName string) (*Calls, error) {
 	ns := s.NewSearch(new(Event))
 	ns.Sort = []store.SortBy{{Column: "Start", Asc: true}}
 	ns.Filter = store.And{
-		idEqual{"ID", &ef.DriverID},
+		idNotEqual{"ID", &ef.NotID},
+		idEqual{"DriverID", &ef.DriverID},
 		store.Or{
 			betweenTime{"Start", &ef.From, &ef.To},
 			betweenTime{"End", &ef.From, &ef.To},
@@ -84,9 +83,9 @@ func (c Calls) close() {
 }
 
 type EventsFilter struct {
-	DriverID int64
-	From, To time.Time
-	mu       sync.Mutex
+	NotID, DriverID int64
+	From, To        time.Time
+	mu              sync.Mutex
 }
 
 func (c Calls) Events(f EventsFilter, eventList *[]Event) error {
@@ -132,33 +131,6 @@ func (c Calls) Drivers(_ byte, drivers *[]Driver) error {
 	return nil
 }
 
-type SetDriverResponse struct {
-	Errors                          bool
-	ID                              int64
-	NameError, RegError, PhoneError string
-}
-
-func (c Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
-	if d.Name == "" {
-		resp.Errors = true
-		resp.NameError = "Name Required"
-	}
-	if d.RegistrationNumber == "" {
-		resp.Errors = true
-		resp.RegError = "Registration Number Required"
-	}
-	if !ValidMobileNumber(d.PhoneNumber) {
-		resp.Errors = true
-		resp.PhoneError = "Valid Mobile Phone Number Required"
-	}
-	var err error
-	if !resp.Errors {
-		err = c.s.Set(&d)
-		resp.ID = d.ID
-	}
-	return err
-}
-
 // Filters
 
 type betweenTime struct {
@@ -184,5 +156,18 @@ func (i idEqual) SQL() string {
 }
 
 func (i idEqual) Vars() []interface{} {
+	return []interface{}{i.id}
+}
+
+type idNotEqual struct {
+	col string
+	id  *int64
+}
+
+func (i idNotEqual) SQL() string {
+	return "[" + i.col + "] != ?"
+}
+
+func (i idNotEqual) Vars() []interface{} {
 	return []interface{}{i.id}
 }
