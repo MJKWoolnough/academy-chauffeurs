@@ -149,21 +149,19 @@ window.onload = function() {
 		part.removeAttribute("disabled");
 	},
 	setDriver = function(id) {
-		var driver;
 		if (typeof id === "number" && id > 0) {
-			rpc.getDriver(id, function(resp) {
-				driver = resp;
-			});
-			layer.appendChild(createElement("h1")).innerHTML = "Edit Driver";
+			rpc.getDriver(id, setDriverWithData);
 		} else {
-			id = 0;
-			driver = {
+			setDriverWithData({
+				"ID": 0,
 				"Name": "",
 				"RegistrationNumber": "",
 				"PhoneNumber": "",
-			};
-			layer.appendChild(createElement("h1")).innerHTML = "Add Driver";
+			});
 		}
+	},
+	setDriverWithData = function(driver) {
+		layer.appendChild(createElement("h1")).innerHTML = (driver.ID == 0) ? "Add Driver" : "Edit Driver";
 		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
 		phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
@@ -171,7 +169,7 @@ window.onload = function() {
 			var parts = [this, driverName, regNumber, phoneNumber];
 			parts.map(disableElement);
 			rpc.setDriver({
-				"ID": id,
+				"ID": driver.ID,
 				"Name": driverName.value,
 				"RegistrationNumber": regNumber.value,
 				"PhoneNumber": phoneNumber.value,
@@ -189,23 +187,28 @@ window.onload = function() {
 		});
 	},
 	setClient = function(id) {
-		var client;
 		if (typeof id === "number" && id > 0) {
 			rpc.getClient(id, function(resp) {
-				client = resp;
+				var client = resp;
+				rpc.getCompany(client.CompanyID, function(resp) {
+					client.CompanyID = resp.ID;
+					client.CompanyName = resp.Name;
+					setClientWithData(client);
+				});
 			});
-			layer.appendChild(createElement("h1")).innerHTML = "Edit Client";
 		} else {
-			id = 0;
-			client = {
+			setClientWithData({
+				"ID": 0,
 				"Name": "",
 				"CompanyName": "",
 				"CompanyID": 0,
 				"PhoneNumber": "",
 				"Reference": "",
-			};
-			layer.appendChild(createElement("h1")).innerHTML = "Add Client";
+			});
 		}
+	},
+	setClientWithData = function(client) {
+		layer.appendChild(createElement("h1")).innerHTML = (client.ID == 0) ? "Add Client" : "Edit Client";
 		var clientName = addFormElement("Client Name", "text", "client_name", client.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
 		companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
@@ -216,7 +219,7 @@ window.onload = function() {
 			var parts = [this, clientName, companyID, companyName];
 			parts.map(disableElement);
 			rpc.setClient({
-				"ID": id,
+				"ID": client.ID,
 				"Name": clientName.value,
 				"CompanyID": companyID.value,
 				"PhoneNumber": clientPhone.value,
@@ -235,26 +238,25 @@ window.onload = function() {
 		});
 	},
 	setCompany = function(id) {
-		var company;
 		if (typeof id === "number" && id > 0) {
-			rpc.getCompany(id, function(resp) {
-				company = resp;
-			});
-			layer.appendChild(createElement("h1")).innerHTML = "Edit Company";
+			rpc.getCompany(id, setCompanyWithData);
 		} else {
-			company = {
+			setCompanyWithData({
+				"ID": 0,
 				"Name": "",
 				"Address": "",
-			};
-			layer.appendChild(createElement("h1")).innerHTML = "Add Company";
+			});
 		}
+	},
+	setCompanyWithData = function(company) {
+		layer.appendChild(createElement("h1")).innerHTML = (company.ID == 0) ? "Add Company" : "Edit Company";
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address"));
 		addFormSubmit("Add Company", function() {
 			var parts = [this, companyName, address];
 			parts.map(disableElement);
 			rpc.setCompany({
-				"ID": id,
+				"ID": company.ID,
 				"Name", companyName.value,
 				"Address", address.innerHTML,
 			}, function(resp) {
