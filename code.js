@@ -120,6 +120,9 @@ window.onload = function() {
 			}
 		});
 	},
+	addTitle = function(id, add, edit) {
+		layer.appendChild(createElement("h1")).innerHTML = (id == 0) ? add : edit;
+	},
 	addFormElement = function(name, type, id, contents, onBlur) {
 		var label = createElement("label"),
 		error = createElement("div"),
@@ -172,7 +175,7 @@ window.onload = function() {
 		}
 	},
 	setDriverWithData = function(driver) {
-		layer.appendChild(createElement("h1")).innerHTML = (driver.ID == 0) ? "Add Driver" : "Edit Driver";
+		addTitle(driver.ID, "Add Driver", "Edit Driver");
 		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
 		phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
@@ -219,7 +222,7 @@ window.onload = function() {
 		}
 	},
 	setClientWithData = function(client) {
-		layer.appendChild(createElement("h1")).innerHTML = (client.ID == 0) ? "Add Client" : "Edit Client";
+		addTitle(client.ID, "Add Client", "Edit Client");
 		var clientName = addFormElement("Client Name", "text", "client_name", client.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
 		companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
@@ -260,7 +263,7 @@ window.onload = function() {
 		}
 	},
 	setCompanyWithData = function(company) {
-		layer.appendChild(createElement("h1")).innerHTML = (company.ID == 0) ? "Add Company" : "Edit Company";
+		addTitle(company.ID, "Add Company", "Edit Company");
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address"));
 		addFormSubmit("Add Company", function() {
