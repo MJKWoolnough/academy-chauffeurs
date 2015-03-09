@@ -53,8 +53,8 @@ window.onload = function() {
 		this.drivers = function(callback) {
 			request("Drivers", 0, callback);
 		}
-		this.events = function(driverID, From, To, callback) {
-			request("Events", {"DriverID": driverID, "From": from, "To": to}, callback);
+		this.events = function(driverID, start, end, callback) {
+			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
 		ws.onopen = onload;
 	})(function() {

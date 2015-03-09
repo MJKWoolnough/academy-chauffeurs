@@ -1,11 +1,11 @@
 package main
 
 import (
-	"net/rpc"
+	"database/sql"
 	"sync"
 	"time"
 
-	"github.com/MJKWoolnough/store"
+	_ "github.com/mxk/go-sqlite/sqlite3"
 )
 
 type Driver struct {
@@ -29,145 +29,153 @@ type Event struct {
 	From, To               string
 }
 
-type search struct {
-	ps     *store.PreparedSearch
-	params interface{}
-}
+const (
+	CreateDriver = iota
+	CreateCompany
+	CreateClient
+	CreateEvent
+
+	ReadDriver
+	ReadCompany
+	ReadClient
+	ReadEvent
+
+	UpdateDriver
+	UpdateCompany
+	UpdateClient
+	UpdateEvent
+
+	DeleteDriver
+	DeleteCompany
+	DeleteClient
+	DeleteEvent
+
+	DriverList
+	EventList
+	EventOverlap
+
+	TotalStmts
+)
 
 type Calls struct {
-	s        *store.Store
-	searches map[string]search
+	mu         sync.Mutex
+	db         *sql.DB
+	statements [TotalStmts]*sql.Stmt
 }
 
 func newCalls(dbFName string) (*Calls, error) {
-	s, err := store.New(dbFName)
+	db, err := sql.Open("sqlite3", dbFName)
 	if err != nil {
 		return nil, err
 	}
-	err = s.Register(new(Driver), new(Company), new(Client), new(Event))
+
+	_, err = db.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
 		return nil, err
 	}
+
+	// Tables
+
+	for _, ct := range []string{
+		"[Driver]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [RegistrationNumber] TEXT, [PhoneNumber] TEXT);",
+		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT);",
+		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER REFERENCES [Company]([ID]) ON DELETE CASCADE, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT);",
+		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER REFERENCES [Driver]([ID]) ON DELETE CASCADE, [ClientID] INTEGER REFERENCES [Client]([ID]) ON DELETE CASCADE, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT);",
+	} {
+		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
+			return nil, err
+		}
+	}
+
 	c := &Calls{
-		s,
-		make(map[string]search),
+		db: db,
 	}
-	err = rpc.Register(c)
-	if err != nil {
-		return nil, err
-	}
-	// setup searches
 
-	ef := new(EventsFilter)
-	ns := s.NewSearch(new(Event))
-	ns.Sort = []store.SortBy{{Column: "Start", Asc: true}}
-	ns.Filter = store.And{
-		idNotEqual{"ID", &ef.NotID},
-		idEqual{"DriverID", &ef.DriverID},
-		store.Or{
-			betweenTime{"Start", &ef.From, &ef.To},
-			betweenTime{"End", &ef.From, &ef.To},
-		},
-	}
-	ps, err := ns.Prepare()
-	if err != nil {
-		return nil, err
-	}
-	c.searches["events"] = search{ps, ef}
+	for n, ps := range []string{
+		// Create
 
+		"INSERT INTO [Driver]([Name], [RegistrationNumber], [PhoneNumber]) VALUES (?, ?, ?);",
+		"INSERT INTO [Company]([Name], [Address]) VALUES (?, ?);",
+		"INSERT INTO [Client]([CompanyID], [Name], [PhoneNumber], [Reference]) VALUES (?, ?, ?, ?);",
+		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To]) VALUES (?, ?, ?, ?, ?, ?);",
+
+		// Read
+
+		"SELECT [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] WHERE [ID] = ?;",
+		"SELECT [Name], [Address] FROM [Company] WHERE [ID] = ?;",
+		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [ID] = ?;",
+		"SELECT [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ID] = ?;",
+
+		// Update
+
+		"UPDATE [Driver] SET [Name] = ?, [RegistrationNumber] = ?, [PhoneNumber] = ? WHERE [ID] = ?;",
+		"UPDATE [Company] SET [Name] = ?, [Address] = ? WHERE [ID] = ?;",
+		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ? WHERE [ID] = ?;",
+		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ? WHERE [ID] = ?;",
+
+		// Delete
+
+		"DELETE FROM [Driver] WHERE [ID] = ?;",
+		"DELETE FROM [Company] WHERE [ID] = ?;",
+		"DELETE FROM [Client] WHERE [ID] = ?;",
+		"DELETE FROM [Event] WHERE [ID] = ?;",
+
+		// Searches
+
+		// All Drivers
+		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver];",
+		// Row of Events for driver
+		"SELECT [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?2 AND ?3);",
+		// Event Overlaps
+		"SELECT COUNT(1) FROM [Events] WHERE [ID] != ? AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4;",
+	} {
+		stmt, err := db.Prepare(ps)
+		if err != nil {
+			return nil, err
+		}
+		c.statements[n] = stmt
+	}
 	return c, nil
 }
 
 func (c Calls) close() {
-	c.s.Close()
+	c.db.Close()
 }
 
 type EventsFilter struct {
-	NotID, DriverID int64
-	From, To        time.Time
-	mu              sync.Mutex
+	DriverID   int64
+	Start, End time.Time
+	mu         sync.Mutex
 }
 
 func (c Calls) Events(f EventsFilter, eventList *[]Event) error {
-	s := c.searches["events"]
-	n, err := s.ps.Count()
+	rows, err := c.statements[EventList].Query(f.DriverID, f.Start, f.End)
 	if err != nil {
 		return err
 	}
-	e := s.params.(*EventsFilter)
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	e.DriverID = f.DriverID
-	e.From = f.From
-	e.To = f.To
-	es := make([]Event, n)
-	ei := make([]interface{}, 0, n)
-	for i := 0; i < n; i++ {
-		ei = append(ei, &es[i])
+	for rows.Next() {
+		var e Event
+		err = rows.Scan(&e.DriverID, &e.ClientID, &e.Start, &e.End, &e.From, &e.To)
+		if err != nil {
+			return err
+		}
+		(*eventList) = append(*eventList, e)
 	}
-	_, err = s.ps.GetPage(ei, 0)
+	return rows.Err()
+}
+
+func (c Calls) Drivers(_ struct{}, drivers *[]Driver) error {
+	rows, err := c.statements[DriverList].Query()
 	if err != nil {
 		return err
 	}
-	*eventList = es
-	return nil
-}
-
-func (c Calls) Drivers(_ byte, drivers *[]Driver) error {
-	n, err := c.s.Count(new(Driver))
-	if err != nil {
-		return err
+	for rows.Next() {
+		var d Driver
+		err = rows.Scan(&d.ID, &d.Name, &d.RegistrationNumber, &d.PhoneNumber)
+		if err != nil {
+			return err
+		}
+		(*drivers) = append(*drivers, d)
 	}
-	d := make([]Driver, n)
-	di := make([]interface{}, 0, n)
-	for i := 0; i < n; i++ {
-		di = append(di, &d[i])
-	}
-	_, err = c.s.GetPage(di, 0)
-	if err != nil {
-		return err
-	}
-	*drivers = d
-	return nil
-}
-
-// Filters
-
-type betweenTime struct {
-	col      string
-	from, to *time.Time
-}
-
-func (b betweenTime) SQL() string {
-	return "[" + b.col + "] BETWEEN ? AND ?"
-}
-
-func (b betweenTime) Vars() []interface{} {
-	return []interface{}{b.from, b.to}
-}
-
-type idEqual struct {
-	col string
-	id  *int64
-}
-
-func (i idEqual) SQL() string {
-	return "[" + i.col + "] = ?"
-}
-
-func (i idEqual) Vars() []interface{} {
-	return []interface{}{i.id}
-}
-
-type idNotEqual struct {
-	col string
-	id  *int64
-}
-
-func (i idNotEqual) SQL() string {
-	return "[" + i.col + "] != ?"
-}
-
-func (i idNotEqual) Vars() []interface{} {
-	return []interface{}{i.id}
+	return rows.Err()
 }

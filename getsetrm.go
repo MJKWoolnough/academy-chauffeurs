@@ -1,19 +1,49 @@
 package main
 
+import "database/sql"
+
 func (c Calls) GetDriver(id int64, d *Driver) error {
-	return c.s.Get(d)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	err := c.statements[ReadDriver].QueryRow(id).Scan(&(*d).Name, &(*d).RegistrationNumber, &(*d).PhoneNumber)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	(*d).ID = id
+	return err
 }
 
 func (c Calls) GetClient(id int64, cl *Client) error {
-	return c.s.Get(cl)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	err := c.statements[ReadClient].QueryRow(id).Scan(&(*cl).CompanyID, &(*cl).Name, &(*cl).PhoneNumber, &(*cl).Reference)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	(*cl).ID = id
+	return err
 }
 
 func (c Calls) GetCompany(id int64, cy *Company) error {
-	return c.s.Get(cy)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	err := c.statements[ReadCompany].QueryRow(id).Scan(&(*cy).Name, &(*cy).Address)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	(*cy).ID = id
+	return err
 }
 
 func (c Calls) GetEvent(id int64, e *Event) error {
-	return c.s.Get(e)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	err := c.statements[ReadEvent].QueryRow(id).Scan(&(*e).DriverID, &(*e).ClientID, &(*e).Start, &(*e).End, &(*e).From, &(*e).To)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	(*e).ID = id
+	return err
 }
 
 type SetDriverResponse struct {
@@ -37,8 +67,17 @@ func (c Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
 	}
 	var err error
 	if !resp.Errors {
-		err = c.s.Set(&d)
-		resp.ID = d.ID
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		if d.ID == 0 {
+			r, e := c.statements[CreateDriver].Exec(d.Name, d.RegistrationNumber, d.PhoneNumber)
+			if e == nil {
+				resp.ID, e = r.LastInsertId()
+			}
+			err = e
+		} else {
+			_, err = c.statements[UpdateDriver].Exec(d.Name, d.RegistrationNumber, d.PhoneNumber, d.ID)
+		}
 	}
 	return err
 }
@@ -58,13 +97,11 @@ func (c Calls) SetClient(cl Client, resp *SetClientResponse) error {
 		resp.Errors = true
 		resp.CompanyError = "Company Required"
 	} else {
-		cy := Company{
-			ID: cl.CompanyID,
-		}
-		if err := c.s.Get(&cy); err != nil {
+		var cy Company
+		if err := c.GetCompany(cl.CompanyID, &cy); err != nil {
 			return err
 		}
-		if cl.CompanyID == 0 {
+		if cy.ID == 0 {
 			resp.Errors = true
 			resp.CompanyError = "Valid Company Required"
 		}
@@ -79,8 +116,17 @@ func (c Calls) SetClient(cl Client, resp *SetClientResponse) error {
 	}
 	var err error
 	if !resp.Errors {
-		err = c.s.Set(&cl)
-		resp.ID = cl.ID
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		if cl.ID == 0 {
+			r, e := c.statements[CreateClient].Exec(cl.CompanyID, cl.Name, cl.PhoneNumber, cl.Reference)
+			if e == nil {
+				resp.ID, e = r.LastInsertId()
+			}
+			err = e
+		} else {
+			_, err = c.statements[UpdateClient].Exec(cl.CompanyID, cl.Name, cl.PhoneNumber, cl.Reference, cl.ID)
+		}
 	}
 	return err
 }
@@ -102,8 +148,17 @@ func (c Calls) SetCompany(cy Company, resp *SetCompanyResponse) error {
 	}
 	var err error
 	if !resp.Errors {
-		err = c.s.Set(&cy)
-		resp.ID = cy.ID
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		if cy.ID == 0 {
+			r, e := c.statements[CreateCompany].Exec(cy.Name, cy.Address)
+			if e == nil {
+				resp.ID, e = r.LastInsertId()
+			}
+			err = e
+		} else {
+			_, err = c.statements[UpdateCompany].Exec(cy.Name, cy.Address, cy.ID)
+		}
 	}
 	return err
 }
@@ -119,10 +174,8 @@ func (c Calls) SetEvent(e Event, resp *SetEventResponse) error {
 		resp.Errors = true
 		resp.DriverError = "Driver Required"
 	} else {
-		d := Driver{
-			ID: e.DriverID,
-		}
-		if err := c.s.Get(&d); err != nil {
+		var d Driver
+		if err := c.GetDriver(e.DriverID, &d); err != nil {
 			return err
 		}
 		if d.ID == 0 {
@@ -135,10 +188,11 @@ func (c Calls) SetEvent(e Event, resp *SetEventResponse) error {
 		resp.Errors = true
 		resp.ClientError = "Client Required"
 	} else {
-		cl := Client{
-			ID: e.ClientID,
+		var cl Client
+		if err := c.GetClient(e.ClientID, &cl); err != nil {
+			return err
 		}
-		if err := c.s.Get(&cl); err != nil {
+		if cl.ID == 0 {
 			resp.Errors = true
 			resp.ClientError = "Valid Client Required"
 		}
@@ -147,21 +201,17 @@ func (c Calls) SetEvent(e Event, resp *SetEventResponse) error {
 		resp.Errors = true
 		resp.TimeError = "Invalid Time(s)"
 	} else if e.DriverID != 0 {
-		search := c.searches["events"]
-		params := search.params.(*EventsFilter)
-		params.mu.Lock()
-		params.DriverID = e.DriverID
-		params.From = e.Start
-		params.To = e.End
-		params.NotID = e.ID
-		if n, err := search.ps.Count(); err != nil {
+		var exists int64
+		c.mu.Lock()
+		err := c.statements[EventOverlap].QueryRow(e.ID, e.DriverID, e.Start, e.End).Scan(&exists)
+		c.mu.Unlock()
+		if err != nil {
 			return err
-		} else if n != 0 {
+		}
+		if exists != 0 {
 			resp.Errors = true
 			resp.TimeError = "Times clash with existing event"
 		}
-		params.NotID = 0
-		params.mu.Unlock()
 	}
 	if e.From == "" {
 		resp.Errors = true
@@ -173,8 +223,17 @@ func (c Calls) SetEvent(e Event, resp *SetEventResponse) error {
 	}
 	var err error
 	if !resp.Errors {
-		err = c.s.Set(&e)
-		resp.ID = e.ID
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		if e.ID == 0 {
+			r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, e.From, e.To)
+			if er == nil {
+				resp.ID, er = r.LastInsertId()
+			}
+			err = er
+		} else {
+			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, e.From, e.To, e.ID)
+		}
 	}
 	return err
 }
