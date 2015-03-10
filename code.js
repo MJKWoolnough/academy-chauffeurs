@@ -50,6 +50,18 @@ window.onload = function() {
 		this.setEvent = function(event, callback) {
 			request("SetEvent", event, callback);
 		}
+		this.removeDriver = function(id, callback) {
+			request("RemoveDriver", id, callback);
+		}
+		this.removeClient = function(id, callback) {
+			request("RemoveClient", id, callback);
+		}
+		this.removeCompany = function(id, callback) {
+			request("RemoveCompany", id, callback);
+		}
+		this.removeEvent = function(id, callback) {
+			request("RemoveEvent", id, callback);
+		}
 		this.drivers = function(callback) {
 			request("Drivers", 0, callback);
 		}
