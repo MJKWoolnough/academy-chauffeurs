@@ -26,46 +26,20 @@ window.onload = function() {
 			}
 			req(data.result);
 		};
-		this.getDriver = function(id, callback) {
-			request("GetDriver", id, callback);
-		}
-		this.getClient = function(id, callback) {
-			request("GetClient", client, callback);
-		}
-		this.getCompany = function(id, callback) {
-			request("GetCompany", id, callback);
-		}
-		this.getEvent = function(id, callback) {
-			request("GetEvent", id, callback);
-		}
-		this.setDriver = function(driver, callback) {
-			request("SetDriver", driver, callback);
-		}
-		this.setClient = function(client, callback) {
-			request("SetClient", client, callback);
-		}
-		this.setCompany = function(company, callback) {
-			request("SetCompany", company, callback);
-		}
-		this.setEvent = function(event, callback) {
-			request("SetEvent", event, callback);
-		}
-		this.removeDriver = function(id, callback) {
-			request("RemoveDriver", id, callback);
-		}
-		this.removeClient = function(id, callback) {
-			request("RemoveClient", id, callback);
-		}
-		this.removeCompany = function(id, callback) {
-			request("RemoveCompany", id, callback);
-		}
-		this.removeEvent = function(id, callback) {
-			request("RemoveEvent", id, callback);
-		}
-		this.drivers = function(callback) {
-			request("Drivers", 0, callback);
-		}
-		this.events = function(driverID, start, end, callback) {
+		this.getDriver     = request.bind(this, "GetDriver");     // id     , callback
+		this.getClient     = request.bind(this, "GetClient");     // id     , callback
+		this.getCompany    = request.bind(this, "GetCompany");    // id     , callback
+		this.getEvent      = request.bind(this, "GetEvent");      // id     , callback
+		this.setDriver     = request.bind(this, "SetDriver");     // driver , callback
+		this.setClient     = request.bind(this, "SetClient");     // client , callback
+		this.setCompany    = request.bind(this, "SetCompany");    // company, callback
+		this.setEvent      = request.bind(this, "SetEvent");      // event  , callback
+		this.removeDriver  = request.bind(this, "RemoveDriver");  // id     , callback
+		this.removeClient  = request.bind(this, "RemoveClient");  // id     , callback
+		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
+		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
+		this.drivers       = request.bind(this, "Drivers", 0);    // callback
+		this.events        = function(driverID, start, end, callback) {
 			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
 		ws.onopen = onload;
@@ -148,17 +122,23 @@ window.onload = function() {
 			input.setAttribute("value", contents);
 		}
 		label.innerHTML = name;
-		label.setAttribute("for", id);
-		input.setAttribute("id", id);
-		if (typeof onBlur === "function") {
-			input.addEventListener("blur", onBlur.bind(input));
+		if (id === "") {
+			input.setAttribute("readonly", "readonly");
+			layer.appendChild(label);
+			layer.appendChild(input);
+		} else {
+			label.setAttribute("for", id);
+			input.setAttribute("id", id);
+			if (typeof onBlur === "function") {
+				input.addEventListener("blur", onBlur.bind(input));
+			}
+			error.setAttribute("class", "error");
+			error.setAttribute("id", "error_"+id);
+			layer.appendChild(label);
+			layer.appendChild(input);
+			layer.appendChild(error);
+			layer.appendChild(createElement("br"));
 		}
-		error.setAttribute("class", "error");
-		error.setAttribute("id", "error_"+id);
-		layer.appendChild(label);
-		layer.appendChild(input);
-		layer.appendChild(error);
-		layer.appendChild(createElement("br"));
 		return input;
 	},
 	addFormSubmit = function(value, onClick) {
