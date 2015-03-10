@@ -239,21 +239,21 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 }
 
 func (c *Calls) RemoveDriver(id int64, _ *struct{}) error {
-	_, err := c.statements[RemoveDriver].Exec(id)
+	_, err := c.statements[DeleteDriver].Exec(id)
 	return err
 }
 
 func (c *Calls) RemoveClient(id int64, _ *struct{}) error {
-	_, err := c.statements[RemoveClient].Exec(id)
+	_, err := c.statements[DeleteClient].Exec(id)
 	return err
 }
 
 func (c *Calls) RemoveCompany(id int64, _ *struct{}) error {
-	_, err := c.statements[RemoveCompany].Exec(id)
+	_, err := c.statements[DeleteCompany].Exec(id)
 	return err
 }
 
 func (c *Calls) RemoveEvent(id int64, _ *struct{}) error {
-	_, err := c.statements[RemoveEvent].Exec(id)
+	_, err := c.statements[DeleteEvent].Exec(id)
 	return err
 }
