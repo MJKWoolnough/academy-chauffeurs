@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"strconv"
 	"sync"
 	"time"
 
@@ -23,9 +24,26 @@ type Client struct {
 	Name, PhoneNumber, Reference string
 }
 
+type Time struct {
+	time.Time
+}
+
+func (t Time) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.FormatInt(t.Unix(), 10)), nil
+}
+
+func (t Time) UnmarshalJSON(data []byte) error {
+	num, err := strconv.ParseInt(string(data), 10, 64)
+	if err != nil {
+		return err
+	}
+	t.Time = time.Unix(num, 0)
+	return nil
+}
+
 type Event struct {
 	ID, DriverID, ClientID int64
-	Start, End             time.Time
+	Start, End             Time
 	From, To               string
 }
 
