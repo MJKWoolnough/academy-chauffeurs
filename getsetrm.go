@@ -2,7 +2,7 @@ package main
 
 import "database/sql"
 
-func (c Calls) GetDriver(id int64, d *Driver) error {
+func (c *Calls) GetDriver(id int64, d *Driver) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	err := c.statements[ReadDriver].QueryRow(id).Scan(&(*d).Name, &(*d).RegistrationNumber, &(*d).PhoneNumber)
@@ -13,7 +13,7 @@ func (c Calls) GetDriver(id int64, d *Driver) error {
 	return err
 }
 
-func (c Calls) GetClient(id int64, cl *Client) error {
+func (c *Calls) GetClient(id int64, cl *Client) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	err := c.statements[ReadClient].QueryRow(id).Scan(&(*cl).CompanyID, &(*cl).Name, &(*cl).PhoneNumber, &(*cl).Reference)
@@ -24,7 +24,7 @@ func (c Calls) GetClient(id int64, cl *Client) error {
 	return err
 }
 
-func (c Calls) GetCompany(id int64, cy *Company) error {
+func (c *Calls) GetCompany(id int64, cy *Company) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	err := c.statements[ReadCompany].QueryRow(id).Scan(&(*cy).Name, &(*cy).Address)
@@ -35,7 +35,7 @@ func (c Calls) GetCompany(id int64, cy *Company) error {
 	return err
 }
 
-func (c Calls) GetEvent(id int64, e *Event) error {
+func (c *Calls) GetEvent(id int64, e *Event) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	err := c.statements[ReadEvent].QueryRow(id).Scan(&(*e).DriverID, &(*e).ClientID, &(*e).Start, &(*e).End, &(*e).From, &(*e).To)
@@ -52,7 +52,7 @@ type SetDriverResponse struct {
 	NameError, RegError, PhoneError string
 }
 
-func (c Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
+func (c *Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
 	if d.Name == "" {
 		resp.Errors = true
 		resp.NameError = "Name Required"
@@ -88,7 +88,7 @@ type SetClientResponse struct {
 	NameError, CompanyError, PhoneError, ReferenceError string
 }
 
-func (c Calls) SetClient(cl Client, resp *SetClientResponse) error {
+func (c *Calls) SetClient(cl Client, resp *SetClientResponse) error {
 	if cl.Name == "" {
 		resp.Errors = true
 		resp.NameError = "Name Required"
@@ -137,7 +137,7 @@ type SetCompanyResponse struct {
 	NameError, AddressError string
 }
 
-func (c Calls) SetCompany(cy Company, resp *SetCompanyResponse) error {
+func (c *Calls) SetCompany(cy Company, resp *SetCompanyResponse) error {
 	if cy.Name == "" {
 		resp.Errors = true
 		resp.NameError = "Name Required"
@@ -169,7 +169,7 @@ type SetEventResponse struct {
 	DriverError, ClientError, TimeError, FromError, ToError string
 }
 
-func (c Calls) SetEvent(e Event, resp *SetEventResponse) error {
+func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 	if e.DriverID == 0 {
 		resp.Errors = true
 		resp.DriverError = "Driver Required"
@@ -238,22 +238,22 @@ func (c Calls) SetEvent(e Event, resp *SetEventResponse) error {
 	return err
 }
 
-func (c Calls) RemoveDriver(id int64, _ *struct{}) error {
+func (c *Calls) RemoveDriver(id int64, _ *struct{}) error {
 	_, err := c.statements[RemoveDriver].Exec(id)
 	return err
 }
 
-func (c Calls) RemoveClient(id int64, _ *struct{}) error {
+func (c *Calls) RemoveClient(id int64, _ *struct{}) error {
 	_, err := c.statements[RemoveClient].Exec(id)
 	return err
 }
 
-func (c Calls) RemoveCompany(id int64, _ *struct{}) error {
+func (c *Calls) RemoveCompany(id int64, _ *struct{}) error {
 	_, err := c.statements[RemoveCompany].Exec(id)
 	return err
 }
 
-func (c Calls) RemoveEvent(id int64, _ *struct{}) error {
+func (c *Calls) RemoveEvent(id int64, _ *struct{}) error {
 	_, err := c.statements[RemoveEvent].Exec(id)
 	return err
 }

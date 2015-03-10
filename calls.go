@@ -138,7 +138,7 @@ func newCalls(dbFName string) (*Calls, error) {
 	return c, nil
 }
 
-func (c Calls) close() {
+func (c *Calls) close() {
 	c.db.Close()
 }
 
@@ -148,7 +148,7 @@ type EventsFilter struct {
 	mu         sync.Mutex
 }
 
-func (c Calls) Events(f EventsFilter, eventList *[]Event) error {
+func (c *Calls) Events(f EventsFilter, eventList *[]Event) error {
 	rows, err := c.statements[EventList].Query(f.DriverID, f.Start, f.End)
 	if err != nil {
 		return err
@@ -164,7 +164,7 @@ func (c Calls) Events(f EventsFilter, eventList *[]Event) error {
 	return rows.Err()
 }
 
-func (c Calls) Drivers(_ struct{}, drivers *[]Driver) error {
+func (c *Calls) Drivers(_ struct{}, drivers *[]Driver) error {
 	rows, err := c.statements[DriverList].Query()
 	if err != nil {
 		return err
