@@ -127,7 +127,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		// Row of Events for driver
 		"SELECT [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?2 AND ?3);",
 		// Event Overlaps
-		"SELECT COUNT(1) FROM [Events] WHERE [ID] != ? AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4;",
+		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4);",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
