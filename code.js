@@ -26,6 +26,15 @@ window.onload = function() {
 			}
 			req(data.result);
 		};
+		ws.onopen = onload;
+		ws.onclose = function(event) {
+			if (event.code !== 1000) {
+				document.body.innerHTML = "Lost Connection To Server! Code: " + event.code;
+			}
+		}
+		window.addEventListener("beforeunload", function() {
+			ws.close();
+		});
 		this.getDriver     = request.bind(this, "GetDriver");     // id     , callback
 		this.getClient     = request.bind(this, "GetClient");     // id     , callback
 		this.getCompany    = request.bind(this, "GetCompany");    // id     , callback
@@ -42,7 +51,6 @@ window.onload = function() {
 		this.events        = function(driverID, start, end, callback) {
 			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
-		ws.onopen = onload;
 	})(function() {
 		eventList();
 	}),
