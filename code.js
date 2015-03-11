@@ -118,7 +118,7 @@ window.onload = function() {
 	},
 	eventListWithData = function (date, drivers) {
 
-	}
+	},
 	addTitle = function(id, add, edit) {
 		layer.appendChild(createElement("h1")).innerHTML = (id == 0) ? add : edit;
 	},
