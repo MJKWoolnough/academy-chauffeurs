@@ -169,10 +169,11 @@ func (c *Calls) close() {
 type EventsFilter struct {
 	DriverID   int64
 	Start, End time.Time
-	mu         sync.Mutex
 }
 
 func (c *Calls) Events(f EventsFilter, eventList *[]Event) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	rows, err := c.statements[EventList].Query(f.DriverID, f.Start, f.End)
 	if err != nil {
 		return err
@@ -189,6 +190,8 @@ func (c *Calls) Events(f EventsFilter, eventList *[]Event) error {
 }
 
 func (c *Calls) Drivers(_ struct{}, drivers *[]Driver) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	rows, err := c.statements[DriverList].Query()
 	if err != nil {
 		return err

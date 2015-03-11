@@ -239,16 +239,22 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 }
 
 func (c *Calls) RemoveDriver(id int64, _ *struct{}) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	_, err := c.statements[DeleteDriver].Exec(id)
 	return err
 }
 
 func (c *Calls) RemoveClient(id int64, _ *struct{}) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	_, err := c.statements[DeleteClient].Exec(id)
 	return err
 }
 
 func (c *Calls) RemoveCompany(id int64, _ *struct{}) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	_, err := c.statements[DeleteCompany].Exec(id)
 	return err
 }
