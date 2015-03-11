@@ -325,12 +325,15 @@ window.onload = function() {
 			addFormElement("End", "text", "", dateFormat(event.End));
 			var changeDriverTime = addFormElement("Change Above", "button", "change_driver_time"),
 			from = addFormElement("From", "textarea", "from", event.From),
-			to = addFormElement("To", "textarea", "to", event.To);
+			to = addFormElement("To", "textarea", "to", event.To)
+			clientID = addFormElement("", "hidden", "", event.ClientID),
+			clientName = addFormElement("Client Name", "text", "client_name", event.ClientName);
 			changeDriverTime.addEventListener("click", function() {
 				
 			}.bind(changeDriverTime));
 			autocomplete(fromAddressRPC, from);
 			autocomplete(toAddressRPC, to);
+			autocomplete(autocompleteClientName, clientName, clientID);
 			addFormSubmit("Add Event", function() {
 				var parts = [this, changeTime, to, from];
 				parts.map(disableElement);
