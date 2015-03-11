@@ -99,7 +99,7 @@ window.onload = function() {
 		}
 		rpc.drivers(function(d) {
 			drivers = d;
-			if (typeof driver === "undefined" || drivers.length === 0) {
+			if (typeof drivers === "undefined" || drivers.length === 0) {
 				stack.addLayer("addDriver", eventList);
 				setDriver();
 			} else {
