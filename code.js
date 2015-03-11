@@ -51,7 +51,7 @@ window.onload = function() {
 		this.events        = function(driverID, start, end, callback) {
 			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
-		this.getAddress    = function(priority, partial, callback) {
+		this.autocompleteAddress    = function(priority, partial, callback) {
 			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
 		}
 	})(function() {
@@ -180,6 +180,7 @@ window.onload = function() {
 		}
 	},
 	setDriverWithData = function(driver) {
+		stack.addFragment();
 		addTitle(driver.ID, "Add Driver", "Edit Driver");
 		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
@@ -204,6 +205,7 @@ window.onload = function() {
 				}
 			});
 		});
+		stack.setFragment();
 	},
 	setClient = function(id) {
 		if (typeof id === "number" && id > 0) {
@@ -227,6 +229,7 @@ window.onload = function() {
 		}
 	},
 	setClientWithData = function(client) {
+		stack.addFragment();
 		addTitle(client.ID, "Add Client", "Edit Client");
 		var clientName = addFormElement("Client Name", "text", "client_name", client.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
@@ -255,6 +258,7 @@ window.onload = function() {
 				}
 			});
 		});
+		stack.addFragment();
 	},
 	setCompany = function(id) {
 		if (typeof id === "number" && id > 0) {
@@ -268,6 +272,7 @@ window.onload = function() {
 		}
 	},
 	setCompanyWithData = function(company) {
+		stack.addFragment();
 		addTitle(company.ID, "Add Company", "Edit Company");
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address"));
@@ -288,6 +293,7 @@ window.onload = function() {
 				}
 			});
 		});
+		stack.setFragment();
 	},
 	setEvent = function(id, startTime, endTime) {
 		if (arguments.length > 1) {
@@ -322,9 +328,10 @@ window.onload = function() {
 		}
 	},
 	setEventWithData = (function() {
-		var fromAddressRPC = rpc.getAddress.bind(rpc, 0),
-		toAddressRPC = rpc.getAddress.bind(rpc, 1);
+		var fromAddressRPC = rpc.autocompleteAddress.bind(rpc, 0),
+		toAddressRPC = rpc.autocompleteAddress.bind(rpc, 1);
 		return function(event) {
+			stack.addFragment();
 			addTitle(event.ID, "Add Event", "Edit Event");
 			addFormElement("Driver", "text", "", event.DriverName);
 			addFormElement("Start", "text", "", dateFormat(event.Start));
@@ -356,6 +363,7 @@ window.onload = function() {
 					}
 				});
 			});
+			stack.setFragment();
 		}
 	}()),
 	regexpCheck = function(regexp, error) {
