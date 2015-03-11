@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"net/rpc"
 	"strconv"
 	"sync"
 	"time"
@@ -152,6 +153,11 @@ func newCalls(dbFName string) (*Calls, error) {
 			return nil, err
 		}
 		c.statements[n] = stmt
+	}
+
+	err = rpc.Register(c)
+	if err != nil {
+		return nil, err
 	}
 	return c, nil
 }

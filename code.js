@@ -38,7 +38,7 @@ window.onload = function() {
 		this.removeClient  = request.bind(this, "RemoveClient");  // id     , callback
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
 		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
-		this.drivers       = request.bind(this, "Drivers", 0);    // callback
+		this.drivers       = request.bind(this, "Drivers", null);    // callback
 		this.events        = function(driverID, start, end, callback) {
 			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
@@ -49,7 +49,7 @@ window.onload = function() {
 	createElement = (function(){
 		var ns = document.getElementsByTagName("html")[0].namespaceURI;
 		return function(elementName) {
-			return createElementNS(ns, elementName);
+			return document.createElementNS(ns, elementName);
 		};
 	}()),
 	drivers = [],
@@ -80,12 +80,12 @@ window.onload = function() {
 			body.removeChild(body.lastChild);
 			layer = body.lastChild.firstChild;
 		};
-		this.addFragment() {
+		this.addFragment = function () {
 			if (typeof layer == "object" && layer.nodeType !== 11) {
 				layer = document.createDocumentFragment();
 			}
 		}
-		this.setFragment() {
+		this.setFragment = function () {
 			if (typeof layer == "object" && layer.nodeType === 11) {
 				body.lastChild.firstChild.appendChild(layer);
 				layer = body.lastChild.firstChild;
@@ -99,7 +99,7 @@ window.onload = function() {
 		}
 		rpc.drivers(function(d) {
 			drivers = d;
-			if (drivers.length === 0) {
+			if (typeof driver === "undefined" || drivers.length === 0) {
 				stack.addLayer("addDriver", eventList);
 				setDriver();
 			} else {
@@ -219,7 +219,7 @@ window.onload = function() {
 		companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
 		companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
 		clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
-		clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code");
+		clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code"));
 		autocomplete(rpc.autocompleteCompanyName, companyName, companyID);
 		addFormSubmit("Add Client", function() {
 			var parts = [this, clientName, companyID, companyName];
@@ -263,8 +263,8 @@ window.onload = function() {
 			parts.map(disableElement);
 			rpc.setCompany({
 				"ID": company.ID,
-				"Name", companyName.value,
-				"Address", address.innerHTML,
+				"Name": companyName.value,
+				"Address": address.innerHTML,
 			}, function(resp) {
 				if (resp.Errors) {
 					layer.getElementById("error_company_name").innerHTML = resp.NameError;
