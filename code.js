@@ -60,14 +60,10 @@ window.onload = function() {
 			return document.createElementNS(ns, elementName);
 		};
 	}()),
-	drivers = [],
-	companies = [],
-	clients = [],
-	events = [],
 	layer,
-	body = document.body,
 	stack = new (function(){
-		var stack = [];
+		var stack = [],
+		body = document.body;
 		this.addLayer = function(layerID, callback) {
 			stack.push(callback);
 			var outerLayer = createElement("div");
@@ -101,6 +97,9 @@ window.onload = function() {
 		}
 		this.addLayer("eventList");
 	})(),
+	dateFormat = function(date) {
+		return date.toLocaleString('en-GB');
+	},
 	eventList = function(date) {
 		if (arguments.length == 0) {
 			date = Date.now()
@@ -119,7 +118,6 @@ window.onload = function() {
 	},
 	addFormElement = function(name, type, id, contents, onBlur) {
 		var label = createElement("label"),
-		error = createElement("div"),
 		input;
 		if (type === "textarea") {
 			input = createElement("textarea");
@@ -140,13 +138,14 @@ window.onload = function() {
 			if (typeof onBlur === "function") {
 				input.addEventListener("blur", onBlur.bind(input));
 			}
+			var error = createElement("div");
 			error.setAttribute("class", "error");
 			error.setAttribute("id", "error_"+id);
 			layer.appendChild(label);
 			layer.appendChild(input);
 			layer.appendChild(error);
-			layer.appendChild(createElement("br"));
 		}
+		layer.appendChild(createElement("br"));
 		return input;
 	},
 	addFormSubmit = function(value, onClick) {
@@ -308,16 +307,48 @@ window.onload = function() {
 					rpc.getDriver(event.DriverID, function(resp) {
 						event.DriverID = resp.ID;
 						event.DriverName = resp.Name;
+						event.Start = new Date(event.Start * 1000); // ms
+						event.End = new Date(event.End * 1000); // ms
 						setEventWithData(event);
 					});
 				});
 			});
 		}
 	},
-	setEventWithData = function(event) {
-		addTitle(event.ID, "Add Event", "Edit Event");
-
-	},
+	setEventWithData = (function() {
+		var fromAddressRPC = rpc.getAddress.bind(rpc, 0),
+		toAddressRPC = rpc.getAddress.bind(rpc, 1);
+		return function(event) {
+			addTitle(event.ID, "Add Event", "Edit Event");
+			addFormElement("Driver", "text", "", event.DriverName);
+			addFormElement("Start", "text", "", dateFormat(event.Start));
+			addFormElement("End", "text", "", dateFormat(event.End));
+			var changeDriverTime = addFormElement("Change Above", "button", "change_driver_time"),
+			from = addFormElement("From", "textarea", "from", event.From),
+			to = addFormElement("To", "textarea", "to", event.To);
+			changeDriverTime.addEventListener("click", function() {
+				
+			}.bind(changeDriverTime));
+			autocomplete(fromAddressRPC, from);
+			autocomplete(toAddressRPC, to);
+			addFormSubmit("Add Event", function() {
+				var parts = [this, changeTime, to, from];
+				parts.map(disableElement);
+				event.From = from.innerHTML;
+				event.To = to.innerHTML;
+				rpc.setEvent(event, function(resp) {
+					if (resp.errors) {
+						layers.getElementById("error_change_driver_time").innerHTML = resp.DriverTimeError;
+						layers.getElementById("error_from").innerHTML = resp.FromError;
+						layers.getElementById("error_to").innerHTML = resp.ToError;
+						parts.map(enableElement);
+					} else {
+						stack.removeLayer(resp.ID, event.Start / 1000 | 0);
+					}
+				});
+			}
+		}
+	}()),
 	regexpCheck = function(regexp, error) {
 		return function() {
 			var errorDiv = document.getElementById("error_" + this.getAttribute("id"));
