@@ -38,7 +38,7 @@ window.onload = function() {
 		this.removeClient  = request.bind(this, "RemoveClient");  // id     , callback
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
 		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
-		this.drivers       = request.bind(this, "Drivers", null);    // callback
+		this.drivers       = request.bind(this, "Drivers", null); // callback
 		this.events        = function(driverID, start, end, callback) {
 			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
