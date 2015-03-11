@@ -51,8 +51,18 @@ window.onload = function() {
 		this.events        = function(driverID, start, end, callback) {
 			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
+		this.getAddress    = function(priority, partial, callback) {
+			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
+		}
 	})(function() {
-		eventList();
+		rpc.drivers(function(drivers) {
+			if (typeof drivers === "undefined" || drivers.length === 0) {
+				stack.addLayer("addDriver", eventList);
+				setDriver();
+			} else {
+				eventListWithData(drivers);
+			}
+		});
 	}),
 	createElement = (function(){
 		var ns = document.getElementsByTagName("html")[0].namespaceURI;
@@ -104,15 +114,11 @@ window.onload = function() {
 		if (arguments.length == 0) {
 			date = Date.now()
 		}
-		rpc.drivers(function(d) {
-			drivers = d;
-			if (typeof drivers === "undefined" || drivers.length === 0) {
-				stack.addLayer("addDriver", eventList);
-				setDriver();
-			} else {
-			}
-		});
+		rpc.drivers(eventListWithData);
 	},
+	eventListWithData = function (date, drivers) {
+
+	}
 	addTitle = function(id, add, edit) {
 		layer.appendChild(createElement("h1")).innerHTML = (id == 0) ? add : edit;
 	},
@@ -349,7 +355,7 @@ window.onload = function() {
 						stack.removeLayer(resp.ID, event.Start / 1000 | 0);
 					}
 				});
-			}
+			});
 		}
 	}()),
 	regexpCheck = function(regexp, error) {
