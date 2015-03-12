@@ -1,7 +1,17 @@
 "use strict";
 window.onload = function() {
-	var rpc = new (function(onload){
-		var ws = new WebSocket("ws://127.0.0.1:8080/rpc", "rpc"),
+	var onload = function() {
+		rpc.drivers(function(drivers) {
+			if (typeof drivers === "undefined" || drivers === null || drivers.length === 0) {
+				stack.addLayer("setDriver", onload);
+				setDriver();
+			} else {
+				eventListWithData(new Date(), drivers);
+			}
+		});
+	},
+	rpc = new (function(onload){
+		var ws = new WebSocket("ws://127.0.0.1:8080/rpc"),
 		requests = [],
 		nextID = 0,
 		request = function (method, params, callback) {
@@ -27,6 +37,9 @@ window.onload = function() {
 			req(data.result);
 		};
 		ws.onopen = onload;
+		ws.onerror = function(event) {
+			document.body.innerHTML = "An error occurred";
+		}
 		ws.onclose = function(event) {
 			if (event.code !== 1000) {
 				document.body.innerHTML = "Lost Connection To Server! Code: " + event.code;
@@ -48,22 +61,13 @@ window.onload = function() {
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
 		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
 		this.drivers       = request.bind(this, "Drivers", null); // callback
-		this.events        = function(driverID, start, end, callback) {
+		this.events = function(driverID, start, end, callback) {
 			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
-		this.autocompleteAddress    = function(priority, partial, callback) {
+		this.autocompleteAddress = function(priority, partial, callback) {
 			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
 		}
-	})(function() {
-		rpc.drivers(function(drivers) {
-			if (typeof drivers === "undefined" || drivers.length === 0) {
-				stack.addLayer("addDriver", eventList);
-				setDriver();
-			} else {
-				eventListWithData(drivers);
-			}
-		});
-	}),
+	})(onload),
 	createElement = (function(){
 		var ns = document.getElementsByTagName("html")[0].namespaceURI;
 		return function(elementName) {
@@ -73,8 +77,14 @@ window.onload = function() {
 	layer,
 	stack = new (function(){
 		var stack = [],
+		canceler = [],
 		body = document.body;
 		this.addLayer = function(layerID, callback) {
+			if (stack.length == 0) {
+				canceler.push(null);
+			} else {
+				canceler.push(this.removeLayer.bind(this));
+			}
 			stack.push(callback);
 			var outerLayer = createElement("div");
 			outerLayer.className = "layer";
@@ -88,6 +98,7 @@ window.onload = function() {
 				return;
 			}
 			var callback = stack.pop();
+			canceler.pop();
 			if (typeof callback === "function") {
 				callback.apply(arguments);
 			}
@@ -98,29 +109,80 @@ window.onload = function() {
 			if (typeof layer == "object" && layer.nodeType !== 11) {
 				layer = document.createDocumentFragment();
 			}
-		}
+		};
 		this.setFragment = function () {
 			if (typeof layer == "object" && layer.nodeType === 11) {
 				body.lastChild.firstChild.appendChild(layer);
 				layer = body.lastChild.firstChild;
 			}
-		}
-		this.addLayer("eventList");
+		};
+		this.clearLayer = function(callback) {
+			return function() {
+				while (layer.hasChildNodes()) {
+					layer.removeChild(layer.lastChild);
+				}
+				callback();
+			};
+		};
+		this.setCanceler = function(callback) {
+			canceler[canceler.length-1] = callback;
+		};
+		document.addEventListener("keypress", function(e) {
+			if (canceler[canceler.length-1] !== null) {
+				e = e || window.event;
+				if (e.keyCode === 27) {
+					canceler[canceler.length-1]();
+				}
+			}
+		});
 	})(),
 	dateFormat = function(date) {
 		return date.toLocaleString('en-GB');
 	},
 	eventList = function(date) {
 		if (arguments.length == 0) {
-			date = Date.now()
+			date = new Date();
 		}
-		rpc.drivers(eventListWithData);
+		rpc.drivers(eventListWithData.bind(null, date));
 	},
 	eventListWithData = function (date, drivers) {
-
+		stack.addFragment();
+		var i = 0,
+		ypos = 200;
+		for (; i < drivers.length; i++) {
+			var driver = createElement("div"),
+			driverName = createElement("div");
+			driver.setAttribute("class", "driverName");
+			driver.style.top = ypos + "px";
+			driver.addEventListener("click", (function(driver) {
+				return function() {
+					stack.addLayer("viewDriver", stack.clearLayer(eventList));
+					viewDriver(driver);
+				}
+			}(drivers[i])));
+			driverName.innerHTML = drivers[i].Name;
+			ypos += 100;
+			driver.appendChild(driverName);
+			layer.appendChild(driver);
+		}
+		var addDriver = createElement("div"),
+		plus = createElement("div");
+		addDriver.setAttribute("id", "addDriver");
+		addDriver.style.top = ypos + "px";
+		plus.innerHTML = "+";
+		addDriver.appendChild(plus);
+		addDriver.addEventListener("click", function() {
+			stack.addLayer("setDriver", stack.clearLayer(eventList));
+			setDriver();
+		});
+		layer.appendChild(addDriver);
+		stack.setFragment();
 	},
 	addTitle = function(id, add, edit) {
 		layer.appendChild(createElement("h1")).innerHTML = (id == 0) ? add : edit;
+	},
+	viewDriver = function(driver) {
+		alert(driver.Name);
 	},
 	addFormElement = function(name, type, id, contents, onBlur) {
 		var label = createElement("label"),
@@ -200,7 +262,6 @@ window.onload = function() {
 					layer.getElementById("error_driver_phone").innerHTML = resp.PhoneError;
 					parts.map(enableElement);
 				} else {
-					// add driver to a list?
 					stack.removeLayer();
 				}
 			});
@@ -379,4 +440,5 @@ window.onload = function() {
 	autocomplete = function(rpcCall, name, id) {
 		
 	};
+	stack.addLayer("eventList");
 };

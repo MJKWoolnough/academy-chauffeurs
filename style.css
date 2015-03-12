@@ -53,3 +53,25 @@ div.error {
 div.error + br {
 	clear : left;
 }
+
+.driverName, #addDriver {
+	background-color : #eee;
+	color : #000;
+	left : 0;
+	height : 100px;
+	position : absolute;
+	width : 100px;
+}
+
+.driverName:hover, #addDriver:hover {
+	cursor : pointer;
+	background-color : #000;
+	color : #eee;
+}
+
+.driverName > div, #addDriver > div {
+	position : relative;
+	top : 50%;
+	text-align : center;
+	transform : translateY(-50%);
+}
