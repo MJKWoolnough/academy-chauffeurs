@@ -75,3 +75,20 @@ div.error + br {
 	text-align : center;
 	transform : translateY(-50%);
 }
+
+.date {
+	position : absolute;
+	top : 100px;
+}
+
+.minutes {
+	width : 20px;
+}
+
+.hours {
+	width : 80px;
+}
+
+.days {
+	width : 1920px;
+}

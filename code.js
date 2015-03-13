@@ -6,7 +6,7 @@ window.onload = function() {
 				stack.addLayer("setDriver", onload);
 				setDriver();
 			} else {
-				eventListWithData(new Date(), drivers);
+				eventListWithDrivers(new Date(), drivers);
 			}
 		});
 	},
@@ -61,7 +61,7 @@ window.onload = function() {
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
 		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
 		this.drivers       = request.bind(this, "Drivers", null); // callback
-		this.events = function(driverID, start, end, callback) {
+		this.getEventsWithDriver = function(driverID, start, end, callback) {
 			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
 		this.autocompleteAddress = function(priority, partial, callback) {
@@ -136,19 +136,42 @@ window.onload = function() {
 			}
 		});
 	})(),
-	dateFormat = function(date) {
+	timeFormat = function(date) {
+		return 
+	},
+	dateTimeFormat = function(date) {
 		return date.toLocaleString('en-GB');
 	},
 	eventList = function(date) {
 		if (arguments.length == 0) {
 			date = new Date();
 		}
-		rpc.drivers(eventListWithData.bind(null, date));
+		rpc.drivers(eventListWithDrivers.bind(null, date));
 	},
-	eventListWithData = function (date, drivers) {
+	eventListWithDrivers = function (date, drivers) {
+		var f = eventListWithData.bind(null, date, drivers),
+		i = 0,
+		events = [],
+		start, end;
+		for (;i < drivers.length; i++) {
+			f = function(callback, num) {
+				return function() {
+					rpc.getEventsWithDriver(drivers[num].ID, start, end, function(e) {
+						events[num] = e;
+						callback(events);
+					});
+				};
+			} (f, i);
+		}
+		f();
+	},
+	eventListWithData = function (date, drivers, events) {
 		stack.addFragment();
+		// generate dates
+		// generate times
 		var i = 0,
-		ypos = 200;
+		ypos = 200,
+		layer.appendChild(dateDiv);
 		for (; i < drivers.length; i++) {
 			var driver = createElement("div"),
 			driverName = createElement("div");
@@ -395,8 +418,8 @@ window.onload = function() {
 			stack.addFragment();
 			addTitle(event.ID, "Add Event", "Edit Event");
 			addFormElement("Driver", "text", "", event.DriverName);
-			addFormElement("Start", "text", "", dateFormat(event.Start));
-			addFormElement("End", "text", "", dateFormat(event.End));
+			addFormElement("Start", "text", "", dateTimeFormat(event.Start));
+			addFormElement("End", "text", "", dateTimeFormat(event.End));
 			var changeDriverTime = addFormElement("Change Above", "button", "change_driver_time"),
 			from = addFormElement("From", "textarea", "from", event.From),
 			to = addFormElement("To", "textarea", "to", event.To)
@@ -441,4 +464,8 @@ window.onload = function() {
 		
 	};
 	stack.addLayer("eventList");
+	Date.prototype.isLeapYear = function() {
+		var year = this.getFullYear();
+		return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+	}
 };
