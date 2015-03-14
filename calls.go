@@ -196,6 +196,7 @@ func (c *Calls) Drivers(_ struct{}, drivers *[]Driver) error {
 	if err != nil {
 		return err
 	}
+	*drivers = make([]Driver, 0)
 	for rows.Next() {
 		var d Driver
 		err = rows.Scan(&d.ID, &d.Name, &d.RegistrationNumber, &d.PhoneNumber)
