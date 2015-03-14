@@ -155,7 +155,7 @@ window.onload = function() {
 				plusDriver.setAttribute("id", "plusDriver");
 				plusDriver.addEventListener("click", function() {
 					stack.addLayer("addDriver", this.addDriver.bind(this));
-					setDriver();
+					addDriver();
 				}.bind(this));
 				layer.appendChild(plusDriver);
 			}.bind(this));
@@ -235,19 +235,7 @@ window.onload = function() {
 	enableElement = function(part) {
 		part.removeAttribute("disabled");
 	},
-	setDriver = function(id) {
-		if (typeof id === "number" && id > 0) {
-			rpc.getDriver(id, setDriverWithData);
-		} else {
-			setDriverWithData({
-				"ID": 0,
-				"Name": "",
-				"RegistrationNumber": "",
-				"PhoneNumber": "",
-			});
-		}
-	},
-	setDriverWithData = function(driver) {
+	setDriver = function(driver) {
 		stack.addFragment();
 		addTitle(driver.ID, "Add Driver", "Edit Driver");
 		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
@@ -274,6 +262,12 @@ window.onload = function() {
 		});
 		stack.setFragment();
 	},
+	addDriver = setDriverWithData.bind(null, {
+		"ID": 0,
+		"Name": "",
+		"RegistrationNumber": "",
+		"PhoneNumber": "",
+	}),
 	setClient = function(id) {
 		if (typeof id === "number" && id > 0) {
 			rpc.getClient(id, function(resp) {
