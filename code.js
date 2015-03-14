@@ -1,20 +1,10 @@
 "use strict";
 window.onload = function() {
-	var onload = function() {
-		rpc.drivers(function(drivers) {
-			if (typeof drivers === "undefined" || drivers === null || drivers.length === 0) {
-				stack.addLayer("setDriver", onload);
-				setDriver();
-			} else {
-				eventListWithDrivers(new Date(), drivers);
-			}
-		});
-	},
-	rpc = new (function(onload){
+	var rpc = new (function(onload){
 		var ws = new WebSocket("ws://127.0.0.1:8080/rpc"),
-		requests = [],
-		nextID = 0,
-		request = function (method, params, callback) {
+		    requests = [],
+		    nextID = 0,
+		    request = function (method, params, callback) {
 			var msg = {
 				"method": "Calls." + method,
 				"id": nextID,
@@ -67,7 +57,9 @@ window.onload = function() {
 		this.autocompleteAddress = function(priority, partial, callback) {
 			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
 		}
-	})(onload),
+	})(function() {
+		events.init();	
+	}),
 	createElement = (function(){
 		var ns = document.getElementsByTagName("html")[0].namespaceURI;
 		return function(elementName) {
@@ -77,8 +69,8 @@ window.onload = function() {
 	layer,
 	stack = new (function(){
 		var stack = [],
-		canceler = [],
-		body = document.body;
+		    canceler = [],
+		    body = document.body;
 		this.addLayer = function(layerID, callback) {
 			if (stack.length == 0) {
 				canceler.push(null);
@@ -136,71 +128,62 @@ window.onload = function() {
 			}
 		});
 	})(),
-	timeFormat = function(date) {
-		return 
-	},
 	dateTimeFormat = function(date) {
 		return date.toLocaleString('en-GB');
 	},
-	eventList = function(date) {
-		if (arguments.length == 0) {
-			date = new Date();
-		}
-		rpc.drivers(eventListWithDrivers.bind(null, date));
-	},
-	eventListWithDrivers = function (date, drivers) {
-		var f = eventListWithData.bind(null, date, drivers),
-		i = 0,
-		events = [],
-		start, end;
-		for (;i < drivers.length; i++) {
-			f = function(callback, num) {
-				return function() {
-					rpc.getEventsWithDriver(drivers[num].ID, start, end, function(e) {
-						events[num] = e;
-						callback(events);
-					});
-				};
-			} (f, i);
-		}
-		f();
-	},
-	eventListWithData = function (date, drivers, events) {
-		stack.addFragment();
-		// generate dates
-		// generate times
-		var i = 0,
-		ypos = 200,
-		layer.appendChild(dateDiv);
-		for (; i < drivers.length; i++) {
-			var driver = createElement("div"),
-			driverName = createElement("div");
-			driver.setAttribute("class", "driverName");
-			driver.style.top = ypos + "px";
-			driver.addEventListener("click", (function(driver) {
-				return function() {
-					stack.addLayer("viewDriver", stack.clearLayer(eventList));
-					viewDriver(driver);
+	events = new (function() {
+		var dateTime,
+		    drivers = [],
+		    startEnd = [new Date(), new Date()],
+		    plusDriver = createElement("div"),
+		    nextDriverPos = 100,
+		    eventClicked = function(driver, time) {
+			    
+		    };
+		this.init = function() {
+			this.init = function() {};
+			rpc.drivers(function(ds) {
+				for (var i = 0; i < ds.length; i++) {
+					this.addDriver(ds[i]);
+					if (startEnd[0].getTime() !== startEnd[1].getTime()) {
+						rpc.getEventsWithDriver(d.ID, startEnd[0], startEnd[1], function(e) {
+							// process events
+						});
+					}
 				}
-			}(drivers[i])));
-			driverName.innerHTML = drivers[i].Name;
-			ypos += 100;
-			driver.appendChild(driverName);
-			layer.appendChild(driver);
+				plusDriver.appendChild(createElement("div")).innerHTML = "+";
+				plusDriver.setAttribute("id", "plusDriver");
+				plusDriver.addEventListener("click", function() {
+					stack.addLayer("addDriver", this.addDriver.bind(this));
+					setDriver();
+				}.bind(this));
+				layer.appendChild(plusDriver);
+			}.bind(this));
+		};
+		this.addDriver = function(d) {
+			if (typeof d === "undefined") {
+				return;
+			}
+			drivers[d.ID] = [];
+			var dDiv = createElement("div");
+			dDiv.appendChild(createElement("div")).innerHTML = d.Name;
+			dDiv.setAttribute("class", "driverName");
+			dDiv.setAttribute("id", "driver_" + d.ID);
+			dDiv.addEventListener("click", function() {
+				stack.addLayer("viewDriver");
+				viewDriver(d);
+			});
+			dDiv.style.top = nextDriverPos + "px";
+			nextDriverPos += 100;
+			plusDriver.style.top = nextDriverPos + "px";
+			layer.appendChild(dDiv);
+			// add time boxes
+		};
+		this.setTime = function (time) {
+			dateTime = time;
+			update();
 		}
-		var addDriver = createElement("div"),
-		plus = createElement("div");
-		addDriver.setAttribute("id", "addDriver");
-		addDriver.style.top = ypos + "px";
-		plus.innerHTML = "+";
-		addDriver.appendChild(plus);
-		addDriver.addEventListener("click", function() {
-			stack.addLayer("setDriver", stack.clearLayer(eventList));
-			setDriver();
-		});
-		layer.appendChild(addDriver);
-		stack.setFragment();
-	},
+	})(),
 	addTitle = function(id, add, edit) {
 		layer.appendChild(createElement("h1")).innerHTML = (id == 0) ? add : edit;
 	},
@@ -209,7 +192,7 @@ window.onload = function() {
 	},
 	addFormElement = function(name, type, id, contents, onBlur) {
 		var label = createElement("label"),
-		input;
+		    input;
 		if (type === "textarea") {
 			input = createElement("textarea");
 			input.innerHTML = contents;
@@ -268,9 +251,9 @@ window.onload = function() {
 		stack.addFragment();
 		addTitle(driver.ID, "Add Driver", "Edit Driver");
 		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
-		regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
-		phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
-		addFormSubmit("Add Driver", function() {
+		    regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
+		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
+		    addFormSubmit("Add Driver", function() {
 			var parts = [this, driverName, regNumber, phoneNumber];
 			parts.map(disableElement);
 			rpc.setDriver({
@@ -316,10 +299,10 @@ window.onload = function() {
 		stack.addFragment();
 		addTitle(client.ID, "Add Client", "Edit Client");
 		var clientName = addFormElement("Client Name", "text", "client_name", client.Name, regexpCheck(/.+/, "Please enter a valid name")),
-		companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
-		companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
-		clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
-		clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code"));
+		    companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
+		    companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
+		    clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
+		    clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code"));
 		autocomplete(rpc.autocompleteCompanyName, companyName, companyID);
 		addFormSubmit("Add Client", function() {
 			var parts = [this, clientName, companyID, companyName];
@@ -359,7 +342,7 @@ window.onload = function() {
 		stack.addFragment();
 		addTitle(company.ID, "Add Company", "Edit Company");
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
-		address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address"));
+		    address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address"));
 		addFormSubmit("Add Company", function() {
 			var parts = [this, companyName, address];
 			parts.map(disableElement);
@@ -413,7 +396,7 @@ window.onload = function() {
 	},
 	setEventWithData = (function() {
 		var fromAddressRPC = rpc.autocompleteAddress.bind(rpc, 0),
-		toAddressRPC = rpc.autocompleteAddress.bind(rpc, 1);
+		    toAddressRPC = rpc.autocompleteAddress.bind(rpc, 1);
 		return function(event) {
 			stack.addFragment();
 			addTitle(event.ID, "Add Event", "Edit Event");
@@ -421,10 +404,10 @@ window.onload = function() {
 			addFormElement("Start", "text", "", dateTimeFormat(event.Start));
 			addFormElement("End", "text", "", dateTimeFormat(event.End));
 			var changeDriverTime = addFormElement("Change Above", "button", "change_driver_time"),
-			from = addFormElement("From", "textarea", "from", event.From),
-			to = addFormElement("To", "textarea", "to", event.To)
-			clientID = addFormElement("", "hidden", "", event.ClientID),
-			clientName = addFormElement("Client Name", "text", "client_name", event.ClientName);
+			    from = addFormElement("From", "textarea", "from", event.From),
+			    to = addFormElement("To", "textarea", "to", event.To),
+			    clientID = addFormElement("", "hidden", "", event.ClientID),
+			    clientName = addFormElement("Client Name", "text", "client_name", event.ClientName);
 			changeDriverTime.addEventListener("click", function() {
 				
 			}.bind(changeDriverTime));
@@ -463,7 +446,7 @@ window.onload = function() {
 	autocomplete = function(rpcCall, name, id) {
 		
 	};
-	stack.addLayer("eventList");
+	stack.addLayer("events");
 	Date.prototype.isLeapYear = function() {
 		var year = this.getFullYear();
 		return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);

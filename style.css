@@ -54,7 +54,7 @@ div.error + br {
 	clear : left;
 }
 
-.driverName, #addDriver {
+.driverName, #plusDriver {
 	background-color : #eee;
 	color : #000;
 	left : 0;
@@ -63,32 +63,71 @@ div.error + br {
 	width : 100px;
 }
 
-.driverName:hover, #addDriver:hover {
+.driverName:hover, #plusDriver:hover {
 	cursor : pointer;
 	background-color : #000;
 	color : #eee;
 }
 
-.driverName > div, #addDriver > div {
+.driverName > div, #plusDriver > div {
 	position : relative;
 	top : 50%;
 	text-align : center;
 	transform : translateY(-50%);
 }
 
-.date {
-	position : absolute;
-	top : 100px;
+.slider {
+	transition : left 1s;
+	transition-timing-function : ease-out;
 }
 
-.minutes {
-	width : 20px;
+.events {
+	position : absolute;
+	top : 100;
+}
+
+.year {
+	height : 20px;
+	position : relative;
+	top : 0;
+	background: linear-gradient(to right, red, blue);
+}
+
+.month {
+
+}
+
+.days {
+	width : 1920px;
 }
 
 .hours {
 	width : 80px;
 }
 
-.days {
-	width : 1920px;
+.minutes {
+	width : 20px;
+}
+
+.moveLeft, .moveRight {
+	line-height : 100%;
+	position : absolute;
+	top : 100px;
+	width : 20px;
+}
+
+.moveLeft span, .moveRight span {
+	vertical-align : middle;
+}
+
+.moveLeft:hover, .moveRight:hover {
+	background-color : #aaa;
+}
+
+.moveLeft {
+	left : 0;
+}
+
+.moveRight {
+	right : 0;
 }
