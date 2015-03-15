@@ -133,23 +133,94 @@ window.onload = function() {
 	},
 	events = new (function() {
 		var dateTime,
+		    eventList = createElement("div"),
 		    drivers = [],
 		    startEnd = [new Date(), new Date()],
 		    plusDriver = createElement("div"),
 		    nextDriverPos = 100,
+		    months = ["Januray", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+		    days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+		    dateShift = (new Date()).getTime(),
 		    eventClicked = function(driver, time) {
 			    
-		    };
-		this.init = function() {
-			this.init = function() {};
+		    },
+		    timeToPos = function(date) {
+			return ((date.getTime() - dateShift) / 60000) + "px"
+		    },
+		    update = function(date) {
+			if (typeof date === "undefined") {
+				date = dateTime;
+			} else {
+				dateTime = date;
+			}
+			var unix = date.getTime(),
+			    screenWidth = window.innerWidth,
+			    mins = (dateShift - unix) / 60000;
+			addYear(date.getFullYear());
+			addMonth(date.getFullYear(), date.getMonth());
+			addDay(date.getFullYear(), date.getMonth(), date.getDate());
+			addHour(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours());
+			addFifteen(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0);
+			addFifteen(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 1);
+			addFifteen(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 2);
+			addFifteen(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 3);
+			eventList.style.left = (screenWidth / 2) -mins + "px";
+		    },
+		    addYear = function (year) {
+			var yearDate = new Date(year, 0, 1),
+			    yearDiv = createElement("div");
+			yearDiv.setAttribute("class", "year");
+			yearDiv.innerHTML = year;
+			yearDiv.style.left = timeToPos(yearDate);
+			if (yearDate.isLeapYear()) {
+				yearDiv.style.width = "527040px";
+			} else {
+				yearDiv.style.width = "525600px";
+			}
+			eventList.appendChild(yearDiv);
+		    },
+		    addMonth = function(year, month) {
+			var monthDate = new Date(year, month, 1),
+			    monthDiv = createElement("div");
+			monthDiv.setAttribute("class", "month");
+			monthDiv.innerHTML = months[month];
+			monthDiv.style.left = timeToPos(monthDate);
+			monthDiv.style.width = (monthDate.daysInMonth() * 24 * 60) + "px";
+			eventList.appendChild(monthDiv);
+		    },
+		    addDay = function(year, month, day) {
+			var dayDate = new Date(year, month, day),
+			    dayDiv = createElement("div");
+			dayDiv.setAttribute("class", "day");
+			dayDiv.innerHTML = days[dayDate.getDay()];
+			dayDiv.style.left = timeToPos(dayDate);
+			dayDiv.style.width = "1440px";
+			eventList.appendChild(dayDiv);
+		    },
+		    addHour = function(year, month, day, hour) {
+			var hourDate = new Date(year, month, day, hour),
+			    hourDiv = createElement("div");
+			hourDiv.setAttribute("class", "hour");
+			hourDiv.innerHTML = hour;
+			hourDiv.style.left = timeToPos(hourDate);
+			hourDiv.style.width = "60px";
+			eventList.appendChild(hourDiv);
+		    },
+		    addFifteen = function(year, month, day, hour, block) {
+			var fifteenDate = new Date(year, month, day, hour, block * 15),
+			    fifteenDiv = createElement("div");
+			fifteenDiv.setAttribute("class", "minute");
+			fifteenDiv.innerHTML = block * 15;
+			fifteenDiv.style.left = timeToPos(fifteenDate);
+			fifteenDiv.style.width = "15px";
+			eventList.appendChild(fifteenDiv);
+		    },
+		    init = function() {
+			init = function() {};
 			rpc.drivers(function(ds) {
 				for (var i = 0; i < ds.length; i++) {
 					this.addDriver(ds[i]);
-					if (startEnd[0].getTime() !== startEnd[1].getTime()) {
-						rpc.getEventsWithDriver(d.ID, startEnd[0], startEnd[1], function(e) {
-							// process events
-						});
-					}
+					drivers[ds[i].ID] = [];
 				}
 				plusDriver.appendChild(createElement("div")).innerHTML = "+";
 				plusDriver.setAttribute("id", "plusDriver");
@@ -158,14 +229,20 @@ window.onload = function() {
 					addDriver();
 				}.bind(this));
 				layer.appendChild(plusDriver);
+				layer.appendChild(eventList).setAttribute("class", "events");
+				update(new Date());
 			}.bind(this));
+		    };
+		this.init = function() {
+			init.call(this);
 		};
 		this.addDriver = function(d) {
 			if (typeof d === "undefined") {
 				return;
 			}
 			drivers[d.ID] = [];
-			var dDiv = createElement("div");
+			var dDiv = createElement("div"),
+			    t;
 			dDiv.appendChild(createElement("div")).innerHTML = d.Name;
 			dDiv.setAttribute("class", "driverName");
 			dDiv.setAttribute("id", "driver_" + d.ID);
@@ -178,6 +255,9 @@ window.onload = function() {
 			plusDriver.style.top = nextDriverPos + "px";
 			layer.appendChild(dDiv);
 			// add time boxes
+			for (t = startEnd[0].getTime(); t < startEnd[1].getTime(); t += 900) {
+
+			}
 		};
 		this.setTime = function (time) {
 			dateTime = time;
@@ -444,5 +524,8 @@ window.onload = function() {
 	Date.prototype.isLeapYear = function() {
 		var year = this.getFullYear();
 		return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+	}
+	Date.prototype.daysInMonth = function() {
+		return (new Date(this.getFullYear(), this.getMonth() + 1, 0)).getDate()
 	}
 };

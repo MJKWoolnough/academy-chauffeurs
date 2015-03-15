@@ -1,15 +1,16 @@
-body {
+html, body {
 	height : 100%;
 	width : 100%;
+	overflow-x : hidden;
 }
 
 .layer {
 	height : 100%;
 	left : 0;
-	overflow: scroll;
 	position : absolute;
 	top : 0;
 	width : 100%;
+	overflow-x : hidden;
 }
 
 .layer:first-child {
@@ -83,30 +84,46 @@ div.error + br {
 
 .events {
 	position : absolute;
-	top : 100;
+	top : 0;
+	height : 20px;
+	border : 1px solid #f00;
 }
 
 .year {
+	position : absolute;
 	height : 20px;
-	position : relative;
 	top : 0;
 	background: linear-gradient(to right, red, blue);
 }
 
 .month {
-
+	position : absolute;
+	top : 20px;
+	background: linear-gradient(to right, green, blue);
 }
 
-.days {
-	width : 1920px;
+.day {
+	position : absolute;
+	height : 20px;
+	width : 1440px;
+	top : 40px;
+	background: linear-gradient(to right, red, green);
 }
 
-.hours {
-	width : 80px;
+.hour {
+	position : relative;
+	height : 20px;
+	top : 60px;
+	width : 60px;
+	background: linear-gradient(to right, yellow, purple);
 }
 
-.minutes {
-	width : 20px;
+.minute {
+	position : absolute;
+	height : 20px;
+	top : 80px;
+	width : 15px;
+	transform: rotate(-90deg)
 }
 
 .moveLeft, .moveRight {
