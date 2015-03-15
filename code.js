@@ -66,7 +66,7 @@ window.onload = function() {
 			return document.createElementNS(ns, elementName);
 		};
 	}()),
-	layer,
+	layer = document.body,
 	stack = new (function(){
 		var stack = [],
 		    canceler = [],
@@ -171,7 +171,7 @@ window.onload = function() {
 			dDiv.setAttribute("id", "driver_" + d.ID);
 			dDiv.addEventListener("click", function() {
 				stack.addLayer("viewDriver");
-				viewDriver(d);
+				viewDriver(d, drivers[d.ID]);
 			});
 			dDiv.style.top = nextDriverPos + "px";
 			nextDriverPos += 100;
@@ -187,7 +187,7 @@ window.onload = function() {
 	addTitle = function(id, add, edit) {
 		layer.appendChild(createElement("h1")).innerHTML = (id == 0) ? add : edit;
 	},
-	viewDriver = function(driver) {
+	viewDriver = function(driver, events) {
 		alert(driver.Name);
 	},
 	addFormElement = function(name, type, id, contents, onBlur) {
@@ -262,7 +262,7 @@ window.onload = function() {
 		});
 		stack.setFragment();
 	},
-	addDriver = setDriverWithData.bind(null, {
+	addDriver = setDriver.bind(null, {
 		"ID": 0,
 		"Name": "",
 		"RegistrationNumber": "",

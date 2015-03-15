@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 
-	_ "github.com/mxk/go-sqlite/sqlite3"
 	"golang.org/x/net/websocket"
 )
 
