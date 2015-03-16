@@ -160,7 +160,8 @@ window.onload = function() {
 			    maxOnScreen = unix + ((screenWidth / 2) * 60000),
 			    minOnScreenDayStart = minOnScreen - (minOnScreen % 86400000),
 			    tDate, year, month, day, t,
-			    toCenter = {}, keys, object;
+			    toCenter = {}, keys, object,
+			    newEventListPos = (screenWidth / 2) - mins;
 			if (minOnScreenDayStart < startEnd[0]) {
 				startEnd[0] = minOnScreenDayStart;
 			}
@@ -183,19 +184,30 @@ window.onload = function() {
 			for (t = 0; t < keys.length; t++) {
 				object = document.getElementById(keys[t]);
 				if (isOnScreen(object)) {
-					object.firstChild.offsetWidth;
+					var textWidth = object.firstChild.offsetWidth,
+					    width = parseInt(object.style.width),
+					    left = parseInt(object.style.left, 10) + newEventListPos;
+					if (left + width <= screenWidth / 2 - textWidth) {
+						object.firstChild.style.left = left + width - textWidth + "px";
+					} else if (left > screenWidth / 2) {
+						object.firstChild.style.left = "0px";
+					} else {
+						object.firstChild.style.left = (screenWidth - textWidth) / 2 - left + "px"; 
+					}
 				}
 			}
 			startEnd[1] = new Date(t);
-			eventList.style.left = (screenWidth / 2) -mins + "px";
+			eventList.style.left = newEventListPos + "px";
 
 		    },
 		    addYear = function (year) {
 			var yearDate = new Date(year, 0, 1),
-			    yearDiv = createElement("div");
+			    yearDiv = createElement("div"),
+			    textDiv = yearDiv.appendChild(createElement("div"));
+			textDiv.innerHTML = year;
+			textDiv.setAttribute("class", "slider");
 			yearDiv.setAttribute("class", "year");
 			yearDiv.setAttribute("id", "year_" + year);
-			yearDiv.appendChild(createElement("div")).innerHTML = year;
 			yearDiv.style.left = timeToPos(yearDate);
 			if (yearDate.isLeapYear()) {
 				yearDiv.style.width = "527040px";
@@ -209,10 +221,12 @@ window.onload = function() {
 				addYear(year);
 			}
 			var monthDate = new Date(year, month, 1),
-			    monthDiv = createElement("div");
+			    monthDiv = createElement("div"),
+			    textDiv = monthDiv.appendChild(createElement("div"));
+			textDiv.innerHTML = months[month];
+			textDiv.setAttribute("class", "slider");
 			monthDiv.setAttribute("class", "month");
 			monthDiv.setAttribute("id", "month_" + year + "_" + month);
-			monthDiv.appendChild(createElement("div")).innerHTML = months[month];
 			monthDiv.style.left = timeToPos(monthDate);
 			monthDiv.style.width = (monthDate.daysInMonth() * 24 * 60) + "px";
 			eventList.appendChild(monthDiv);
@@ -226,10 +240,12 @@ window.onload = function() {
 			}
 			var dayDate = new Date(year, month, day),
 			    dayDiv = createElement("div"),
+			    textDiv = dayDiv.appendChild(createElement("div")),
 			    i = 0;
+			textDiv.innerHTML = days[dayDate.getDay()] + ", " + day + dayDate.getOrdinalSuffix();
+			textDiv.setAttribute("class", "slider");
 			dayDiv.setAttribute("class", "day");
 			dayDiv.setAttribute("id", "day_" + year + "_" + month + "_" + day);
-			dayDiv.appendChild(createElement("div")).innerHTML = days[dayDate.getDay()];
 			dayDiv.style.left = timeToPos(dayDate);
 			dayDiv.style.width = "1440px";
 			eventList.appendChild(dayDiv);
@@ -583,5 +599,10 @@ window.onload = function() {
 	}
 	Date.prototype.daysInMonth = function() {
 		return (new Date(this.getFullYear(), this.getMonth() + 1, 0)).getDate()
+	}
+	Date.prototype.getOrdinalSuffix = function() {
+		var suf = ["th","st","nd","rd"],
+		    v = this.getDate() % 100;
+		return suf[(v - 20) % 10] || suf[v] || suf[0];
 	}
 };

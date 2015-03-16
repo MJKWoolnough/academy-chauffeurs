@@ -112,6 +112,7 @@ div.error + br {
 
 .year > div, .month > div, .day > div {
 	display : inline-block;
+	position : absolute;
 }
 
 .hour {
