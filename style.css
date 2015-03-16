@@ -1,5 +1,4 @@
 html, body {
-	height : 100%;
 	width : 100%;
 	overflow-x : hidden;
 }
@@ -108,11 +107,16 @@ div.error + br {
 	width : 1440px;
 	top : 40px;
 	background: linear-gradient(to right, red, green);
+	margin : 0;
+	padding : 0;
 }
 
 .year > div, .month > div, .day > div {
 	display : inline-block;
 	position : absolute;
+	white-space : nowrap;
+	margin : 0;
+	padding : 0;
 }
 
 .hour {

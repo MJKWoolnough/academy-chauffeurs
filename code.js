@@ -187,12 +187,12 @@ window.onload = function() {
 					var textWidth = object.firstChild.offsetWidth,
 					    width = parseInt(object.style.width),
 					    left = parseInt(object.style.left, 10) + newEventListPos;
-					if (left + width <= screenWidth / 2 - textWidth) {
-						object.firstChild.style.left = left + width - textWidth + "px";
-					} else if (left > screenWidth / 2) {
+					if (left + (textWidth / 2) > screenWidth / 2) {
 						object.firstChild.style.left = "0px";
+					} else if (left + width > (screenWidth + textWidth) / 2) {
+						object.firstChild.style.left = ((screenWidth - textWidth) / 2) - left + "px"; 
 					} else {
-						object.firstChild.style.left = (screenWidth - textWidth) / 2 - left + "px"; 
+						object.firstChild.style.left = width - textWidth + "px";
 					}
 				}
 			}
