@@ -155,21 +155,23 @@ window.onload = function() {
 			}
 			var unix = date.getTime(),
 			    screenWidth = window.innerWidth,
-			    mins = (dateShift - unix) / 60000;
-			addYear(date.getFullYear());
-			addMonth(date.getFullYear(), date.getMonth());
-			addDay(date.getFullYear(), date.getMonth(), date.getDate());
-			addHour(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours());
-			addFifteen(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0);
-			addFifteen(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 1);
-			addFifteen(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 2);
-			addFifteen(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 3);
+			    mins = (dateShift - unix) / 60000,
+			    minOnScreen = unix - ((screenWidth / 2) * 60000),
+			    maxOnScreen = unix + ((screenWidth / 2) * 60000),
+			    t = minOnScreen - (minOnScreen % 86400000),
+			    tDate;
+			for (; t < maxOnScreen; t += 86400000) {
+				tDate = new Date(t);
+				addDay(tDate.getFullYear(), tDate.getMonth(), tDate.getDate());
+			}
 			eventList.style.left = (screenWidth / 2) -mins + "px";
+
 		    },
 		    addYear = function (year) {
 			var yearDate = new Date(year, 0, 1),
 			    yearDiv = createElement("div");
 			yearDiv.setAttribute("class", "year");
+			yearDiv.setAttribute("id", "year_" + year);
 			yearDiv.innerHTML = year;
 			yearDiv.style.left = timeToPos(yearDate);
 			if (yearDate.isLeapYear()) {
@@ -180,40 +182,69 @@ window.onload = function() {
 			eventList.appendChild(yearDiv);
 		    },
 		    addMonth = function(year, month) {
+			if (document.getElementById("year_" + year) === null) {
+				addYear(year);
+			}
 			var monthDate = new Date(year, month, 1),
 			    monthDiv = createElement("div");
 			monthDiv.setAttribute("class", "month");
+			monthDiv.setAttribute("id", "month_" + year + "_" + month);
 			monthDiv.innerHTML = months[month];
 			monthDiv.style.left = timeToPos(monthDate);
 			monthDiv.style.width = (monthDate.daysInMonth() * 24 * 60) + "px";
 			eventList.appendChild(monthDiv);
 		    },
 		    addDay = function(year, month, day) {
+			if (document.getElementById("day_" + year + "_" + month + "_" + day) !== null) {
+				return;
+			}
+			if (document.getElementById("month_" + year + "_" + month) === null) {
+				addMonth(year, month);
+			}
 			var dayDate = new Date(year, month, day),
-			    dayDiv = createElement("div");
+			    dayDiv = createElement("div"),
+			    i = 0;
 			dayDiv.setAttribute("class", "day");
+			dayDiv.setAttribute("id", "day_" + year + "_" + month + "_" + day);
 			dayDiv.innerHTML = days[dayDate.getDay()];
 			dayDiv.style.left = timeToPos(dayDate);
 			dayDiv.style.width = "1440px";
 			eventList.appendChild(dayDiv);
+			for (; i < 24; i++) {
+				addHour(year, month, day, i);
+			}
 		    },
 		    addHour = function(year, month, day, hour) {
 			var hourDate = new Date(year, month, day, hour),
 			    hourDiv = createElement("div");
 			hourDiv.setAttribute("class", "hour");
-			hourDiv.innerHTML = hour;
+			hourDiv.innerHTML = formatNum(hour);
 			hourDiv.style.left = timeToPos(hourDate);
 			hourDiv.style.width = "60px";
 			eventList.appendChild(hourDiv);
+			addFifteen(year, month, day, hour, 0);
+			addFifteen(year, month, day, hour, 1);
+			addFifteen(year, month, day, hour, 2);
+			addFifteen(year, month, day, hour, 3);
 		    },
 		    addFifteen = function(year, month, day, hour, block) {
 			var fifteenDate = new Date(year, month, day, hour, block * 15),
 			    fifteenDiv = createElement("div");
 			fifteenDiv.setAttribute("class", "minute");
-			fifteenDiv.innerHTML = block * 15;
+			fifteenDiv.innerHTML = formatNum(block * 15);
 			fifteenDiv.style.left = timeToPos(fifteenDate);
 			fifteenDiv.style.width = "15px";
 			eventList.appendChild(fifteenDiv);
+		    },
+		    isOnScreen = function(div) {
+			var offsets = div.getBoundingClientRect();
+			return !(offsets.left > window.innerWidth || offsets.right < 0);
+		    },
+		    formatNum = function(num) {
+			if (num < 10) {
+				return "0" + num;
+			}
+			return num;
 		    },
 		    init = function() {
 			init = function() {};
