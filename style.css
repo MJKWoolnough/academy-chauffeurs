@@ -110,6 +110,10 @@ div.error + br {
 	background: linear-gradient(to right, red, green);
 }
 
+.year > div, .month > div, .day > div {
+	display : inline-block;
+}
+
 .hour {
 	position : absolute;
 	top : 60px;

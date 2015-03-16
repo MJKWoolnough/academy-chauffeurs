@@ -135,7 +135,7 @@ window.onload = function() {
 		var dateTime,
 		    eventList = createElement("div"),
 		    drivers = [],
-		    startEnd = [new Date(), new Date()],
+		    startEnd = [(new Date()).getTime(), (new Date()).getTime()],
 		    plusDriver = createElement("div"),
 		    nextDriverPos = 100,
 		    months = ["Januray", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -158,12 +158,35 @@ window.onload = function() {
 			    mins = (dateShift - unix) / 60000,
 			    minOnScreen = unix - ((screenWidth / 2) * 60000),
 			    maxOnScreen = unix + ((screenWidth / 2) * 60000),
-			    t = minOnScreen - (minOnScreen % 86400000),
-			    tDate;
-			for (; t < maxOnScreen; t += 86400000) {
-				tDate = new Date(t);
-				addDay(tDate.getFullYear(), tDate.getMonth(), tDate.getDate());
+			    minOnScreenDayStart = minOnScreen - (minOnScreen % 86400000),
+			    tDate, year, month, day, t,
+			    toCenter = {}, keys, object;
+			if (minOnScreenDayStart < startEnd[0]) {
+				startEnd[0] = minOnScreenDayStart;
 			}
+			if (maxOnScreen > startEnd[1]) {
+				startEnd[1] = maxOnScreen;
+			}
+			for (t = startEnd[0]; t < startEnd[1]; t += 86400000) {
+				tDate = new Date(t);
+				year = tDate.getFullYear();
+				month = tDate.getMonth();
+				day = tDate.getDate();
+				if (addDay(year, month, day)) {
+					// TODO: get events
+				}
+				toCenter["year_" + year] = true;
+				toCenter["month_" + year + "_" + month] = true;
+				toCenter["day_" + year + "_" + month + "_" + day] = true;
+			}
+			keys = Object.keys(toCenter);
+			for (t = 0; t < keys.length; t++) {
+				object = document.getElementById(keys[t]);
+				if (isOnScreen(object)) {
+					object.firstChild.offsetWidth;
+				}
+			}
+			startEnd[1] = new Date(t);
 			eventList.style.left = (screenWidth / 2) -mins + "px";
 
 		    },
@@ -172,7 +195,7 @@ window.onload = function() {
 			    yearDiv = createElement("div");
 			yearDiv.setAttribute("class", "year");
 			yearDiv.setAttribute("id", "year_" + year);
-			yearDiv.innerHTML = year;
+			yearDiv.appendChild(createElement("div")).innerHTML = year;
 			yearDiv.style.left = timeToPos(yearDate);
 			if (yearDate.isLeapYear()) {
 				yearDiv.style.width = "527040px";
@@ -189,14 +212,14 @@ window.onload = function() {
 			    monthDiv = createElement("div");
 			monthDiv.setAttribute("class", "month");
 			monthDiv.setAttribute("id", "month_" + year + "_" + month);
-			monthDiv.innerHTML = months[month];
+			monthDiv.appendChild(createElement("div")).innerHTML = months[month];
 			monthDiv.style.left = timeToPos(monthDate);
 			monthDiv.style.width = (monthDate.daysInMonth() * 24 * 60) + "px";
 			eventList.appendChild(monthDiv);
 		    },
 		    addDay = function(year, month, day) {
 			if (document.getElementById("day_" + year + "_" + month + "_" + day) !== null) {
-				return;
+				return false;
 			}
 			if (document.getElementById("month_" + year + "_" + month) === null) {
 				addMonth(year, month);
@@ -206,13 +229,14 @@ window.onload = function() {
 			    i = 0;
 			dayDiv.setAttribute("class", "day");
 			dayDiv.setAttribute("id", "day_" + year + "_" + month + "_" + day);
-			dayDiv.innerHTML = days[dayDate.getDay()];
+			dayDiv.appendChild(createElement("div")).innerHTML = days[dayDate.getDay()];
 			dayDiv.style.left = timeToPos(dayDate);
 			dayDiv.style.width = "1440px";
 			eventList.appendChild(dayDiv);
 			for (; i < 24; i++) {
 				addHour(year, month, day, i);
 			}
+			return true;
 		    },
 		    addHour = function(year, month, day, hour) {
 			var hourDate = new Date(year, month, day, hour),
@@ -235,6 +259,7 @@ window.onload = function() {
 			fifteenDiv.style.left = timeToPos(fifteenDate);
 			fifteenDiv.style.width = "15px";
 			eventList.appendChild(fifteenDiv);
+			// TODO: Add driver boxes
 		    },
 		    isOnScreen = function(div) {
 			var offsets = div.getBoundingClientRect();
@@ -285,10 +310,10 @@ window.onload = function() {
 			nextDriverPos += 100;
 			plusDriver.style.top = nextDriverPos + "px";
 			layer.appendChild(dDiv);
-			// add time boxes
-			for (t = startEnd[0].getTime(); t < startEnd[1].getTime(); t += 900) {
-
+			for (t = startEnd[0]; t < startEnd[1]; t += 900) {
+				// TODO: add time boxes
 			}
+			// TODO: get events for existing boxes
 		};
 		this.setTime = function (time) {
 			dateTime = time;
