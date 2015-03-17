@@ -91,14 +91,14 @@ div.error + br {
 	position : absolute;
 	height : 20px;
 	top : 0;
-	background: linear-gradient(to right, red, blue);
+	background-color : #fff;
 }
 
 .month {
 	position : absolute;
 	top : 20px;
 	height : 20px;
-	background: linear-gradient(to right, green, blue);
+	background-color : #fff;
 }
 
 .day {
@@ -106,9 +106,9 @@ div.error + br {
 	height : 20px;
 	width : 1440px;
 	top : 40px;
-	background: linear-gradient(to right, red, green);
 	margin : 0;
 	padding : 0;
+	background-color : #fff;
 }
 
 .year > div, .month > div, .day > div {
@@ -127,6 +127,7 @@ div.error + br {
 	border-style : solid;
 	border-color : #000;
 	border-width : 0 0 0 1px;
+	background-color : #fff;
 }
 
 .minute {
@@ -136,6 +137,7 @@ div.error + br {
 	width : 20px;
 	text-align : center;
 	transform: rotate(-90deg);
+	background-color : #fff;
 }
 
 .moveLeft, .moveRight {

@@ -105,8 +105,9 @@ window.onload = function() {
 		};
 		this.setFragment = function () {
 			if (typeof layer == "object" && layer.nodeType === 11) {
-				body.lastChild.firstChild.appendChild(layer);
-				layer = body.lastChild.firstChild;
+				var firstChild = body.lastChild.getElementsByTagName("div")[0];
+				firstChild.appendChild(layer);
+				layer = firstChild;
 			}
 		};
 		this.clearLayer = function(callback) {
@@ -140,7 +141,7 @@ window.onload = function() {
 		    startEnd = [dateShift, dateShift],
 		    plusDriver = createElement("div"),
 		    nextDriverPos = 100,
-		    months = ["Januray", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+		    months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
 		    days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
 		    eventClicked = function(driver, time) {
 			    
@@ -156,20 +157,22 @@ window.onload = function() {
 			}
 			var unix = date.getTime(),
 			    screenWidth = window.innerWidth,
-			    mins = (dateShift - unix) / 60000,
+			    mins = (unix - dateShift) / 60000,
 			    minOnScreen = unix - ((screenWidth / 2) * 60000),
 			    maxOnScreen = unix + ((screenWidth / 2) * 60000),
 			    minOnScreenDayStart = minOnScreen - (minOnScreen % 86400000),
+			    maxOnScreenDayEnd = maxOnScreen - (maxOnScreen % 86400000) + 86400000,
 			    tDate, year, month, day, t,
 			    toCenter = {}, keys, object,
 			    newEventListPos = (screenWidth / 2) - mins;
 			if (minOnScreenDayStart < startEnd[0]) {
 				startEnd[0] = minOnScreenDayStart;
 			}
-			if (maxOnScreen > startEnd[1]) {
-				startEnd[1] = maxOnScreen;
+			if (maxOnScreenDayEnd > startEnd[1]) {
+				startEnd[1] = maxOnScreenDayEnd;
 			}
-			for (t = startEnd[0]; t < startEnd[1]; t += 86400000) {
+			//for (t = startEnd[0]; t < startEnd[1]; t += 86400000) {
+			for (t = minOnScreenDayStart; t < maxOnScreenDayEnd; t += 86400000) {
 				tDate = new Date(t);
 				year = tDate.getFullYear();
 				month = tDate.getMonth();
@@ -198,8 +201,6 @@ window.onload = function() {
 					}
 				}
 			}
-			startEnd[1] = new Date(t);
-
 		    },
 		    addYear = function (year) {
 			var yearDate = new Date(year, 0, 1),
@@ -334,34 +335,34 @@ window.onload = function() {
 			    minuteShift = 0;
 			switch (buttNum) {
 			case 0:
-				yearShift = 1;
-				break;
-			case 1:
 				yearShift = -1;
 				break;
-			case 2:
-				monthShift = 1;
+			case 1:
+				yearShift = 1;
 				break;
-			case 3:
+			case 2:
 				monthShift = -1;
 				break;
-			case 4:
-				dayShift = 1;
+			case 3:
+				monthShift = 1;
 				break;
-			case 5:
+			case 4:
 				dayShift = -1;
 				break;
-			case 6:
-				hourShift = 1;
+			case 5:
+				dayShift = 1;
 				break;
-			case 7:
+			case 6:
 				hourShift = -1;
 				break;
+			case 7:
+				hourShift = 1;
+				break;
 			case 8:
-				minuteShift = 15;
+				minuteShift = -15;
 				break;
 			case 9:
-				minuteShift = -15;
+				minuteShift = 15;
 				break;
 			}
 			return function() {
