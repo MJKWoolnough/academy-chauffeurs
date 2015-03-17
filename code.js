@@ -133,14 +133,14 @@ window.onload = function() {
 	},
 	events = new (function() {
 		var dateTime,
+		    dateShift = (new Date()).getTime(),
 		    eventList = createElement("div"),
 		    drivers = [],
-		    startEnd = [(new Date()).getTime(), (new Date()).getTime()],
+		    startEnd = [dateShift, dateShift],
 		    plusDriver = createElement("div"),
 		    nextDriverPos = 100,
 		    months = ["Januray", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
 		    days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-		    dateShift = (new Date()).getTime(),
 		    eventClicked = function(driver, time) {
 			    
 		    },
@@ -180,6 +180,7 @@ window.onload = function() {
 				toCenter["month_" + year + "_" + month] = true;
 				toCenter["day_" + year + "_" + month + "_" + day] = true;
 			}
+			eventList.style.left = newEventListPos + "px";
 			keys = Object.keys(toCenter);
 			for (t = 0; t < keys.length; t++) {
 				object = document.getElementById(keys[t]);
@@ -197,7 +198,6 @@ window.onload = function() {
 				}
 			}
 			startEnd[1] = new Date(t);
-			eventList.style.left = newEventListPos + "px";
 
 		    },
 		    addYear = function (year) {
