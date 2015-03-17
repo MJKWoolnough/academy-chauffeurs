@@ -168,3 +168,9 @@ div.error + br {
 .moveRight {
 	right : 0;
 }
+
+.monthEnclosure {
+	position : absolute;
+	top : 0;
+	left : 0;
+}

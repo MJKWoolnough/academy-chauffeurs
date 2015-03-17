@@ -138,11 +138,12 @@ window.onload = function() {
 		    dateShift = (new Date()).getTime(),
 		    eventList = createElement("div"),
 		    drivers = [],
+		    months = {},
 		    startEnd = [dateShift, dateShift],
 		    plusDriver = createElement("div"),
 		    nextDriverPos = 100,
-		    months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-		    days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+		    monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+		    dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
 		    eventClicked = function(driver, time) {
 			    
 		    },
@@ -220,40 +221,44 @@ window.onload = function() {
 			eventList.appendChild(yearDiv);
 		    },
 		    addMonth = function(year, month) {
-			if (document.getElementById("year_" + year) === null) {
-				addYear(year);
+			if (typeof months[year + "_" + month] === "undefined") {
+				if (document.getElementById("year_" + year) === null) {
+					addYear(year);
+				}
+				var monthDate = new Date(year, month, 1),
+				    monthDiv = createElement("div"),
+				    textDiv = monthDiv.appendChild(createElement("div")),
+				    monthEnclosure = createElement("div");
+				textDiv.innerHTML = monthNames[month];
+				textDiv.setAttribute("class", "slider");
+				monthDiv.setAttribute("class", "month");
+				monthDiv.style.zIndex = 2;
+				monthDiv.setAttribute("id", "month_" + year + "_" + month);
+				monthDiv.style.left = timeToPos(monthDate);
+				monthDiv.style.width = (monthDate.daysInMonth() * 24 * 60) + "px";
+				monthEnclosure.appendChild(monthDiv);
+				monthEnclosure.setAttribute("class", "monthEnclosure");
+				months[year + "_" + month] = eventList.appendChild(monthEnclosure);
 			}
-			var monthDate = new Date(year, month, 1),
-			    monthDiv = createElement("div"),
-			    textDiv = monthDiv.appendChild(createElement("div"));
-			textDiv.innerHTML = months[month];
-			textDiv.setAttribute("class", "slider");
-			monthDiv.setAttribute("class", "month");
-			monthDiv.style.zIndex = 2;
-			monthDiv.setAttribute("id", "month_" + year + "_" + month);
-			monthDiv.style.left = timeToPos(monthDate);
-			monthDiv.style.width = (monthDate.daysInMonth() * 24 * 60) + "px";
-			eventList.appendChild(monthDiv);
+			return months[year + "_" + month];
 		    },
 		    addDay = function(year, month, day) {
-			if (document.getElementById("day_" + year + "_" + month + "_" + day) !== null) {
+			var monthEnclosure = addMonth(year, month);
+			if (monthEnclosure.querySelector("#day_" + year + "_" + month + "_" + day) !== null) {
 				return false;
-			}
-			if (document.getElementById("month_" + year + "_" + month) === null) {
-				addMonth(year, month);
 			}
 			var dayDate = new Date(year, month, day),
 			    dayDiv = createElement("div"),
 			    textDiv = dayDiv.appendChild(createElement("div")),
 			    i = 0;
-			textDiv.innerHTML = days[dayDate.getDay()] + ", " + day + dayDate.getOrdinalSuffix();
+			textDiv.innerHTML = dayNames[dayDate.getDay()] + ", " + day + dayDate.getOrdinalSuffix();
 			textDiv.setAttribute("class", "slider");
 			dayDiv.setAttribute("class", "day");
 			dayDiv.style.zIndex = 3;
 			dayDiv.setAttribute("id", "day_" + year + "_" + month + "_" + day);
 			dayDiv.style.left = timeToPos(dayDate);
 			dayDiv.style.width = "1440px";
-			eventList.appendChild(dayDiv);
+			monthEnclosure.appendChild(dayDiv);
 			for (; i < 24; i++) {
 				addHour(year, month, day, i);
 			}
@@ -267,7 +272,7 @@ window.onload = function() {
 			hourDiv.innerHTML = formatNum(hour);
 			hourDiv.style.left = timeToPos(hourDate);
 			hourDiv.style.width = "60px";
-			eventList.appendChild(hourDiv);
+			months[year + "_" + month].appendChild(hourDiv);
 			addFifteen(year, month, day, hour, 0);
 			addFifteen(year, month, day, hour, 1);
 			addFifteen(year, month, day, hour, 2);
@@ -281,7 +286,7 @@ window.onload = function() {
 			fifteenDiv.innerHTML = formatNum(block * 15);
 			fifteenDiv.style.left = timeToPos(fifteenDate);
 			fifteenDiv.style.width = "15px";
-			eventList.appendChild(fifteenDiv);
+			months[year + "_" + month].appendChild(fifteenDiv);
 			// TODO: Add driver boxes
 		    },
 		    isOnScreen = function(div) {
