@@ -284,8 +284,9 @@ window.onload = function() {
 			// TODO: Add driver boxes
 		    },
 		    isOnScreen = function(div) {
-			var offsets = div.getBoundingClientRect();
-			return !(offsets.left > window.innerWidth || offsets.right < 0);
+			var left = parseInt(eventList.style.left) + parseInt(div.style.left),
+			    right = left + parseInt(div.style.width);
+			return !(left > window.innerWidth || right < 0);
 		    },
 		    formatNum = function(num) {
 			if (num < 10) {
@@ -333,34 +334,34 @@ window.onload = function() {
 			    minuteShift = 0;
 			switch (buttNum) {
 			case 0:
-				yearShift = -1;
-				break;
-			case 1:
 				yearShift = 1;
 				break;
-			case 2:
-				monthShift = -1;
+			case 1:
+				yearShift = -1;
 				break;
-			case 3:
+			case 2:
 				monthShift = 1;
 				break;
-			case 4:
-				dayShift = -1;
+			case 3:
+				monthShift = -1;
 				break;
-			case 5:
+			case 4:
 				dayShift = 1;
 				break;
-			case 6:
-				hourShift = -1;
+			case 5:
+				dayShift = -1;
 				break;
-			case 7:
+			case 6:
 				hourShift = 1;
 				break;
+			case 7:
+				hourShift = -1;
+				break;
 			case 8:
-				minuteShift = -15;
+				minuteShift = 15;
 				break;
 			case 9:
-				minuteShift = 15;
+				minuteShift = -15;
 				break;
 			}
 			return function() {
