@@ -141,8 +141,12 @@ div.error + br {
 .moveLeft, .moveRight {
 	line-height : 100%;
 	position : absolute;
-	top : 100px;
 	width : 20px;
+	z-index : 5;
+	background-color : #eee;
+	color : #000;
+	height : 20px;
+	text-align : center;
 }
 
 .moveLeft span, .moveRight span {
@@ -150,7 +154,9 @@ div.error + br {
 }
 
 .moveLeft:hover, .moveRight:hover {
-	background-color : #aaa;
+	cursor : pointer;
+	background-color : #000;
+	color : #eee;
 }
 
 .moveLeft {

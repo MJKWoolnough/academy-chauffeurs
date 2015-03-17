@@ -79,6 +79,7 @@ window.onload = function() {
 			}
 			stack.push(callback);
 			var outerLayer = createElement("div");
+			outerLayer.style.zIndex = stack.length + 1;
 			outerLayer.className = "layer";
 			layer = createElement("div");
 			layer.setAttribute("id", layerID);
@@ -207,6 +208,7 @@ window.onload = function() {
 			textDiv.innerHTML = year;
 			textDiv.setAttribute("class", "slider");
 			yearDiv.setAttribute("class", "year");
+			yearDiv.style.zIndex = 1;
 			yearDiv.setAttribute("id", "year_" + year);
 			yearDiv.style.left = timeToPos(yearDate);
 			if (yearDate.isLeapYear()) {
@@ -226,6 +228,7 @@ window.onload = function() {
 			textDiv.innerHTML = months[month];
 			textDiv.setAttribute("class", "slider");
 			monthDiv.setAttribute("class", "month");
+			monthDiv.style.zIndex = 2;
 			monthDiv.setAttribute("id", "month_" + year + "_" + month);
 			monthDiv.style.left = timeToPos(monthDate);
 			monthDiv.style.width = (monthDate.daysInMonth() * 24 * 60) + "px";
@@ -245,6 +248,7 @@ window.onload = function() {
 			textDiv.innerHTML = days[dayDate.getDay()] + ", " + day + dayDate.getOrdinalSuffix();
 			textDiv.setAttribute("class", "slider");
 			dayDiv.setAttribute("class", "day");
+			dayDiv.style.zIndex = 3;
 			dayDiv.setAttribute("id", "day_" + year + "_" + month + "_" + day);
 			dayDiv.style.left = timeToPos(dayDate);
 			dayDiv.style.width = "1440px";
@@ -258,6 +262,7 @@ window.onload = function() {
 			var hourDate = new Date(year, month, day, hour),
 			    hourDiv = createElement("div");
 			hourDiv.setAttribute("class", "hour");
+			hourDiv.style.zIndex = 4;
 			hourDiv.innerHTML = formatNum(hour);
 			hourDiv.style.left = timeToPos(hourDate);
 			hourDiv.style.width = "60px";
@@ -271,6 +276,7 @@ window.onload = function() {
 			var fifteenDate = new Date(year, month, day, hour, block * 15),
 			    fifteenDiv = createElement("div");
 			fifteenDiv.setAttribute("class", "minute");
+			fifteenDiv.style.zIndex = 5;
 			fifteenDiv.innerHTML = formatNum(block * 15);
 			fifteenDiv.style.left = timeToPos(fifteenDate);
 			fifteenDiv.style.width = "15px";
@@ -290,6 +296,7 @@ window.onload = function() {
 		    init = function() {
 			init = function() {};
 			rpc.drivers(function(ds) {
+				stack.addFragment();
 				for (var i = 0; i < ds.length; i++) {
 					this.addDriver(ds[i]);
 					drivers[ds[i].ID] = [];
@@ -301,9 +308,64 @@ window.onload = function() {
 					addDriver();
 				}.bind(this));
 				layer.appendChild(plusDriver);
-				layer.appendChild(eventList).setAttribute("class", "events");
+				layer.appendChild(eventList).setAttribute("class", "events slider");
+				for (i = 0; i < 10; i++) {
+					var div = layer.appendChild(createElement("div"));
+					if (i % 2 === 0) {
+						div.appendChild(createElement("div")).innerHTML = "&lt;";
+						div.setAttribute("class", "moveLeft");
+					} else {
+						div.appendChild(createElement("div")).innerHTML = "&gt;";
+						div.setAttribute("class", "moveRight");
+					}
+					div.style.top = Math.floor(i / 2) * 20 + "px";
+					div.addEventListener("click", moveHandler(i));
+				}
+				stack.setFragment();
 				update(new Date());
 			}.bind(this));
+		    },
+		    moveHandler = function(buttNum) {
+			var yearShift = 0,
+			    monthShift = 0,
+			    dayShift = 0,
+			    hourShift = 0,
+			    minuteShift = 0;
+			switch (buttNum) {
+			case 0:
+				yearShift = -1;
+				break;
+			case 1:
+				yearShift = 1;
+				break;
+			case 2:
+				monthShift = -1;
+				break;
+			case 3:
+				monthShift = 1;
+				break;
+			case 4:
+				dayShift = -1;
+				break;
+			case 5:
+				dayShift = 1;
+				break;
+			case 6:
+				hourShift = -1;
+				break;
+			case 7:
+				hourShift = 1;
+				break;
+			case 8:
+				minuteShift = -15;
+				break;
+			case 9:
+				minuteShift = 15;
+				break;
+			}
+			return function() {
+				update(new Date(dateTime.getFullYear() + yearShift, dateTime.getMonth() + monthShift, dateTime.getDate() + dayShift, dateTime.getHours() + hourShift, dateTime.getMinutes() + minuteShift));
+			};
 		    };
 		this.init = function() {
 			init.call(this);
@@ -316,6 +378,7 @@ window.onload = function() {
 			var dDiv = createElement("div"),
 			    t;
 			dDiv.appendChild(createElement("div")).innerHTML = d.Name;
+			dDiv.style.zIndex = 6;
 			dDiv.setAttribute("class", "driverName");
 			dDiv.setAttribute("id", "driver_" + d.ID);
 			dDiv.addEventListener("click", function() {
