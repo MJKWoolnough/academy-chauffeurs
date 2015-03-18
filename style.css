@@ -169,7 +169,7 @@ div.error + br {
 	right : 0;
 }
 
-.monthEnclosure {
+.dayEnclosure {
 	position : absolute;
 	top : 0;
 	left : 0;
