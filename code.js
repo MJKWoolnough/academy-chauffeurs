@@ -161,8 +161,8 @@ window.onload = function() {
 			    mins = (unix - dateShift) / 60000,
 			    minOnScreen = unix - ((screenWidth / 2) * 60000),
 			    maxOnScreen = unix + ((screenWidth / 2) * 60000),
-			    minOnScreenDayStart = minOnScreen - (minOnScreen % 86400000),
-			    maxOnScreenDayEnd = maxOnScreen - (maxOnScreen % 86400000) + 86400000,
+			    minOnScreenDayStart = minOnScreen - (minOnScreen % 86400000) - 86400000,
+			    maxOnScreenDayEnd = maxOnScreen - (maxOnScreen % 86400000) + 2 * 86400000,
 			    tDate, year, month, day, t,
 			    toCenter = {}, keys, object,
 			    newEventListPos = (screenWidth / 2) - mins;
@@ -172,7 +172,17 @@ window.onload = function() {
 			if (maxOnScreenDayEnd > startEnd[1]) {
 				startEnd[1] = maxOnScreenDayEnd;
 			}
-			//for (t = startEnd[0]; t < startEnd[1]; t += 86400000) {
+			keys = Object.keys(days);
+			for (t = 0; t < keys.length; t++) {
+				var node = days[keys[t]];
+				if (node.parentNode !== null) {
+					var parts = keys[t].split("_");
+					unix = (new Date(parts[0], parts[1], parts[2])).getTime();
+					if (unix < minOnScreenDayStart || unix > maxOnScreenDayEnd) {
+						eventList.removeChild(days[keys[t]]);
+					}
+				}
+			}
 			for (t = minOnScreenDayStart; t < maxOnScreenDayEnd; t += 86400000) {
 				tDate = new Date(t);
 				year = tDate.getFullYear();
@@ -239,6 +249,7 @@ window.onload = function() {
 		    },
 		    addDay = function(year, month, day) {
 			if (typeof days[year + "_" + month + "_" + day] !== "undefined") {
+				eventList.appendChild(days[year + "_" + month + "_" + day]);
 				return;
 			} else if (document.getElementById("month_" + year + "_" + month) === null) {
 				addMonth(year, month);
@@ -462,7 +473,7 @@ window.onload = function() {
 		addTitle(driver.ID, "Add Driver", "Edit Driver");
 		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
-		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
+		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
 		    addFormSubmit("Add Driver", function() {
 			var parts = [this, driverName, regNumber, phoneNumber];
 			parts.map(disableElement);
@@ -473,9 +484,9 @@ window.onload = function() {
 				"PhoneNumber": phoneNumber.value,
 			}, function(resp) {
 				if (resp.Errors) {
-					layer.getElementById("error_driver_name").innerHTML = resp.NameError;
-					layer.getElementById("error_driver_reg").innerHTML = resp.RegError;
-					layer.getElementById("error_driver_phone").innerHTML = resp.PhoneError;
+					layer.querySelector("#error_driver_name").innerHTML = resp.NameError;
+					layer.querySelector("#error_driver_reg").innerHTML = resp.RegError;
+					layer.querySelector("#error_driver_phone").innerHTML = resp.PhoneError;
 					parts.map(enableElement);
 				} else {
 					stack.removeLayer();
