@@ -397,6 +397,15 @@ window.onload = function() {
 			return function() {
 				update(new Date(dateTime.getFullYear() + yearShift, dateTime.getMonth() + monthShift, dateTime.getDate() + dayShift, dateTime.getHours() + hourShift, dateTime.getMinutes() + minuteShift));
 			};
+		    }
+		    eventOnMouseOver = function(e) {
+			    
+		    },
+		    eventOnMouseOut = function(e) {
+			    
+		    },
+		    eventOnClick = function(e) {
+			    
 		    };
 		this.init = function() {
 			init.call(this);
@@ -421,7 +430,6 @@ window.onload = function() {
 			nextDriverPos += 100;
 			plusDriver.style.top = nextDriverPos + "px";
 			layer.appendChild(dDiv);
-			// TODO: add time boxes
 			var keys = Object.keys(days),
 			    oddEven = Object.keys(drivers).length % 2;
 			for (var i = 0; i < keys.length; i++) {
@@ -438,6 +446,9 @@ window.onload = function() {
 						cellDiv.style.left = timeToPos(new Date(year, month, day, hour, block * 15));
 						cellDiv.style.zIndex = 5;
 						cellDiv.style.top = drivers[d.ID].yPos + "px";
+						cellDiv.addEventListener("mouseover", eventOnMouseOver);
+						cellDiv.addEventListener("mouseout", eventOnMouseOut);
+						cellDiv.addEventListener("click", eventOnClick);
 						dayDiv.appendChild(cellDiv);
 					}
 				}
