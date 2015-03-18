@@ -55,6 +55,9 @@ div.error + br {
 }
 
 .driverName, #plusDriver {
+	user-select : none;
+	-moz-user-select : none;
+	-webkit-user-select : none;
 	background-color : #eee;
 	color : #000;
 	left : 0;
@@ -82,6 +85,9 @@ div.error + br {
 }
 
 .events {
+	user-select : none;
+	-moz-user-select : none;
+	-webkit-user-select : none;
 	position : absolute;
 	top : 0;
 	height : 20px;
@@ -134,13 +140,16 @@ div.error + br {
 	position : absolute;
 	height : 20px;
 	top : 80px;
-	width : 20px;
+	width : 15px;
 	text-align : center;
 	transform: rotate(-90deg);
 	background-color : #fff;
 }
 
 .moveLeft, .moveRight {
+	user-select : none;
+	-moz-user-select : none;
+	-webkit-user-select : none;
 	line-height : 100%;
 	position : absolute;
 	width : 20px;
@@ -173,4 +182,18 @@ div.error + br {
 	position : absolute;
 	top : 0;
 	left : 0;
+}
+
+.eventCell {
+	position : absolute;
+	width : 15px;
+	height : 100px;
+}
+
+.cellOdd {
+	background-color : #eee;
+}
+
+.cellEven {
+	background-color : #aaa;
 }

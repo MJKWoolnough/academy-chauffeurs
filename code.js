@@ -90,13 +90,13 @@ window.onload = function() {
 			if (stack.length === 0) {
 				return;
 			}
+			body.removeChild(body.lastChild);
+			layer = body.lastChild.firstChild;
 			var callback = stack.pop();
 			canceler.pop();
 			if (typeof callback === "function") {
-				callback.apply(arguments);
+				callback.apply(null, arguments);
 			}
-			body.removeChild(body.lastChild);
-			layer = body.lastChild.firstChild;
 		};
 		this.addFragment = function () {
 			if (typeof layer == "object" && layer.nodeType !== 11) {
@@ -269,10 +269,10 @@ window.onload = function() {
 			dayEnclosure.appendChild(dayDiv);
 			dayEnclosure.setAttribute("class", "dayEnclosure");
 			days[year + "_" + month + "_" + day] = dayEnclosure;
-			eventList.appendChild(dayEnclosure);
 			for (; i < 24; i++) {
 				addHour(year, month, day, i);
 			}
+			eventList.appendChild(dayEnclosure);
 			return true;
 		    },
 		    addHour = function(year, month, day, hour) {
@@ -291,14 +291,26 @@ window.onload = function() {
 		    },
 		    addFifteen = function(year, month, day, hour, block) {
 			var fifteenDate = new Date(year, month, day, hour, block * 15),
-			    fifteenDiv = createElement("div");
+			    fifteenDiv = createElement("div"),
+			    dayDiv = days[year + "_" + month + "_" + day],
+			    driverIDs = Object.keys(drivers),
+			    cellDiv,
+			    leftPos = timeToPos(fifteenDate);
 			fifteenDiv.setAttribute("class", "minute");
 			fifteenDiv.style.zIndex = 5;
 			fifteenDiv.innerHTML = formatNum(block * 15);
-			fifteenDiv.style.left = timeToPos(fifteenDate);
-			fifteenDiv.style.width = "15px";
-			days[year + "_" + month + "_" + day].appendChild(fifteenDiv);
-			// TODO: Add driver boxes
+			fifteenDiv.style.left = leftPos;
+			//fifteenDiv.style.width = "15px";
+			dayDiv.appendChild(fifteenDiv);
+			for (var i = 0; i < driverIDs.length; i++) {
+				cellDiv = createElement("div");
+				cellDiv.setAttribute("class", "eventCell " + (block % 2 == i % 2 ? "cellOdd" : "cellEven"));
+				cellDiv.setAttribute("id", "cell_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+				cellDiv.style.left = leftPos;
+				cellDiv.style.zIndex = 5;
+				cellDiv.style.top = drivers[driverIDs[i]].yPos + "px";
+				dayDiv.appendChild(cellDiv);
+			}
 		    },
 		    isOnScreen = function(div) {
 			var left = parseInt(eventList.style.left) + parseInt(div.style.left),
@@ -315,16 +327,17 @@ window.onload = function() {
 			init = function() {};
 			rpc.drivers(function(ds) {
 				stack.addFragment();
-				for (var i = 0; i < ds.length; i++) {
-					this.addDriver(ds[i]);
-					drivers[ds[i].ID] = [];
-				}
 				plusDriver.appendChild(createElement("div")).innerHTML = "+";
 				plusDriver.setAttribute("id", "plusDriver");
 				plusDriver.addEventListener("click", function() {
 					stack.addLayer("addDriver", this.addDriver.bind(this));
 					addDriver();
 				}.bind(this));
+				plusDriver.style.top = "100px";
+				for (var i = 0; i < ds.length; i++) {
+					this.addDriver(ds[i]);
+					//drivers[ds[i].ID] = ;
+				}
 				layer.appendChild(plusDriver);
 				layer.appendChild(eventList).setAttribute("class", "events slider");
 				for (i = 0; i < 10; i++) {
@@ -392,7 +405,8 @@ window.onload = function() {
 			if (typeof d === "undefined") {
 				return;
 			}
-			drivers[d.ID] = [];
+			drivers[d.ID] = d;
+			drivers[d.ID].yPos = nextDriverPos;
 			var dDiv = createElement("div"),
 			    t;
 			dDiv.appendChild(createElement("div")).innerHTML = d.Name;
@@ -407,10 +421,27 @@ window.onload = function() {
 			nextDriverPos += 100;
 			plusDriver.style.top = nextDriverPos + "px";
 			layer.appendChild(dDiv);
-			for (t = startEnd[0]; t < startEnd[1]; t += 900) {
-				// TODO: add time boxes
+			// TODO: add time boxes
+			var keys = Object.keys(days),
+			    oddEven = Object.keys(drivers).length % 2;
+			for (var i = 0; i < keys.length; i++) {
+				var parts = keys[i].split("_"),
+				    year = parts[0],
+				    month = parts[1],
+				    day = parts[2],
+				    dayDiv = days[keys[i]];
+				for (var hour = 0; hour < 24; hour++) {
+					for (var block = 0; block < 4; block++) {
+						var cellDiv = createElement("div");
+						cellDiv.setAttribute("class", "eventCell " + (block % 2 !== oddEven ? "cellOdd" : "cellEven"));
+						cellDiv.setAttribute("id", "cell_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+						cellDiv.style.left = timeToPos(new Date(year, month, day, hour, block * 15));
+						cellDiv.style.zIndex = 5;
+						cellDiv.style.top = drivers[d.ID].yPos + "px";
+						dayDiv.appendChild(cellDiv);
+					}
+				}
 			}
-			// TODO: get events for existing boxes
 		};
 		this.setTime = function (time) {
 			dateTime = time;
@@ -474,25 +505,29 @@ window.onload = function() {
 		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
 		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
-		    addFormSubmit("Add Driver", function() {
-			var parts = [this, driverName, regNumber, phoneNumber];
-			parts.map(disableElement);
-			rpc.setDriver({
+		    submit = function() {
+			var parts = [this, driverName, regNumber, phoneNumber],
+			    d = {
 				"ID": driver.ID,
 				"Name": driverName.value,
 				"RegistrationNumber": regNumber.value,
 				"PhoneNumber": phoneNumber.value,
-			}, function(resp) {
+			    };
+			parts.map(disableElement);
+			rpc.setDriver(d, function(resp) {
 				if (resp.Errors) {
 					layer.querySelector("#error_driver_name").innerHTML = resp.NameError;
 					layer.querySelector("#error_driver_reg").innerHTML = resp.RegError;
 					layer.querySelector("#error_driver_phone").innerHTML = resp.PhoneError;
 					parts.map(enableElement);
 				} else {
-					stack.removeLayer();
+					d.ID = resp.ID;
+					stack.removeLayer(d);
 				}
 			});
-		});
+		};
+		addFormSubmit("Add Driver", submit);
+
 		stack.setFragment();
 	},
 	addDriver = setDriver.bind(null, {
