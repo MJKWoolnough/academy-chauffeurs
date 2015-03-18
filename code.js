@@ -305,10 +305,13 @@ window.onload = function() {
 			for (var i = 0; i < driverIDs.length; i++) {
 				cellDiv = createElement("div");
 				cellDiv.setAttribute("class", "eventCell " + (block % 2 == i % 2 ? "cellOdd" : "cellEven"));
-				cellDiv.setAttribute("id", "cell_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+				cellDiv.setAttribute("id", "cell_" + driverIDs[i] + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 				cellDiv.style.left = leftPos;
 				cellDiv.style.zIndex = 5;
 				cellDiv.style.top = drivers[driverIDs[i]].yPos + "px";
+				cellDiv.addEventListener("mouseover", eventOnMouseOver);
+				cellDiv.addEventListener("mouseout", eventOnMouseOut);
+				cellDiv.addEventListener("click", eventOnClick);
 				dayDiv.appendChild(cellDiv);
 			}
 		    },
@@ -397,15 +400,16 @@ window.onload = function() {
 			return function() {
 				update(new Date(dateTime.getFullYear() + yearShift, dateTime.getMonth() + monthShift, dateTime.getDate() + dayShift, dateTime.getHours() + hourShift, dateTime.getMinutes() + minuteShift));
 			};
-		    }
+		    },
 		    eventOnMouseOver = function(e) {
-			    
+			e = e || event;
 		    },
 		    eventOnMouseOut = function(e) {
+			e = e || event;
 			    
 		    },
 		    eventOnClick = function(e) {
-			    
+			e = e || event;
 		    };
 		this.init = function() {
 			init.call(this);
@@ -442,7 +446,7 @@ window.onload = function() {
 					for (var block = 0; block < 4; block++) {
 						var cellDiv = createElement("div");
 						cellDiv.setAttribute("class", "eventCell " + (block % 2 !== oddEven ? "cellOdd" : "cellEven"));
-						cellDiv.setAttribute("id", "cell_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+						cellDiv.setAttribute("id", "cell_" + d.ID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 						cellDiv.style.left = timeToPos(new Date(year, month, day, hour, block * 15));
 						cellDiv.style.zIndex = 5;
 						cellDiv.style.top = drivers[d.ID].yPos + "px";
