@@ -712,39 +712,7 @@ window.onload = function() {
 		});
 		stack.setFragment();
 	},
-	setEvent = function(id, startTime, endTime) {
-		if (arguments.length > 1) {
-			rpc.getDriver(id, function(resp) {
-				setEventWithData({
-					"ID": 0,
-					"Start": startTime,
-					"End": endTime,
-					"From": "",
-					"To": "",
-					"ClientID": 0,
-					"ClientName": "",
-					"DriverID": resp.ID,
-					"DriverName": resp.Name,
-				});
-			});
-		} else {
-			rpc.getEvent(id, function(resp) {
-				var event = resp;
-				rpc.getClient(event.ClientID, function(resp) {
-					event.ClientID = resp.ID;
-					event.ClientName = resp.Name;
-					rpc.getDriver(event.DriverID, function(resp) {
-						event.DriverID = resp.ID;
-						event.DriverName = resp.Name;
-						event.Start = new Date(event.Start * 1000); // ms
-						event.End = new Date(event.End * 1000); // ms
-						setEventWithData(event);
-					});
-				});
-			});
-		}
-	},
-	setEventWithData = (function() {
+	setEvent = (function() {
 		var fromAddressRPC = rpc.autocompleteAddress.bind(rpc, 0),
 		    toAddressRPC = rpc.autocompleteAddress.bind(rpc, 1);
 		return function(event) {
@@ -783,6 +751,19 @@ window.onload = function() {
 			stack.setFragment();
 		}
 	}()),
+	addEvent = function(driver, startTime, endTime) {
+		setEvent({
+			"ID": 0,
+			"Start": startTime,
+			"End": endTime,
+			"From": "",
+			"To": "",
+			"ClientID": 0,
+			"ClientName": "",
+			"DriverID": driver.ID,
+			"DriverName": driver.Name,
+		};
+	},
 	regexpCheck = function(regexp, error) {
 		return function() {
 			var errorDiv = document.getElementById("error_" + this.getAttribute("id"));
