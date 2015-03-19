@@ -401,15 +401,88 @@ window.onload = function() {
 				update(new Date(dateTime.getFullYear() + yearShift, dateTime.getMonth() + monthShift, dateTime.getDate() + dayShift, dateTime.getHours() + hourShift, dateTime.getMinutes() + minuteShift));
 			};
 		    },
+		    cellIdToDriver = function(id) {
+			var parts = id.split("_");
+			return parseInt(parts[1]);
+		    },
+		    cellIdToDate = function(id) {
+			var parts = id.split("_");
+			return new Date(parts[2], parts[3], parts[4], parts[5], parts[6] * 15);
+		    },
+		    getEventsBetween = function(id) {
+			if (eventSelected === null) {
+				return null;
+			}
+			var thatID = eventSelected.getAttribute("id"),
+			    thisDriverID = cellIdToDriver(id),
+			    thatDriverID = cellIdToDriver(thatID),
+			    thisTime = cellIdToDate(id).getTime(),
+			    thatTime = cellIdToDate(thatID).getTime(),
+			    events = [];
+			if (thisDriverID !== thatDriverID || thisTime <= thatTime || thisTime - thatTime > 86400000) {
+				return null;
+			}
+			for (var t = thatTime + 900000; t <= thisTime; t += 900000) {
+				var tDate = new Date(t),
+				    year = tDate.getFullYear(),
+				    month = tDate.getMonth(),
+				    day = tDate.getDate(),
+				    hour = tDate.getHours(),
+				    block = tDate.getMinutes() / 15,
+				    cell = days[year + "_" + month + "_" + day].querySelector("#cell_" + thisDriverID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+				if (cell === null) {
+					return null;
+				}
+				events.push(cell);
+			}
+			return events;
+		    },
 		    eventOnMouseOver = function(e) {
 			e = e || event;
+			if (e.target === eventSelected) {
+				return;
+			}
+			if (eventSelected !== null) {
+				if (cellIdToDriver(e.target.getAttribute("id")) === cellIdToDriver(eventSelected.getAttribute("id"))) {
+					var cells = getEventsBetween(e.target.getAttribute("id"));
+					if (cells === null) {
+						return;
+					}
+					for (var i = 0; i < cells.length; i++) {
+						cells[i].style.backgroundColor = "#00f";
+					}
+					eventsHighlighted = cells;
+				}
+				return;
+			}
+			e.target.style.backgroundColor = "#f00";
+			eventsHighlighted = [e.target];
 		    },
-		    eventOnMouseOut = function(e) {
-			e = e || event;
-			    
+		    eventOnMouseOut = function() {
+			    for (var i = 0; i < eventsHighlighted.length; i++) {
+				eventsHighlighted[i].style.backgroundColor = "";
+			    }
 		    },
+		    eventSelected = null,
+		    eventsHighlighted = [],
 		    eventOnClick = function(e) {
 			e = e || event;
+			e.target.style.backgroundColor = "#0f0";
+			if (e.target === eventSelected) {
+				eventSelected = null;
+				e.target.style.backgroundColor = "#f00";
+				eventsHighlighted.push(e.target);
+			} else if (eventSelected === null) {
+				eventSelected = e.target;
+				eventSelected.style.backgroundColor = "#0f0";
+				eventsHighlighted = [];
+			} else if (getEventsBetween(e.target.getAttribute("id")) !== null){
+				eventsHighlighted.push(eventSelected);
+				eventSelected = null;
+				// make event
+				alert("Event");
+
+			}
 		    };
 		this.init = function() {
 			init.call(this);
