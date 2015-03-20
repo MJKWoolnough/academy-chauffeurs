@@ -459,9 +459,10 @@ window.onload = function() {
 			eventsHighlighted = [e.target];
 		    },
 		    eventOnMouseOut = function() {
-			    for (var i = 0; i < eventsHighlighted.length; i++) {
+			for (var i = 0; i < eventsHighlighted.length; i++) {
 				eventsHighlighted[i].style.backgroundColor = "";
-			    }
+			}
+			eventsHighlighted = [];
 		    },
 		    eventSelected = null,
 		    eventsHighlighted = [],
@@ -478,10 +479,10 @@ window.onload = function() {
 				eventsHighlighted = [];
 			} else if (getEventsBetween(e.target.getAttribute("id")) !== null){
 				eventsHighlighted.push(eventSelected);
+				var id = e.target.getAttribute("id");
+				stack.addLayer("addEvent");
+				addEvent(drivers[cellIdToDriver(id)], cellIdToDate(eventSelected.getAttribute("id")), cellIdToDate(id));
 				eventSelected = null;
-				// make event
-				alert("Event");
-
 			}
 		    };
 		this.init = function() {
@@ -731,7 +732,7 @@ window.onload = function() {
 			}.bind(changeDriverTime));
 			autocomplete(fromAddressRPC, from);
 			autocomplete(toAddressRPC, to);
-			autocomplete(autocompleteClientName, clientName, clientID);
+			//autocomplete(autocompleteClientName, clientName, clientID);
 			addFormSubmit("Add Event", function() {
 				var parts = [this, changeTime, to, from];
 				parts.map(disableElement);
@@ -762,7 +763,7 @@ window.onload = function() {
 			"ClientName": "",
 			"DriverID": driver.ID,
 			"DriverName": driver.Name,
-		};
+		});
 	},
 	regexpCheck = function(regexp, error) {
 		return function() {
