@@ -227,7 +227,8 @@ div.error + br {
 	float : right;
 	margin-right : 2px;
 	color : #fff;
-	text-shadow : -1px -1px 0 #000, 1px -1px 0 #000, 1px 1px 0 #000, -1px 1px 0 #000, -1px 0 0 #000, 1px 0 0 #000;
+	text-shadow : #000 -1px -1px 0, #000 1px -1px 0, #000 1px 1px 0, #000 -1px 1px 0, #000 -1px 0 0, #000 1px 0 0;
+	font-family : serif;
 	transition : color 0.25s;
 	transition-timing-function : ease;
 }

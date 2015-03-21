@@ -208,7 +208,7 @@ window.onload = function() {
 				object = document.getElementById(keys[t]);
 				if (isOnScreen(object)) {
 					var textWidth = object.firstChild.offsetWidth,
-					    width = parseInt(object.style.width),
+					    width = object.offsetWidth,
 					    left = parseInt(object.style.left, 10) + newEventListPos;
 					if (left + (textWidth / 2) > screenWidth / 2) {
 						object.firstChild.style.left = "0px";
@@ -314,8 +314,8 @@ window.onload = function() {
 			}
 		    },
 		    isOnScreen = function(div) {
-			var left = parseInt(eventList.style.left) + parseInt(div.style.left),
-			    right = left + parseInt(div.style.width);
+			var left = parseInt(eventList.style.left, 10) + parseInt(div.style.left, 10),
+			    right = left + div.offsetWidth;
 			return !(left > window.innerWidth || right < 0);
 		    },
 		    formatNum = function(num) {
@@ -400,7 +400,7 @@ window.onload = function() {
 		    },
 		    cellIdToDriver = function(id) {
 			var parts = id.split("_");
-			return parseInt(parts[1]);
+			return parseInt(parts[1], 10);
 		    },
 		    cellIdToDate = function(id) {
 			var parts = id.split("_");
