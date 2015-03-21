@@ -78,11 +78,18 @@ window.onload = function() {
 				canceler.push(this.removeLayer.bind(this));
 			}
 			stack.push(callback);
-			var outerLayer = createElement("div");
+			var outerLayer = createElement("div"),
+			    cancelButton = createElement("div");
 			outerLayer.style.zIndex = stack.length + 1;
 			outerLayer.className = "layer";
 			layer = createElement("div");
 			layer.setAttribute("id", layerID);
+			if (stack.length > 1) {
+				cancelButton.setAttribute("class", "canceller");
+				cancelButton.innerHTML = "X";
+				cancelButton.addEventListener("click", this.removeLayer.bind(this, undefined));
+			}
+			layer.appendChild(cancelButton);
 			outerLayer.appendChild(layer);
 			body.appendChild(outerLayer);
 		};
