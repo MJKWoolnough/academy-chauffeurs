@@ -875,6 +875,7 @@ window.onload = function() {
 
 		Date = function() {
 			this._unixms = argsToDateTime.apply(null, arguments);
+			Object.freeze(this);
 		}
 
 		Date.prototype = {
