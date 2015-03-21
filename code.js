@@ -1,4 +1,5 @@
 "use strict";
+var oldDate = Date;
 window.onload = function() {
 	var rpc = new (function(onload){
 		var ws = new WebSocket("ws://127.0.0.1:8080/rpc"),
@@ -142,15 +143,13 @@ window.onload = function() {
 	},
 	events = new (function() {
 		var dateTime,
-		    dateShift = (new Date()).getTime(),
+		    dateShift,
 		    eventList = createElement("div"),
 		    drivers = [],
 		    days = {},
 		    startEnd = [dateShift, dateShift],
 		    plusDriver = createElement("div"),
 		    nextDriverPos = 100,
-		    monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-		    dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
 		    eventClicked = function(driver, time) {
 			    
 		    },
@@ -240,11 +239,11 @@ window.onload = function() {
 			if (document.getElementById("year_" + year) === null) {
 				addYear(year);
 			}
-			var monthDate = new Date(year, month, 1),
+			var monthDate = new Date(year, month),
 			    monthDiv = createElement("div"),
 			    textDiv = monthDiv.appendChild(createElement("div")),
 			    monthEnclosure = createElement("div");
-			textDiv.innerHTML = monthNames[month];
+			textDiv.innerHTML = monthDate.getMonthName();
 			textDiv.setAttribute("class", "slider");
 			monthDiv.setAttribute("class", "month");
 			monthDiv.setAttribute("id", "month_" + year + "_" + month);
@@ -264,7 +263,7 @@ window.onload = function() {
 			    dayEnclosure = createElement("div"),
 			    textDiv = dayDiv.appendChild(createElement("div")),
 			    i = 0;
-			textDiv.innerHTML = dayNames[dayDate.getDay()] + ", " + day + dayDate.getOrdinalSuffix();
+			textDiv.innerHTML = dayDate.getDayName() + ", " + day + dayDate.getOrdinalSuffix();
 			textDiv.setAttribute("class", "slider");
 			dayDiv.setAttribute("class", "day");
 			dayDiv.setAttribute("id", "day_" + year + "_" + month + "_" + day);
@@ -326,6 +325,8 @@ window.onload = function() {
 		    },
 		    init = function() {
 			init = function() {};
+			var now = new Date();
+			dateShift = now.getTime();
 			rpc.drivers(function(ds) {
 				stack.addFragment();
 				plusDriver.appendChild(createElement("div")).innerHTML = "+";
@@ -353,7 +354,7 @@ window.onload = function() {
 					div.addEventListener("click", moveHandler(i));
 				}
 				stack.setFragment();
-				update(new Date());
+				update(now);
 			}.bind(this));
 		    },
 		    moveHandler = function(buttNum) {
@@ -780,18 +781,190 @@ window.onload = function() {
 	},
 	autocomplete = function(rpcCall, name, id) {
 		
-	};
+	},
+	Date;
+	(function() {
+		var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+		    dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+		    daysInMonth = [31, 0, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+		    suf = ["th", "st", "nd", "rd"],
+		    argsToDateTime = function() {
+			if (arguments.length === 0) {
+				return oldDate.now();
+			} else if (arguments.length === 1) {
+				return arguments[0];
+			}
+			var ms = 0,
+			    year = 1970,
+			    month = 0,
+			    day = 0,
+			    hour = 0,
+			    minute = 0,
+			    seconds = 0,
+			    milliseconds = 0,
+			    daysInFebruary = 28;
+			for (; year < arguments[0]; year++) {
+				if (Date.prototype.isLeapYear(year)) {
+					ms += 31622400000;
+				} else {
+					ms += 31536000000;
+				}
+			}
+			if (Date.prototype.isLeapYear(year)) {
+				daysInFebruary = 29;
+			}
+			for (;month < arguments[1]; month++) {
+				if (month % 12 === 1) {
+					ms += daysInFebruary * 86400000;
+				} else {
+					ms += daysInMonth[month % 12] * 86400000;
+				}
+			}
+			if (arguments.length > 2) {
+				ms += (arguments[2] - 1) * 86400000;
+			}
+			if (arguments.length > 3) {
+				ms += arguments[3] * 3600000;
+			}
+			if (arguments.length > 4) {
+				ms += arguments[4] * 60000;
+			}
+			if (arguments.length > 5) {
+				ms += arguments[5] * 1000;
+			}
+			if (arguments.length > 6) {
+				ms += arguments[6];
+			}
+			return ms;
+		    },
+		    getYear = function(ms) {
+			    var year = 1970;
+			    while (true) {
+				var msInYear = 31536000000;
+				if (Date.prototype.isLeapYear(year)) {
+					msInYear = 31622400000;
+				}
+				if (ms < msInYear) {
+					return [year, ms];
+				}
+				year++;
+				ms -= msInYear;
+			    }
+		    },
+		    getMonth = function(ms) {
+			    var ym = getYear(ms),
+			        month = 0;
+			    while (true) {
+				var msInMonth;
+				if (month === 1) {
+					if (Date.prototype.isLeapYear(ym[0])) {
+						msInMonth = 2505600000;
+					} else {
+						msInMonth = 2419200000;
+					}
+				} else {
+					msInMonth = daysInMonth[month] * 86400000;
+				}
+				if (ym[1] < msInMonth) {
+					return [month, ym[1]];
+				}
+				month++;
+				ym[1] -= msInMonth;
+			    }
+		    };
+
+		Date = function() {
+			this._unixms = argsToDateTime.apply(null, arguments);
+		}
+
+		Date.prototype = {
+			getTime: function () {
+				return this._unixms;
+			},
+			getFullYear: function() {
+				return getYear(this._unixms)[0];
+			},
+			getMonth: function() {
+				return getMonth(this._unixms)[0];
+			},
+			getDate: function() {
+				return ((getMonth(this._unixms)[1] / 86400000)|0) + 1;
+			},
+			getDay: function() {
+				return (((this._unixms / 86400000)|0) + 4) % 7;
+			},
+			getHours: function() {
+				return ((this._unixms / 3600000)|0) % 24;
+			},
+			getMinutes: function() {
+				return ((this._unixms / 60000)|0) % 60;
+			},
+			getSeconds: function() {
+				return ((this._unixms / 1000)|0) % 60;
+			},
+			getMilliseconds: function() {
+				return this._unixms % 1000;
+			},
+			getTimezoneOffset: function() {
+				return 0;
+			},
+			isLeapYear: function(y) {
+				if (typeof y === "undefined") {
+					y = this.getFullYear();
+				}
+				return y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0);
+			},
+			daysInMonth: function(y, m) {
+				if (typeof y === "undefined") {
+					y = this.getFullYear();
+				}
+				if (typeof m === "undefined") {
+					m = this.getMonth();
+				}
+				while (m >= 12) {
+					y++;
+					m -= 12;
+				}
+				while (m < 0) {
+					y--;
+					m += 12;
+				}
+				if (m === 1) {
+					if (this.isLeapYear(y)) {
+						return 29;
+					}
+					return 28;
+				}
+				return daysInMonth[m]
+			},
+			getOrdinalSuffix: function(d) {
+				if (typeof d === "undefined") {
+					d = this.getDate();
+				}
+				var v = d % 100;
+				return suf[(v - 20) % 10] || suf[v] || suf[0];
+			},
+			getMonthName: function(m) {
+				if (typeof m === "undefined") {
+					m = this.getMonth();
+				} else if (m < 0 || m >= 12) {
+					return "";
+				}
+				return monthNames[m];
+			},
+			getDayName: function(w) {
+				if (typeof w === "undefined") {
+					w = this.getDay();
+				} else if (w < 0 || w >= 7) {
+					return "";
+				}
+				return dayNames[w];
+			},
+			toString: function() {
+				return this.getDayName() + ", " + this.getDate() + this.getOrdinalSuffix() + " of " + this.getMonthName() + ", " + this.getFullYear() +" @ " + this.getHours() + ":" + this.getMinutes() + ":" + this.getSeconds();
+			},
+		};
+	}());
+	var t = new Date(1426965680000);
 	stack.addLayer("events");
-	Date.prototype.isLeapYear = function() {
-		var year = this.getFullYear();
-		return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-	}
-	Date.prototype.daysInMonth = function() {
-		return (new Date(this.getFullYear(), this.getMonth() + 1, 0)).getDate()
-	}
-	Date.prototype.getOrdinalSuffix = function() {
-		var suf = ["th","st","nd","rd"],
-		    v = this.getDate() % 100;
-		return suf[(v - 20) % 10] || suf[v] || suf[0];
-	}
 };
