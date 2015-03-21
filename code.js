@@ -220,7 +220,6 @@ window.onload = function() {
 			textDiv.innerHTML = year;
 			textDiv.setAttribute("class", "slider");
 			yearDiv.setAttribute("class", "year");
-			yearDiv.style.zIndex = 1;
 			yearDiv.setAttribute("id", "year_" + year);
 			yearDiv.style.left = timeToPos(yearDate);
 			if (yearDate.isLeapYear()) {
@@ -241,7 +240,6 @@ window.onload = function() {
 			textDiv.innerHTML = monthNames[month];
 			textDiv.setAttribute("class", "slider");
 			monthDiv.setAttribute("class", "month");
-			monthDiv.style.zIndex = 2;
 			monthDiv.setAttribute("id", "month_" + year + "_" + month);
 			monthDiv.style.left = timeToPos(monthDate);
 			monthDiv.style.width = (monthDate.daysInMonth() * 24 * 60) + "px";
@@ -262,10 +260,8 @@ window.onload = function() {
 			textDiv.innerHTML = dayNames[dayDate.getDay()] + ", " + day + dayDate.getOrdinalSuffix();
 			textDiv.setAttribute("class", "slider");
 			dayDiv.setAttribute("class", "day");
-			dayDiv.style.zIndex = 3;
 			dayDiv.setAttribute("id", "day_" + year + "_" + month + "_" + day);
 			dayDiv.style.left = timeToPos(dayDate);
-			dayDiv.style.width = "1440px";
 			dayEnclosure.appendChild(dayDiv);
 			dayEnclosure.setAttribute("class", "dayEnclosure");
 			days[year + "_" + month + "_" + day] = dayEnclosure;
@@ -279,10 +275,8 @@ window.onload = function() {
 			var hourDate = new Date(year, month, day, hour),
 			    hourDiv = createElement("div");
 			hourDiv.setAttribute("class", "hour");
-			hourDiv.style.zIndex = 4;
 			hourDiv.innerHTML = formatNum(hour);
 			hourDiv.style.left = timeToPos(hourDate);
-			hourDiv.style.width = "60px";
 			days[year + "_" + month + "_" + day].appendChild(hourDiv);
 			addFifteen(year, month, day, hour, 0);
 			addFifteen(year, month, day, hour, 1);
@@ -297,17 +291,14 @@ window.onload = function() {
 			    cellDiv,
 			    leftPos = timeToPos(fifteenDate);
 			fifteenDiv.setAttribute("class", "minute");
-			fifteenDiv.style.zIndex = 5;
 			fifteenDiv.innerHTML = formatNum(block * 15);
 			fifteenDiv.style.left = leftPos;
-			//fifteenDiv.style.width = "15px";
 			dayDiv.appendChild(fifteenDiv);
 			for (var i = 0; i < driverIDs.length; i++) {
 				cellDiv = createElement("div");
 				cellDiv.setAttribute("class", "eventCell " + (block % 2 == i % 2 ? "cellOdd" : "cellEven"));
 				cellDiv.setAttribute("id", "cell_" + driverIDs[i] + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 				cellDiv.style.left = leftPos;
-				cellDiv.style.zIndex = 5;
 				cellDiv.style.top = drivers[driverIDs[i]].yPos + "px";
 				cellDiv.addEventListener("mouseover", eventOnMouseOver);
 				cellDiv.addEventListener("mouseout", eventOnMouseOut);
@@ -336,7 +327,6 @@ window.onload = function() {
 					stack.addLayer("addDriver", this.addDriver.bind(this));
 					addDriver();
 				}.bind(this));
-				plusDriver.style.top = "100px";
 				for (var i = 0; i < ds.length; i++) {
 					this.addDriver(ds[i]);
 					//drivers[ds[i].ID] = ;
@@ -437,6 +427,15 @@ window.onload = function() {
 			}
 			return events;
 		    },
+		    changeThirdCellClass = function(cell, newClass) {
+			var parts = cell.getAttribute("class").split(" ");
+			if (parts.length > 2) {
+				parts[2] = newClass;
+			} else {
+				parts.push(newClass);
+			}
+			cell.setAttribute("class", parts.join(" "));
+		    },
 		    eventOnMouseOver = function(e) {
 			e = e || event;
 			if (e.target === eventSelected) {
@@ -449,18 +448,18 @@ window.onload = function() {
 						return;
 					}
 					for (var i = 0; i < cells.length; i++) {
-						cells[i].style.backgroundColor = "#00f";
+						changeThirdCellClass(cells[i], "eventsInBetween");
 					}
 					eventsHighlighted = cells;
 				}
 				return;
 			}
-			e.target.style.backgroundColor = "#f00";
+			changeThirdCellClass(e.target, "eventHover");
 			eventsHighlighted = [e.target];
 		    },
 		    eventOnMouseOut = function() {
 			for (var i = 0; i < eventsHighlighted.length; i++) {
-				eventsHighlighted[i].style.backgroundColor = "";
+				changeThirdCellClass(eventsHighlighted[i], "");
 			}
 			eventsHighlighted = [];
 		    },
@@ -468,14 +467,13 @@ window.onload = function() {
 		    eventsHighlighted = [],
 		    eventOnClick = function(e) {
 			e = e || event;
-			e.target.style.backgroundColor = "#0f0";
 			if (e.target === eventSelected) {
 				eventSelected = null;
-				e.target.style.backgroundColor = "#f00";
+				changeThirdCellClass(e.target, "eventHover");
 				eventsHighlighted.push(e.target);
 			} else if (eventSelected === null) {
 				eventSelected = e.target;
-				eventSelected.style.backgroundColor = "#0f0";
+				changeThirdCellClass(e.target, "eventSelected");
 				eventsHighlighted = [];
 			} else if (getEventsBetween(e.target.getAttribute("id")) !== null){
 				eventsHighlighted.push(eventSelected);
@@ -497,7 +495,6 @@ window.onload = function() {
 			var dDiv = createElement("div"),
 			    t;
 			dDiv.appendChild(createElement("div")).innerHTML = d.Name;
-			dDiv.style.zIndex = 6;
 			dDiv.setAttribute("class", "driverName");
 			dDiv.setAttribute("id", "driver_" + d.ID);
 			dDiv.addEventListener("click", function() {
@@ -522,7 +519,6 @@ window.onload = function() {
 						cellDiv.setAttribute("class", "eventCell " + (block % 2 !== oddEven ? "cellOdd" : "cellEven"));
 						cellDiv.setAttribute("id", "cell_" + d.ID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 						cellDiv.style.left = timeToPos(new Date(year, month, day, hour, block * 15));
-						cellDiv.style.zIndex = 5;
 						cellDiv.style.top = drivers[d.ID].yPos + "px";
 						cellDiv.addEventListener("mouseover", eventOnMouseOver);
 						cellDiv.addEventListener("mouseout", eventOnMouseOut);
