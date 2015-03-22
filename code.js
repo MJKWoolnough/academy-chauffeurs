@@ -803,14 +803,28 @@ window.onload = function() {
 			    seconds = 0,
 			    milliseconds = 0,
 			    daysInFebruary = 28;
-			for (; year < arguments[0]; year++) {
-				if (Date.prototype.isLeapYear(year)) {
-					ms += 31622400000;
-				} else {
-					ms += 31536000000;
+			while (arguments[1] < 0) {
+				year--;
+				arguments[1] += 12;
+			}
+			if (arguments[0] < 1970) {
+				for (year--; year >= arguments[0]; year--) {
+					if (Date.prototype.isLeapYear(year)) {
+						ms -= 31622400000;
+					} else {
+						ms -= 31536000000;
+					}
+				}
+			} else {
+				for (; year < arguments[0]; year++) {
+					if (Date.prototype.isLeapYear(year)) {
+						ms += 31622400000;
+					} else {
+						ms += 31536000000;
+					}
 				}
 			}
-			if (Date.prototype.isLeapYear(year)) {
+			if (Date.prototype.isLeapYear(arguments[0])) {
 				daysInFebruary = 29;
 			}
 			for (;month < arguments[1]; month++) {
