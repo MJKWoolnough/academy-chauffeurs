@@ -577,7 +577,7 @@ window.onload = function() {
 		layer.appendChild(input);
 		layer.appendChild(error);
 		layer.appendChild(createElement("br"));
-		return input;
+		return [input, error];
 	},
 	addFormSubmit = function(value, onClick) {
 		var button = createElement("input");
@@ -599,16 +599,16 @@ window.onload = function() {
 		    regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
 		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
 		    submit = function() {
-			var parts = [this, driverName, regNumber, phoneNumber];
+			var parts = [this, driverName[0], regNumber[0], phoneNumber[0]];
 			parts.map(disableElement);
-			driver.Name = driverName.value;
-			driver.RegistrationNumber = regNumber.value;
-			driver.PhoneNumber = phoneNumber.value;
+			driver.Name = driverName[0].value;
+			driver.RegistrationNumber = regNumber[0].value;
+			driver.PhoneNumber = phoneNumber[0].value;
 			rpc.setDriver(driver, function(resp) {
 				if (resp.Errors) {
-					layer.querySelector("#error_driver_name").innerHTML = resp.NameError;
-					layer.querySelector("#error_driver_reg").innerHTML = resp.RegError;
-					layer.querySelector("#error_driver_phone").innerHTML = resp.PhoneError;
+					driverName[1].innerHTML = resp.NameError;
+					regNumber[1].innerHTML = resp.RegError;
+					phoneNumber[1].innerHTML = resp.PhoneError;
 					parts.map(enableElement);
 				} else {
 					driver.ID = resp.ID;
@@ -655,20 +655,20 @@ window.onload = function() {
 		    companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
 		    clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
 		    clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code"));
-		autocomplete(rpc.autocompleteCompanyName, companyName, companyID);
+		autocomplete(rpc.autocompleteCompanyName, companyName[0], companyID);
 		addFormSubmit("Add Client", function() {
-			var parts = [this, clientName, companyID, companyName];
+			var parts = [this, clientName[0], companyName[0], clientPhone[0], clientRef[0]];
 			parts.map(disableElement);
-			client.Name = clientNeme.value;
-			client.CompanyID = companyID.value;
-			client.PhoneNumber = clientPhone.value;
-			client.Reference = clientRef.value;
+			client.Name = clientNeme[0].value;
+			client.CompanyID = companyID[0].value;
+			client.PhoneNumber = clientPhone[0].value;
+			client.Reference = clientRef[0].value;
 			rpc.setClient(client, function (resp) {
 				if (resp.errors) {
-					layer.getElementById("error_name").innerHTML = resp.NameError;
-					layer.getElementById("error_company_name").innerHTML = resp.CompanyNameError;
-					layer.getElementById("error_phone").innerHTML = resp.PhoneError;
-					layer.getElementById("error_ref").innerHTML = resp.RefError;
+					clientName[1].innerHTML = resp.NameError;
+					companyName[1].innerHTML = resp.CompanyNameError;
+					clientPhone[1].innerHTML = resp.PhoneError;
+					clientRef[1].innerHTML = resp.RefError;
 					parts.map(enableElement);
 				} else {
 					client.ID = resp.ID;
@@ -695,14 +695,14 @@ window.onload = function() {
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address"));
 		addFormSubmit("Add Company", function() {
-			var parts = [this, companyName, address];
+			var parts = [this, companyName[0], address[0]];
 			parts.map(disableElement);
-			company.Name = companyName.value;
-			company.Address = address.innerHTML;
+			company.Name = companyName[0].value;
+			company.Address = address[0].innerHTML;
 			rpc.setCompany(company, function(resp) {
 				if (resp.Errors) {
-					layer.getElementById("error_company_name").innerHTML = resp.NameError;
-					layer.getElementById("error_company_address").innerHTML = resp.AddressError;
+					companyName[1].innerHTML = resp.NameError;
+					address[1].innerHTML = resp.AddressError;
 					parts.map(enableElement);
 				} else {
 					company.ID = resp.ID;
@@ -725,19 +725,20 @@ window.onload = function() {
 			    to = addFormElement("To", "textarea", "to", event.To),
 			    clientID = addFormElement("", "hidden", "", event.ClientID),
 			    clientName = addFormElement("Client Name", "text", "client_name", event.ClientName);
-			autocomplete(fromAddressRPC, from);
-			autocomplete(toAddressRPC, to);
-			//autocomplete(autocompleteClientName, clientName, clientID);
+			autocomplete(fromAddressRPC, from[0]);
+			autocomplete(toAddressRPC, to[0]);
+			//autocomplete(autocompleteClientName, clientName[0], clientID);
 			addFormSubmit("Add Event", function() {
-				var parts = [this, changeTime, to, from];
+				var parts = [this, clientName[0], to[0], from[0]];
 				parts.map(disableElement);
-				event.From = from.innerHTML;
-				event.To = to.innerHTML;
+				event.ClientID = clientID.value;
+				event.From = from[0].innerHTML;
+				event.To = to[0].innerHTML;
 				rpc.setEvent(event, function(resp) {
 					if (resp.errors) {
-						layers.getElementById("error_change_driver_time").innerHTML = resp.DriverTimeError;
-						layers.getElementById("error_from").innerHTML = resp.FromError;
-						layers.getElementById("error_to").innerHTML = resp.ToError;
+						clientName[1].innerHTML = resp.ClientError;
+						from[1].innerHTML = resp.FromError;
+						to[1].innerHTML = resp.ToError;
 						parts.map(enableElement);
 					} else {
 						event.ID = resp.ID;
