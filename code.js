@@ -599,23 +599,20 @@ window.onload = function() {
 		    regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
 		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
 		    submit = function() {
-			var parts = [this, driverName, regNumber, phoneNumber],
-			    d = {
-				"ID": driver.ID,
-				"Name": driverName.value,
-				"RegistrationNumber": regNumber.value,
-				"PhoneNumber": phoneNumber.value,
-			    };
+			var parts = [this, driverName, regNumber, phoneNumber];
 			parts.map(disableElement);
-			rpc.setDriver(d, function(resp) {
+			driver.Name = driverName.value;
+			driver.RegistrationNumber = regNumber.value;
+			driver.PhoneNumber = phoneNumber.value;
+			rpc.setDriver(driver, function(resp) {
 				if (resp.Errors) {
 					layer.querySelector("#error_driver_name").innerHTML = resp.NameError;
 					layer.querySelector("#error_driver_reg").innerHTML = resp.RegError;
 					layer.querySelector("#error_driver_phone").innerHTML = resp.PhoneError;
 					parts.map(enableElement);
 				} else {
-					d.ID = resp.ID;
-					stack.removeLayer(d);
+					driver.ID = resp.ID;
+					stack.removeLayer(driver);
 				}
 			});
 		};
@@ -662,13 +659,11 @@ window.onload = function() {
 		addFormSubmit("Add Client", function() {
 			var parts = [this, clientName, companyID, companyName];
 			parts.map(disableElement);
-			rpc.setClient({
-				"ID": client.ID,
-				"Name": clientName.value,
-				"CompanyID": companyID.value,
-				"PhoneNumber": clientPhone.value,
-				"Reference": clientRef.value,
-			}, function (resp) {
+			client.Name = clientNeme.value;
+			client.CompanyID = companyID.value;
+			client.PhoneNumber = clientPhone.value;
+			client.Reference = clientRef.value;
+			rpc.setClient(client, function (resp) {
 				if (resp.errors) {
 					layer.getElementById("error_name").innerHTML = resp.NameError;
 					layer.getElementById("error_company_name").innerHTML = resp.CompanyNameError;
@@ -676,7 +671,8 @@ window.onload = function() {
 					layer.getElementById("error_ref").innerHTML = resp.RefError;
 					parts.map(enableElement);
 				} else {
-					stack.removeLayer(resp.ID, clientName.value);
+					client.ID = resp.ID;
+					stack.removeLayer(client);
 				}
 			});
 		});
@@ -701,17 +697,16 @@ window.onload = function() {
 		addFormSubmit("Add Company", function() {
 			var parts = [this, companyName, address];
 			parts.map(disableElement);
-			rpc.setCompany({
-				"ID": company.ID,
-				"Name": companyName.value,
-				"Address": address.innerHTML,
-			}, function(resp) {
+			company.Name = companyName.value;
+			company.Address = address.innerHTML;
+			rpc.setCompany(company, function(resp) {
 				if (resp.Errors) {
 					layer.getElementById("error_company_name").innerHTML = resp.NameError;
 					layer.getElementById("error_company_address").innerHTML = resp.AddressError;
 					parts.map(enableElement);
 				} else {
-					stack.removeLayer(resp.ID, companyName.value);
+					company.ID = resp.ID;
+					stack.removeLayer(company);
 				}
 			});
 		});
@@ -745,7 +740,8 @@ window.onload = function() {
 						layers.getElementById("error_to").innerHTML = resp.ToError;
 						parts.map(enableElement);
 					} else {
-						stack.removeLayer(resp.ID, event.Start / 1000 | 0);
+						event.ID = resp.ID;
+						stack.removeLayer(event);
 					}
 				});
 			});
