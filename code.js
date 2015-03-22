@@ -536,6 +536,21 @@ window.onload = function() {
 				}
 			}
 		};
+		this.updateDriver = function(d) {
+
+		};
+		this.removeDriver = function(d) {
+
+		};
+		this.addEvent = function(e) {
+
+		};
+		this.updateEvent = function(e) {
+
+		};
+		this.removeEvent = function (e) {
+
+		};
 		this.setTime = function (time) {
 			dateTime = time;
 			update();
