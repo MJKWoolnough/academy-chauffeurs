@@ -558,24 +558,24 @@ window.onload = function() {
 			input.setAttribute("type", type);
 			input.setAttribute("value", contents);
 		}
+		input.setAttribute("id", id);
+		if (type === "hidden") {
+			return layer.appendChild(input);
+		}
 		label.innerHTML = name;
 		if (id === "") {
 			input.setAttribute("readonly", "readonly");
-			layer.appendChild(label);
-			layer.appendChild(input);
-		} else {
-			label.setAttribute("for", id);
-			input.setAttribute("id", id);
-			if (typeof onBlur === "function") {
-				input.addEventListener("blur", onBlur.bind(input));
-			}
-			var error = createElement("div");
-			error.setAttribute("class", "error");
-			error.setAttribute("id", "error_"+id);
-			layer.appendChild(label);
-			layer.appendChild(input);
-			layer.appendChild(error);
 		}
+		label.setAttribute("for", id);
+		if (typeof onBlur === "function") {
+			input.addEventListener("blur", onBlur.bind(input));
+		}
+		var error = createElement("div");
+		error.setAttribute("class", "error");
+		error.setAttribute("id", "error_"+id);
+		layer.appendChild(label);
+		layer.appendChild(input);
+		layer.appendChild(error);
 		layer.appendChild(createElement("br"));
 		return input;
 	},
@@ -726,14 +726,10 @@ window.onload = function() {
 			addFormElement("Driver", "text", "", event.DriverName);
 			addFormElement("Start", "text", "", dateTimeFormat(event.Start));
 			addFormElement("End", "text", "", dateTimeFormat(event.End));
-			var changeDriverTime = addFormElement("Change Above", "button", "change_driver_time"),
-			    from = addFormElement("From", "textarea", "from", event.From),
+			var from = addFormElement("From", "textarea", "from", event.From),
 			    to = addFormElement("To", "textarea", "to", event.To),
 			    clientID = addFormElement("", "hidden", "", event.ClientID),
 			    clientName = addFormElement("Client Name", "text", "client_name", event.ClientName);
-			changeDriverTime.addEventListener("click", function() {
-				
-			}.bind(changeDriverTime));
 			autocomplete(fromAddressRPC, from);
 			autocomplete(toAddressRPC, to);
 			//autocomplete(autocompleteClientName, clientName, clientID);
@@ -974,6 +970,26 @@ window.onload = function() {
 					return "";
 				}
 				return dayNames[w];
+			},
+			toLocaleString: function() {
+				var year = this.getFullYear(),
+				    month = this.getMonth() + 1,
+				    date = this.getDate(),
+				    hour = this.getHours(),
+				    minutes = this.getMinutes();
+				if (month < 10) {
+					month = "0" + month;
+				}
+				if (date < 10) {
+					date = "0" + date;
+				}
+				if (hour < 10) {
+					hour = "0" + hour;
+				}
+				if (minutes < 10) {
+					minutes = "0" + minutes;
+				}
+				return year + "/" + month + "/" + date + " " + hour + ":" + minutes;
 			},
 			toString: function() {
 				return this.getDayName() + ", " + this.getDate() + this.getOrdinalSuffix() + " of " + this.getMonthName() + ", " + this.getFullYear() +" @ " + this.getHours() + ":" + this.getMinutes() + ":" + this.getSeconds();
