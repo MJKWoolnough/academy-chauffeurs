@@ -656,6 +656,7 @@ window.onload = function() {
 		var adder = createElement("div");
 		adder.innerHTML = "+";
 		adder.addEventListener("click", callback);
+		adder.setAttribute("class", "adder");
 		layer.insertBefore(adder, elementBefore);
 	},
 	setClient = function(client) {

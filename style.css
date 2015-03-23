@@ -48,6 +48,20 @@ label + input, label + div, label + textarea {
 	width : 200px;
 }
 
+div.adder {
+	float : left;
+	font-weight : bold;
+	color : #fff;
+	text-shadow : #000 -1px -1px 0, #000 1px -1px 0, #000 1px 1px 0, #000 -1px 1px 0, #000 -1px 0 0, #000 1px 0 0;
+	transition : color 0.25s;
+	transition-timing-function : ease;
+}
+
+div.adder:hover {
+	color : #00f;
+	cursor : pointer;
+}
+
 div.error {
 	float : left;
 	color : #f00;
@@ -69,6 +83,8 @@ div.error + br {
 	position : absolute;
 	width : 100px;
 	z-index : 6;
+	transition : background-color 0.25s, color 0.25s;
+	transition-timing-function : ease;
 }
 
 #plusDriver {
