@@ -16,11 +16,15 @@ html, body {
 	background-color : transparent !important;
 }
 
+.layer:first-child > div {
+	width : 100%;
+}
+
 .layer:last-child {
 	background-color : rgba(128, 128, 128, 0.5);
 }
 
-.layer:last-child > div {
+.layer > div {
 	background-color: #fff;
 	margin-left : auto;
 	margin-right : auto;
