@@ -219,7 +219,7 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 	}
 	if e.To == "" {
 		resp.Errors = true
-		resp.FromError = "To/Dropoff location required"
+		resp.ToError = "To/Dropoff location required"
 	}
 	var err error
 	if !resp.Errors {
