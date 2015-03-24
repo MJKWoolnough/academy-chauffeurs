@@ -336,13 +336,16 @@ window.onload = function() {
 			    };
 			topBar.setAttribute("id", "topBar");
 			addToBar("Companies", function() {
-
+				stack.addLayer("companies");
+				//companies();
 			});
 			addToBar("Clients", function() {
-
+				stack.addLayer("clients");
+				//clients();
 			});
 			addToBar("Messages", function() {
-
+				stack.addLayer("messages");
+				//messages();
 			});
 			dateShift = now.getTime();
 			rpc.drivers(function(ds) {
