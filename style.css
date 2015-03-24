@@ -76,25 +76,15 @@ div.error + br {
 	user-select : none;
 	-moz-user-select : none;
 	-webkit-user-select : none;
-	background-color : #eee;
-	color : #000;
 	left : 0;
 	height : 100px;
 	position : absolute;
 	width : 100px;
 	z-index : 6;
-	transition : background-color 0.25s, color 0.25s;
-	transition-timing-function : ease;
 }
 
 #plusDriver {
 	top : 120px;
-}
-
-.driverName:hover, #plusDriver:hover {
-	cursor : pointer;
-	background-color : #000;
-	color : #eee;
 }
 
 .driverName > div, #plusDriver > div {
@@ -183,20 +173,12 @@ div.error + br {
 	position : absolute;
 	width : 20px;
 	z-index : 5;
-	background-color : #eee;
-	color : #000;
 	height : 20px;
 	text-align : center;
 }
 
 .moveLeft span, .moveRight span {
 	vertical-align : middle;
-}
-
-.moveLeft:hover, .moveRight:hover {
-	cursor : pointer;
-	background-color : #000;
-	color : #eee;
 }
 
 .moveLeft {
@@ -257,12 +239,22 @@ div.error + br {
 	cursor : pointer;
 }
 
-#topBar {
-	height : 20px;
-}
-
 #topBar > div {
+	height : 20px;
 	float : left;
 	text-align : center;
-	width : 33%;
+	width : 33.3%;
+}
+
+.simpleButton {
+	background-color : #eee;
+	color : #000;
+	transition : background-color 0.25s, color 0.25s;
+	transition-timing-function : ease;
+}
+
+.simpleButton:hover {
+	cursor : pointer;
+	background-color : #000;
+	color : #eee;
 }

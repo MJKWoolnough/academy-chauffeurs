@@ -328,17 +328,27 @@ window.onload = function() {
 			stack.addFragment();
 			var now = new Date(),
 			    topBar = layer.appendChild(createElement("div")),
-			    companies = topBar.appendChild(createElement("div")),
-			    clients = topBar.appendChild(createElement("div")),
-			    messages = topBar.appendChild(createElement("div"));
-			companies.innerHTML = "Companies";
-			clients.innerHTML = "Client";
-			messages.innerHTML = "Messages";
+			    addToBar = function(text, callback) {
+				var item = topBar.appendChild(createElement("div"));
+				item.innerHTML = text;
+				item.setAttribute("class", "simpleButton");
+				item.addEventListener("click", callback);
+			    };
 			topBar.setAttribute("id", "topBar");
+			addToBar("Companies", function() {
+
+			});
+			addToBar("Clients", function() {
+
+			});
+			addToBar("Messages", function() {
+
+			});
 			dateShift = now.getTime();
 			rpc.drivers(function(ds) {
 				plusDriver.appendChild(createElement("div")).innerHTML = "+";
 				plusDriver.setAttribute("id", "plusDriver");
+				plusDriver.setAttribute("class", "simpleButton");
 				plusDriver.addEventListener("click", function() {
 					stack.addLayer("addDriver", this.addDriver.bind(this));
 					addDriver();
@@ -353,10 +363,10 @@ window.onload = function() {
 					var div = layer.appendChild(createElement("div"));
 					if (i % 2 === 0) {
 						div.appendChild(createElement("div")).innerHTML = "&lt;";
-						div.setAttribute("class", "moveLeft");
+						div.setAttribute("class", "moveLeft simpleButton");
 					} else {
 						div.appendChild(createElement("div")).innerHTML = "&gt;";
-						div.setAttribute("class", "moveRight");
+						div.setAttribute("class", "moveRight simpleButton");
 					}
 					div.style.top = 20 + Math.floor(i / 2) * 20 + "px";
 					div.addEventListener("click", moveHandler(i));
@@ -508,7 +518,7 @@ window.onload = function() {
 			var dDiv = createElement("div"),
 			    t;
 			dDiv.appendChild(createElement("div")).innerHTML = d.Name;
-			dDiv.setAttribute("class", "driverName");
+			dDiv.setAttribute("class", "driverName simpleButton");
 			dDiv.setAttribute("id", "driver_" + d.ID);
 			dDiv.addEventListener("click", function() {
 				stack.addLayer("viewDriver");
