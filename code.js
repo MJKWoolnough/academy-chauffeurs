@@ -376,6 +376,7 @@ window.onload = function() {
 				}
 				stack.setFragment();
 				update(now);
+				window.addEventListener("resize", update.bind(this, undefined));
 			}.bind(this));
 		    },
 		    moveHandler = function(buttNum) {
