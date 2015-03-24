@@ -256,3 +256,13 @@ div.error + br {
 	color : #f00;
 	cursor : pointer;
 }
+
+#topBar {
+	height : 20px;
+}
+
+#topBar > div {
+	float : left;
+	text-align : center;
+	width : 33%;
+}

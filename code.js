@@ -325,10 +325,18 @@ window.onload = function() {
 		    },
 		    init = function() {
 			init = function() {};
-			var now = new Date();
+			stack.addFragment();
+			var now = new Date(),
+			    topBar = layer.appendChild(createElement("div")),
+			    companies = topBar.appendChild(createElement("div")),
+			    clients = topBar.appendChild(createElement("div")),
+			    messages = topBar.appendChild(createElement("div"));
+			companies.innerHTML = "Companies";
+			clients.innerHTML = "Client";
+			messages.innerHTML = "Messages";
+			topBar.setAttribute("id", "topBar");
 			dateShift = now.getTime();
 			rpc.drivers(function(ds) {
-				stack.addFragment();
 				plusDriver.appendChild(createElement("div")).innerHTML = "+";
 				plusDriver.setAttribute("id", "plusDriver");
 				plusDriver.addEventListener("click", function() {
