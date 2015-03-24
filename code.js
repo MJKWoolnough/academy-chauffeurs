@@ -1,6 +1,6 @@
 "use strict";
 var oldDate = Date;
-window.onload = function() {
+window.addEventListener("load", function() {
 	var rpc = new (function(onload){
 		var ws = new WebSocket("ws://127.0.0.1:8080/rpc"),
 		    requests = [],
@@ -1057,4 +1057,4 @@ window.onload = function() {
 	}());
 	var t = new Date(1426965680000);
 	stack.addLayer("events");
-};
+});
