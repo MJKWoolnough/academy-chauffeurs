@@ -88,7 +88,7 @@ div.error + br {
 }
 
 #plusDriver {
-	top : 100px;
+	top : 120px;
 }
 
 .driverName:hover, #plusDriver:hover {
@@ -114,8 +114,7 @@ div.error + br {
 	-moz-user-select : none;
 	-webkit-user-select : none;
 	position : absolute;
-	top : 0;
-	height : 20px;
+	top : 20px;
 }
 
 .year {

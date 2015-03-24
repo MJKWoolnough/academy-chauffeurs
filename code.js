@@ -350,7 +350,7 @@ window.onload = function() {
 						div.appendChild(createElement("div")).innerHTML = "&gt;";
 						div.setAttribute("class", "moveRight");
 					}
-					div.style.top = Math.floor(i / 2) * 20 + "px";
+					div.style.top = 20 + Math.floor(i / 2) * 20 + "px";
 					div.addEventListener("click", moveHandler(i));
 				}
 				stack.setFragment();
@@ -506,9 +506,9 @@ window.onload = function() {
 				stack.addLayer("viewDriver");
 				viewDriver(drivers[d.ID]);
 			});
-			dDiv.style.top = nextDriverPos + "px";
+			dDiv.style.top = (nextDriverPos + 20) + "px";
 			nextDriverPos += 100;
-			plusDriver.style.top = nextDriverPos + "px";
+			plusDriver.style.top = (nextDriverPos + 20) + "px";
 			layer.appendChild(dDiv);
 			var keys = Object.keys(days),
 			    oddEven = Object.keys(drivers).length % 2;
