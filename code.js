@@ -491,9 +491,6 @@ window.onload = function() {
 				eventSelected = null;
 			}
 		    }.bind(this);
-		this.init = function() {
-			init.call(this);
-		};
 		this.addDriver = function(d) {
 			if (typeof d === "undefined") {
 				return;
@@ -565,7 +562,10 @@ window.onload = function() {
 		this.setTime = function (time) {
 			dateTime = time;
 			update();
-		}
+		};
+		this.init = function() {
+			init.call(this);
+		};
 	})(),
 	addTitle = function(id, add, edit) {
 		layer.appendChild(createElement("h1")).innerHTML = (id == 0) ? add : edit;
