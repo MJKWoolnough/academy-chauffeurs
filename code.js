@@ -51,6 +51,7 @@ window.addEventListener("load", function(oldDate) {
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
 		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
 		this.drivers       = request.bind(this, "Drivers", null); // callback
+		this.companies     = request.bind(this, "Companies", null);// callback
 		this.getEventsWithDriver = function(driverID, start, end, callback) {
 			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
@@ -336,7 +337,11 @@ window.addEventListener("load", function(oldDate) {
 			topBar.setAttribute("id", "topBar");
 			addToBar("Companies", function() {
 				stack.addLayer("companies");
-				//companies();
+				rpc.companies(function(companies) {
+					stack.addFragment();
+					alert(companies);
+					stack.setFragment();
+				});
 			});
 			addToBar("Clients", function() {
 				stack.addLayer("clients");
