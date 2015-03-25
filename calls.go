@@ -71,9 +71,10 @@ const (
 	DeleteEvent
 
 	DriverList
-	EventList
+	DriverEvents
 	EventOverlap
 	CompanyList
+	ClientList
 	UnsentMessages
 
 	TotalStmts
@@ -148,12 +149,15 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
-		"SELECT [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?2 AND ?3);",
+		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?2 AND ?3);",
 		// Event Overlaps
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4);",
 
 		// Company List
 		"SELECT [ID], [Name], [Address] FROM [Company] ORDER BY [ID] ASC;",
+
+		// Client List
+		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] ORDER BY [ID] ASC;",
 
 		// Events with unsent messages
 		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [MessageSent] = 0 AND [Start] > ?;",
@@ -176,102 +180,117 @@ func (c *Calls) close() {
 	c.db.Close()
 }
 
+type is []interface{}
+
+func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	rows, err := c.statements[sqlStmt].Query(params...)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		if err = rows.Scan(get()...); err != nil {
+			return err
+		}
+	}
+	return rows.Err()
+}
+
 type EventsFilter struct {
 	DriverID   int64
 	Start, End time.Time
 }
 
-func (c *Calls) Events(f EventsFilter, eventList *[]Event) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	rows, err := c.statements[EventList].Query(f.DriverID, f.Start, f.End)
-	if err != nil {
-		return err
-	}
-	for rows.Next() {
-		var e Event
-		err = rows.Scan(&e.DriverID, &e.ClientID, &e.Start, &e.End, &e.From, &e.To)
-		if err != nil {
-			return err
+func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
+	*events = make([]Event, 0)
+	return c.getList(DriverEvents, is{f.DriverID, f.Start, f.End}, func() is {
+		var (
+			e   Event
+			pos = len(*events)
+		)
+		*events = append(*events, e)
+		return is{
+			&(*events)[pos].ID,
+			&(*events)[pos].DriverID,
+			&(*events)[pos].ClientID,
+			&(*events)[pos].Start,
+			&(*events)[pos].End,
+			&(*events)[pos].From,
+			&(*events)[pos].To,
 		}
-		(*eventList) = append(*eventList, e)
-	}
-	return rows.Err()
+	})
 }
 
 func (c *Calls) Drivers(_ struct{}, drivers *[]Driver) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	rows, err := c.statements[DriverList].Query()
-	if err != nil {
-		return err
-	}
 	*drivers = make([]Driver, 0)
-	for rows.Next() {
-		var d Driver
-		err = rows.Scan(&d.ID, &d.Name, &d.RegistrationNumber, &d.PhoneNumber)
-		if err != nil {
-			return err
+	return c.getList(DriverList, is{}, func() is {
+		var (
+			d   Driver
+			pos = len(*drivers)
+		)
+		*drivers = append(*drivers, d)
+		return is{
+			&(*drivers)[pos].ID,
+			&(*drivers)[pos].Name,
+			&(*drivers)[pos].RegistrationNumber,
+			&(*drivers)[pos].PhoneNumber,
 		}
-		(*drivers) = append(*drivers, d)
-	}
-	return rows.Err()
+	})
 }
 
 func (c *Calls) Companies(_ struct{}, companies *[]Company) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	rows, err := statements[CompanyList].Query()
-	if err != nil {
-		return err
-	}
 	*companies = make([]Company, 0)
-	for rows.Next() {
-		var cy Company
-		err = rows.Scan(&cy.ID, &cy.Name, &cy.Address)
-		if err != nil {
-			return err
+	return c.getList(CompanyList, is{}, func() is {
+		var (
+			cy  Company
+			pos = len(*companies)
+		)
+		*companies = append(*companies, cy)
+		return is{
+			&(*companies)[pos].ID,
+			&(*companies)[pos].Name,
+			&(*companies)[pos].Address,
 		}
-		(*companies) = append(*companies, cy)
-	}
-	return rows.Err()
+	})
 }
 
-func (c *Calls) Clients(_ struct{}, client *[]Client) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	rows, err := statements[CompanyList].Query()
-	if err != nil {
-		return err
-	}
-	*companies = make([]Company, 0)
-	for rows.Next() {
-		var cy Company
-		err = rows.Scan(&cy.ID, &cy.Name, &cy.Address)
-		if err != nil {
-			return err
+func (c *Calls) Clients(_ struct{}, clients *[]Client) error {
+	*clients = make([]Client, 0)
+	return c.getList(ClientList, is{}, func() is {
+		var (
+			cl  Client
+			pos = len(*clients)
+		)
+		*clients = append(*clients, cl)
+		return is{
+			&(*clients)[pos].ID,
+			&(*clients)[pos].CompanyID,
+			&(*clients)[pos].Name,
+			&(*clients)[pos].PhoneNumber,
+			&(*clients)[pos].Reference,
 		}
-		(*companies) = append(*companies, cy)
-	}
-	return rows.Err()
+	})
 }
 
-func (c *Calls) UnsentMessages(_ struct{}, events *[]Event) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	rows, err := c.statements[UnsentMessages].Query(f.DriverID, f.Start, f.End)
-	if err != nil {
-		return err
-	}
-	for rows.Next() {
-		var e Event
-		err = rows.Scan(&e.DriverID, &e.ClientID, &e.Start, &e.End, &e.From, &e.To)
-		if err != nil {
-			return err
+func (c *Calls) UnsentMessages(_ struct{}, events *[]Event) error {
+	*events = make([]Event, 0)
+	return c.getList(UnsentMessages, is{time.Now()}, func() is {
+		var (
+			e   Event
+			pos = len(*events)
+		)
+		*events = append(*events, e)
+		return is{
+			&(*events)[pos].ID,
+			&(*events)[pos].DriverID,
+			&(*events)[pos].ClientID,
+			&(*events)[pos].Start,
+			&(*events)[pos].End,
+			&(*events)[pos].From,
+			&(*events)[pos].To,
 		}
-		(*eventList) = append(*eventList, e)
-	}
-	return rows.Err()
+	})
 }
 
 type Message struct {
