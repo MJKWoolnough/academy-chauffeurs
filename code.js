@@ -53,7 +53,7 @@ window.addEventListener("load", function(oldDate) {
 		this.drivers       = request.bind(this, "Drivers", null); // callback
 		this.companies     = request.bind(this, "Companies", null);// callback
 		this.getEventsWithDriver = function(driverID, start, end, callback) {
-			request("Events", {"DriverID": driverID, "Start": start, "End": end}, callback);
+			request("DriverEvents", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
 		this.autocompleteAddress = function(priority, partial, callback) {
 			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
