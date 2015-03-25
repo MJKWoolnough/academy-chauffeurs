@@ -50,8 +50,10 @@ window.addEventListener("load", function(oldDate) {
 		this.removeClient  = request.bind(this, "RemoveClient");  // id     , callback
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
 		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
-		this.drivers       = request.bind(this, "Drivers", null); // callback
-		this.companies     = request.bind(this, "Companies", null);// callback
+		this.drivers       = request.bind(this, "Drivers", null);          // callback
+		this.companies     = request.bind(this, "Companies", null);        // callback
+		this.clients       = request.bind(this, "Clients", null);          // callback
+		this.unsentMessages = request.bind(this, "UnsentMessages", null);  // callback
 		this.getEventsWithDriver = function(driverID, start, end, callback) {
 			request("DriverEvents", {"DriverID": driverID, "Start": start, "End": end}, callback);
 		}
@@ -138,6 +140,13 @@ window.addEventListener("load", function(oldDate) {
 			}
 		});
 	})(),
+	addAdder = function(elementBefore, callback) {
+		var adder = createElement("div");
+		adder.innerHTML = "+";
+		adder.addEventListener("click", callback);
+		adder.setAttribute("class", "adder");
+		layer.insertBefore(adder, elementBefore);
+	},
 	dateTimeFormat = function(date) {
 		return (new Date(date)).toLocaleString('en-GB');
 	},
@@ -327,28 +336,97 @@ window.addEventListener("load", function(oldDate) {
 			init = function() {};
 			stack.addFragment();
 			var now = new Date(),
-			    topBar = layer.appendChild(createElement("div")),
-			    addToBar = function(text, callback) {
-				var item = topBar.appendChild(createElement("div"));
-				item.innerHTML = text;
-				item.setAttribute("class", "simpleButton");
-				item.addEventListener("click", callback);
-			    };
-			topBar.setAttribute("id", "topBar");
+			    addToBar = function() {
+				var topBar = layer.appendChild(createElement("div"));
+				topBar.setAttribute("id", "topBar");
+				return function(text, callback) {
+					var item = topBar.appendChild(createElement("div"));
+					item.innerHTML = text;
+					item.setAttribute("class", "simpleButton");
+					item.addEventListener("click", callback);
+				};
+			    }();
 			addToBar("Companies", function() {
 				stack.addLayer("companies");
 				rpc.companies(function(companies) {
 					stack.addFragment();
+					var title = layer.appendChild(createElement("h1")),
+					    table = createElement("table"),
+					    headerRow = table.appendChild(createElement("tr")),
+					    addCompanyToTable = function(company) {
+						if (typeof company === "undefined") {
+							return;
+						}
+						var row = createElement("tr"),
+						    nameCell = row.appendChild(createElement("td"));
+						nameCell.innerHTML = company.Name;
+						row.appendChild(createElement("td")).innerHTML = company.Address;
+						table.appendChild(row);
+					    };
+					title.innerHTML = "Companies";
+					addAdder(null, function() {
+						stack.addLayer("addCompany", addCompanyToTable);
+						addCompany();
+					});
+					headerRow.appendChild(createElement("th")).innerHTML = "Company Name";
+					headerRow.appendChild(createElement("th")).innerHTML = "Address";
+					companies.map(addCompanyToTable);
+					layer.appendChild(table);
 					stack.setFragment();
 				});
 			});
 			addToBar("Clients", function() {
 				stack.addLayer("clients");
-				//clients();
+				rpc.clients(function(clients) {
+					stack.addFragment()
+					var title = layer.appendChild(createElement("h1")),
+					    table = createElement("table"),
+					    headerRow = table.appendChild(createElement("tr")),
+					    companies = [],
+					    addClientToTable = function(client) {
+						if (typeof client === "undefined") {
+							return;
+						}
+						var row = createElement("tr"),
+						    nameCell = row.appendChild(createElement("td"));
+						    companyCell = row.appendChild(createElement("td")),
+						    setCompanyCell = function() {
+							companyCell.innerHTML = companies[client.CompanyID].Name;
+						    };
+						nameCell.innerHTML = client.Name;
+						if (typeof companies[client.CompanyID] !== "undefined") {
+							setCompanyCell();
+						} else {
+							rpc.getCompany(client.CompanyID, function(company) {
+								if (typeof company === "undefined") {
+									companyCell.innerHTML = "Error!";
+									return;
+								}
+								companies[company.ID] = company;
+								setCompanyCell();
+							});
+						}
+						row.appendChild(createElement("td")).innerHTML = client.PhoneNumber;
+						row.appendChild(createElement("td")).innerHTML = client.Reference;
+						table.appendChild(row);
+					    };
+					title.innerHTML = "Clients";
+					addAdder(null, function() {
+						stack.addLayer("addClient", addClientToTable);
+						addClient();
+					});
+					headerRow.appendChild(createElement("th")).innerHTML = "Client Name";
+					headerRow.appendChild(createElement("th")).innerHTML = "Company Name";
+					headerRow.appendChild(createElement("th")).innerHTML = "Phone Number";
+					headerRow.appendChild(createElement("th")).innerHTML = "Reference";
+					clients.map(addClientToTable);
+					layer.appendChild(table);
+					stack.setFragment();
+				});
 			});
 			addToBar("Messages", function() {
 				stack.addLayer("messages");
-				//messages();
+				layer.appendChild(createElement("h1")).innerHTML = "Messages";
 			});
 			dateShift = now.getTime();
 			rpc.drivers(function(ds) {
@@ -678,13 +756,6 @@ window.addEventListener("load", function(oldDate) {
 			"RegistrationNumber": "",
 			"PhoneNumber": "",
 		});
-	},
-	addAdder = function(elementBefore, callback) {
-		var adder = createElement("div");
-		adder.innerHTML = "+";
-		adder.addEventListener("click", callback);
-		adder.setAttribute("class", "adder");
-		layer.insertBefore(adder, elementBefore);
 	},
 	setClient = function(client) {
 		stack.addFragment();

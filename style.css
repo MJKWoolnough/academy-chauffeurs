@@ -3,6 +3,10 @@ html, body {
 	overflow-x : hidden;
 }
 
+h1 {
+	text-align : center;
+}
+
 .layer {
 	height : 100%;
 	left : 0;
