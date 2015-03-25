@@ -346,88 +346,9 @@ window.addEventListener("load", function(oldDate) {
 					item.addEventListener("click", callback);
 				};
 			    }();
-			addToBar("Companies", function() {
-				stack.addLayer("companies");
-				rpc.companies(function(companies) {
-					stack.addFragment();
-					var title = layer.appendChild(createElement("h1")),
-					    table = createElement("table"),
-					    headerRow = table.appendChild(createElement("tr")),
-					    addCompanyToTable = function(company) {
-						if (typeof company === "undefined") {
-							return;
-						}
-						var row = createElement("tr"),
-						    nameCell = row.appendChild(createElement("td"));
-						nameCell.innerHTML = company.Name;
-						row.appendChild(createElement("td")).innerHTML = company.Address;
-						table.appendChild(row);
-					    };
-					title.innerHTML = "Companies";
-					addAdder(null, function() {
-						stack.addLayer("addCompany", addCompanyToTable);
-						addCompany();
-					});
-					headerRow.appendChild(createElement("th")).innerHTML = "Company Name";
-					headerRow.appendChild(createElement("th")).innerHTML = "Address";
-					companies.map(addCompanyToTable);
-					layer.appendChild(table);
-					stack.setFragment();
-				});
-			});
-			addToBar("Clients", function() {
-				stack.addLayer("clients");
-				rpc.clients(function(clients) {
-					stack.addFragment()
-					var title = layer.appendChild(createElement("h1")),
-					    table = createElement("table"),
-					    headerRow = table.appendChild(createElement("tr")),
-					    companies = [],
-					    addClientToTable = function(client) {
-						if (typeof client === "undefined") {
-							return;
-						}
-						var row = createElement("tr"),
-						    nameCell = row.appendChild(createElement("td"));
-						    companyCell = row.appendChild(createElement("td")),
-						    setCompanyCell = function() {
-							companyCell.innerHTML = companies[client.CompanyID].Name;
-						    };
-						nameCell.innerHTML = client.Name;
-						if (typeof companies[client.CompanyID] !== "undefined") {
-							setCompanyCell();
-						} else {
-							rpc.getCompany(client.CompanyID, function(company) {
-								if (typeof company === "undefined") {
-									companyCell.innerHTML = "Error!";
-									return;
-								}
-								companies[company.ID] = company;
-								setCompanyCell();
-							});
-						}
-						row.appendChild(createElement("td")).innerHTML = client.PhoneNumber;
-						row.appendChild(createElement("td")).innerHTML = client.Reference;
-						table.appendChild(row);
-					    };
-					title.innerHTML = "Clients";
-					addAdder(null, function() {
-						stack.addLayer("addClient", addClientToTable);
-						addClient();
-					});
-					headerRow.appendChild(createElement("th")).innerHTML = "Client Name";
-					headerRow.appendChild(createElement("th")).innerHTML = "Company Name";
-					headerRow.appendChild(createElement("th")).innerHTML = "Phone Number";
-					headerRow.appendChild(createElement("th")).innerHTML = "Reference";
-					clients.map(addClientToTable);
-					layer.appendChild(table);
-					stack.setFragment();
-				});
-			});
-			addToBar("Messages", function() {
-				stack.addLayer("messages");
-				layer.appendChild(createElement("h1")).innerHTML = "Messages";
-			});
+			addToBar("Companies", companyList);
+			addToBar("Clients", clientList);
+			addToBar("Messages", messageList);
 			dateShift = now.getTime();
 			rpc.drivers(function(ds) {
 				plusDriver.appendChild(createElement("div")).innerHTML = "+";
@@ -670,6 +591,93 @@ window.addEventListener("load", function(oldDate) {
 			init.call(this);
 		};
 	})(),
+	companyList = function() {
+		stack.addLayer("companies");
+		rpc.companies(function(companies) {
+			stack.addFragment();
+			var title = layer.appendChild(createElement("h1")),
+			    table = createElement("table"),
+			    headerRow = table.appendChild(createElement("tr")),
+			    addCompanyToTable = function() {
+				var showCompany = function(company) {
+					
+				};
+				return function(company) {
+					if (typeof company === "undefined") {
+						return;
+					}
+					var row = createElement("tr"),
+					    nameCell = row.appendChild(createElement("td"));
+					nameCell.innerHTML = company.Name;
+					row.appendChild(createElement("td")).innerHTML = company.Address;
+					table.appendChild(row);
+				};
+			    };
+			title.innerHTML = "Companies";
+			addAdder(null, function() {
+				stack.addLayer("addCompany", addCompanyToTable);
+				addCompany();
+			});
+			headerRow.appendChild(createElement("th")).innerHTML = "Company Name";
+			headerRow.appendChild(createElement("th")).innerHTML = "Address";
+			companies.map(addCompanyToTable);
+			layer.appendChild(table);
+			stack.setFragment();
+		});
+	},
+	clientList = function() {
+		stack.addLayer("clients");
+		rpc.clients(function(clients) {
+			stack.addFragment()
+			var title = layer.appendChild(createElement("h1")),
+			    table = createElement("table"),
+			    headerRow = table.appendChild(createElement("tr")),
+			    companies = [],
+			    addClientToTable = function(client) {
+				if (typeof client === "undefined") {
+					return;
+				}
+				var row = createElement("tr"),
+				    nameCell = row.appendChild(createElement("td"));
+				    companyCell = row.appendChild(createElement("td")),
+				    setCompanyCell = function() {
+					companyCell.innerHTML = companies[client.CompanyID].Name;
+				    };
+				nameCell.innerHTML = client.Name;
+				if (typeof companies[client.CompanyID] !== "undefined") {
+					setCompanyCell();
+				} else {
+					rpc.getCompany(client.CompanyID, function(company) {
+						if (typeof company === "undefined") {
+							companyCell.innerHTML = "Error!";
+							return;
+						}
+						companies[company.ID] = company;
+						setCompanyCell();
+					});
+				}
+				row.appendChild(createElement("td")).innerHTML = client.PhoneNumber;
+				row.appendChild(createElement("td")).innerHTML = client.Reference;
+				table.appendChild(row);
+			    };
+			title.innerHTML = "Clients";
+			addAdder(null, function() {
+				stack.addLayer("addClient", addClientToTable);
+				addClient();
+			});
+			headerRow.appendChild(createElement("th")).innerHTML = "Client Name";
+			headerRow.appendChild(createElement("th")).innerHTML = "Company Name";
+			headerRow.appendChild(createElement("th")).innerHTML = "Phone Number";
+			headerRow.appendChild(createElement("th")).innerHTML = "Reference";
+			clients.map(addClientToTable);
+			layer.appendChild(table);
+			stack.setFragment();
+		});
+	},
+	messageList = function() {
+		stack.addLayer("messages");
+		layer.appendChild(createElement("h1")).innerHTML = "Messages";
+	},
 	addTitle = function(id, add, edit) {
 		layer.appendChild(createElement("h1")).innerHTML = (id == 0) ? add : edit;
 	},
