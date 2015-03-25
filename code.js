@@ -591,6 +591,10 @@ window.addEventListener("load", function(oldDate) {
 			init.call(this);
 		};
 	})(),
+	showCompany = function(company) {
+		stack.addLayer("showCompany");
+		alert(company.Name);
+	},
 	companyList = function() {
 		stack.addLayer("companies");
 		rpc.companies(function(companies) {
@@ -598,23 +602,18 @@ window.addEventListener("load", function(oldDate) {
 			var title = layer.appendChild(createElement("h1")),
 			    table = createElement("table"),
 			    headerRow = table.appendChild(createElement("tr")),
-			    addCompanyToTable = (function() {
-				var showCompany = function(company) {
-					alert(company.Name);
-				};
-				return function(company) {
-					if (typeof company === "undefined") {
-						return;
-					}
-					var row = createElement("tr"),
-					    nameCell = row.appendChild(createElement("td"));
-					nameCell.innerHTML = company.Name;
-					nameCell.setAttribute("class", "simpleButton");
-					nameCell.addEventListener("click", showCompany.bind(null, company));
-					row.appendChild(createElement("td")).innerHTML = company.Address;
-					table.appendChild(row);
-				};
-			    }());
+			    addCompanyToTable = function(company) {
+				if (typeof company === "undefined") {
+					return;
+				}
+				var row = createElement("tr"),
+				    nameCell = row.appendChild(createElement("td"));
+				nameCell.innerHTML = company.Name;
+				nameCell.setAttribute("class", "simpleButton");
+				nameCell.addEventListener("click", showCompany.bind(null, company));
+				row.appendChild(createElement("td")).innerHTML = company.Address;
+				table.appendChild(row);
+			    };
 			title.innerHTML = "Companies";
 			addAdder(null, function() {
 				stack.addLayer("addCompany", addCompanyToTable);
@@ -627,6 +626,10 @@ window.addEventListener("load", function(oldDate) {
 			stack.setFragment();
 		});
 	},
+	showClient = function(client, company) {
+		stack.addLayer("showClient");
+		alert(client.Name);
+	},
 	clientList = function() {
 		stack.addLayer("clients");
 		rpc.clients(function(clients) {
@@ -635,7 +638,7 @@ window.addEventListener("load", function(oldDate) {
 			    table = createElement("table"),
 			    headerRow = table.appendChild(createElement("tr")),
 			    companies = [],
-			    addClientToTable = (function(client) {
+			    addClientToTable = function(client) {
 				if (typeof client === "undefined") {
 					return;
 				}
@@ -644,6 +647,8 @@ window.addEventListener("load", function(oldDate) {
 				    companyCell = row.appendChild(createElement("td")),
 				    setCompanyCell = function() {
 					companyCell.innerHTML = companies[client.CompanyID].Name;
+					companyCell.setAttribute("class", "simpleButton");
+					companyCell.addEventListener("click", showCompany.bind(null, companies[client.CompanyID]));
 				    };
 				nameCell.innerHTML = client.Name;
 				if (typeof companies[client.CompanyID] !== "undefined") {
@@ -661,7 +666,7 @@ window.addEventListener("load", function(oldDate) {
 				row.appendChild(createElement("td")).innerHTML = client.PhoneNumber;
 				row.appendChild(createElement("td")).innerHTML = client.Reference;
 				table.appendChild(row);
-			    }());
+			    };
 			title.innerHTML = "Clients";
 			addAdder(null, function() {
 				stack.addLayer("addClient", addClientToTable);
