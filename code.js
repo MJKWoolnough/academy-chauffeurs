@@ -339,7 +339,6 @@ window.addEventListener("load", function(oldDate) {
 				stack.addLayer("companies");
 				rpc.companies(function(companies) {
 					stack.addFragment();
-					alert(companies);
 					stack.setFragment();
 				});
 			});
@@ -672,12 +671,14 @@ window.addEventListener("load", function(oldDate) {
 
 		stack.setFragment();
 	},
-	addDriver = setDriver.bind(null, {
-		"ID": 0,
-		"Name": "",
-		"RegistrationNumber": "",
-		"PhoneNumber": "",
-	}),
+	addDriver = function() {
+		setDriver({
+			"ID": 0,
+			"Name": "",
+			"RegistrationNumber": "",
+			"PhoneNumber": "",
+		});
+	},
 	addAdder = function(elementBefore, callback) {
 		var adder = createElement("div");
 		adder.innerHTML = "+";
