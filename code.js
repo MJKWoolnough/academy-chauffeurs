@@ -598,9 +598,9 @@ window.addEventListener("load", function(oldDate) {
 			var title = layer.appendChild(createElement("h1")),
 			    table = createElement("table"),
 			    headerRow = table.appendChild(createElement("tr")),
-			    addCompanyToTable = function() {
+			    addCompanyToTable = (function() {
 				var showCompany = function(company) {
-					
+					alert(company.Name);
 				};
 				return function(company) {
 					if (typeof company === "undefined") {
@@ -609,10 +609,12 @@ window.addEventListener("load", function(oldDate) {
 					var row = createElement("tr"),
 					    nameCell = row.appendChild(createElement("td"));
 					nameCell.innerHTML = company.Name;
+					nameCell.setAttribute("class", "simpleButton");
+					nameCell.addEventListener("click", showCompany.bind(null, company));
 					row.appendChild(createElement("td")).innerHTML = company.Address;
 					table.appendChild(row);
 				};
-			    };
+			    }());
 			title.innerHTML = "Companies";
 			addAdder(null, function() {
 				stack.addLayer("addCompany", addCompanyToTable);
@@ -633,7 +635,7 @@ window.addEventListener("load", function(oldDate) {
 			    table = createElement("table"),
 			    headerRow = table.appendChild(createElement("tr")),
 			    companies = [],
-			    addClientToTable = function(client) {
+			    addClientToTable = (function(client) {
 				if (typeof client === "undefined") {
 					return;
 				}
@@ -659,7 +661,7 @@ window.addEventListener("load", function(oldDate) {
 				row.appendChild(createElement("td")).innerHTML = client.PhoneNumber;
 				row.appendChild(createElement("td")).innerHTML = client.Reference;
 				table.appendChild(row);
-			    };
+			    }());
 			title.innerHTML = "Clients";
 			addAdder(null, function() {
 				stack.addLayer("addClient", addClientToTable);
@@ -689,12 +691,11 @@ window.addEventListener("load", function(oldDate) {
 		    input;
 		if (type === "textarea") {
 			input = createElement("textarea");
-			input.innerHTML = contents;
 		} else {
 			input = createElement("input");
 			input.setAttribute("type", type);
-			input.setAttribute("value", contents);
 		}
+		input.setAttribute("value", contents);
 		input.setAttribute("id", id);
 		if (type === "hidden") {
 			return layer.appendChild(input);
@@ -826,7 +827,7 @@ window.addEventListener("load", function(oldDate) {
 			var parts = [this, companyName[0], address[0]];
 			parts.map(disableElement);
 			company.Name = companyName[0].value;
-			company.Address = address[0].innerHTML;
+			company.Address = address[0].value;
 			rpc.setCompany(company, function(resp) {
 				if (resp.Errors) {
 					companyName[1].innerHTML = resp.NameError;
