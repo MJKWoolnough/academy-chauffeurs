@@ -46,6 +46,7 @@ type Event struct {
 	ID, DriverID, ClientID int64
 	Start, End             Time
 	From, To               string
+	MessageSent            bool
 }
 
 const (
@@ -72,6 +73,8 @@ const (
 	DriverList
 	EventList
 	EventOverlap
+	CompanyList
+	UnsentMessages
 
 	TotalStmts
 )
@@ -99,7 +102,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"[Driver]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [RegistrationNumber] TEXT, [PhoneNumber] TEXT);",
 		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT);",
 		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER REFERENCES [Company]([ID]) ON DELETE CASCADE, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT);",
-		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER REFERENCES [Driver]([ID]) ON DELETE CASCADE, [ClientID] INTEGER REFERENCES [Client]([ID]) ON DELETE CASCADE, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT);",
+		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER REFERENCES [Driver]([ID]) ON DELETE CASCADE, [ClientID] INTEGER REFERENCES [Client]([ID]) ON DELETE CASCADE, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [MessageSent] BOOLEAN NOT NULL CHECK ([MessageSent] IN (0,1)));",
 	} {
 		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
 			return nil, err
@@ -142,11 +145,18 @@ func newCalls(dbFName string) (*Calls, error) {
 		// Searches
 
 		// All Drivers
-		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver];",
+		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] ORDER BY [ID] ASC;",
+
 		// Row of Events for driver
 		"SELECT [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?2 AND ?3);",
 		// Event Overlaps
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4);",
+
+		// Company List
+		"SELECT [ID], [Name], [Address] FROM [Company] ORDER BY [ID] ASC;",
+
+		// Events with unsent messages
+		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [MessageSent] = 0 AND [Start] > ?;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
@@ -206,4 +216,67 @@ func (c *Calls) Drivers(_ struct{}, drivers *[]Driver) error {
 		(*drivers) = append(*drivers, d)
 	}
 	return rows.Err()
+}
+
+func (c *Calls) Companies(_ struct{}, companies *[]Company) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	rows, err := statements[CompanyList].Query()
+	if err != nil {
+		return err
+	}
+	*companies = make([]Company, 0)
+	for rows.Next() {
+		var cy Company
+		err = rows.Scan(&cy.ID, &cy.Name, &cy.Address)
+		if err != nil {
+			return err
+		}
+		(*companies) = append(*companies, cy)
+	}
+	return rows.Err()
+}
+
+func (c *Calls) Clients(_ struct{}, client *[]Client) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	rows, err := statements[CompanyList].Query()
+	if err != nil {
+		return err
+	}
+	*companies = make([]Company, 0)
+	for rows.Next() {
+		var cy Company
+		err = rows.Scan(&cy.ID, &cy.Name, &cy.Address)
+		if err != nil {
+			return err
+		}
+		(*companies) = append(*companies, cy)
+	}
+	return rows.Err()
+}
+
+func (c *Calls) UnsentMessages(_ struct{}, events *[]Event) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	rows, err := c.statements[UnsentMessages].Query(f.DriverID, f.Start, f.End)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var e Event
+		err = rows.Scan(&e.DriverID, &e.ClientID, &e.Start, &e.End, &e.From, &e.To)
+		if err != nil {
+			return err
+		}
+		(*eventList) = append(*eventList, e)
+	}
+	return rows.Err()
+}
+
+type Message struct {
+}
+
+func (c *Calls) SendMessage(m Message, _ *struct{}) error {
+	return nil
 }
