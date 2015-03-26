@@ -1012,16 +1012,30 @@ window.addEventListener("load", function(oldDate) {
 		    },
 		    getYear = function(ms) {
 			    var year = 1970;
-			    while (true) {
-				var msInYear = 31536000000;
-				if (Date.prototype.isLeapYear(year)) {
-					msInYear = 31622400000;
+			    if (ms < 0) {
+				while (true) {
+					year--;
+					var msInYear = 31536000000;
+					if (Date.prototype.isLeapYear(year)) {
+						msInYear = 31622400000;
+					}
+					ms += msInYear;
+					if (ms > 0) {
+						return [year, ms];
+					}
 				}
-				if (ms < msInYear) {
-					return [year, ms];
-				}
-				year++;
-				ms -= msInYear;
+			    } else {
+				    while (true) {
+					var msInYear = 31536000000;
+					if (Date.prototype.isLeapYear(year)) {
+						msInYear = 31622400000;
+					}
+					if (ms < msInYear) {
+						return [year, ms];
+					}
+					year++;
+					ms -= msInYear;
+				    }
 			    }
 		    },
 		    getMonth = function(ms) {
