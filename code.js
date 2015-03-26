@@ -334,6 +334,7 @@ window.addEventListener("load", function(oldDate) {
 		    },
 		    init = function() {
 			init = function() {};
+			stack.addLayer("events");
 			stack.addFragment();
 			var now = new Date(),
 			    addToBar = function() {
@@ -1145,6 +1146,4 @@ window.addEventListener("load", function(oldDate) {
 			},
 		};
 	}());
-	var t = new Date(1426965680000);
-	stack.addLayer("events");
 }.bind(null, Date));
