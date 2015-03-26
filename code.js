@@ -925,21 +925,55 @@ window.addEventListener("load", function(oldDate) {
 			}
 		}
 	},
-	autocompleteSingle = function(div, value) {
-		div.value = value;
-	},
-	autocompleteDouble = function(div, id, values) {
-		div.value = values[0];
-		id.value = values[1];
-	},
 	autocomplete = function(rpcCall, nameDiv, idDiv) {
-		var setFunc;
+		var autocompleteDiv = createElement("ul"),
+		    setFunc,
+		    getFunc;
 		if (typeof idDiv === "undefined") {
-			setFunc = autocompleteSingle.bind(null, nameDiv);
+			setFunc = function(value) {
+				nameDiv.value = value;
+			};
+			getFunc = function(value) {
+				return value;
+			};
 		} else {
-			setFunc autocompleteDouble.bind(null, nameDiv, idDiv);
+			setFunc = function(values) {
+				nameDiv.value = values[0];
+				idDiv.value = values[1]
+			};
+			getFunc = function(values) {
+				return values[0];
+			};
 		}
-
+		autocompleteDiv.setAttribute("class", "autocompleter");
+		nameDiv.addEventListener("keypress", function() {
+			var valUp = nameDiv.value.toUpperCase();
+			rpcCall(nameDiv.value, function(values) {
+				layer.removeChild(autocompleteDiv);
+				while (autocompleteDiv.hasChildNodes()) {
+					autocompleteDiv.removeChild(autocompleteDiv.lastChild);
+				}
+				for (var i = 0; i < values.length; i++) {
+					var li = autocompleteDiv.appendChild(createElement("li")),
+					    value = getFunc(values[i]),
+					    startPos = value.toUpperCase().indexOf(valUp),
+					    matchHighlight = createElement("b");
+					li.appendChild(document.createTextNode(value.slice(0, startPos)));
+					matchHighlight.appendChild(document.createTextNode(value.slice(startPos, startPos+valUp.length)));
+					li.appendChild(matchHighlight);
+					li.appendChild(document.createTextNode(value.slice(startPos+valUp.length)));
+					li.addEventListener("click", function() {
+						setFunc(values[i]);
+						layer.removeChild(autocompleteDiv);
+					});
+				}
+				var bounds = nameDiv.getBoundingClientRect();
+				autocompleteDiv.style.left = Math.round(bounds.left + (window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft) - (document.documentElement.clientLeft || document.body.clientLeft || 0)) + "px";
+				autocompleteDiv.style.top = Math.round(bounds.bottom + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop) - (document.documentElement.clientTop || document.body.clientTop || 0)) + "px";
+				autocompleteDiv.style.width = (bounds.right - bounds.left) + "px";
+				layer.appendChild(autocompleteDiv);
+			});
+		});
 	},
 	Date;
 	(function() {
