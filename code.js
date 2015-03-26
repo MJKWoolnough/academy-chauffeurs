@@ -925,8 +925,21 @@ window.addEventListener("load", function(oldDate) {
 			}
 		}
 	},
-	autocomplete = function(rpcCall, name, id) {
-		
+	autocompleteSingle = function(div, value) {
+		div.value = value;
+	},
+	autocompleteDouble = function(div, id, values) {
+		div.value = values[0];
+		id.value = values[1];
+	},
+	autocomplete = function(rpcCall, nameDiv, idDiv) {
+		var setFunc;
+		if (typeof idDiv === "undefined") {
+			setFunc = autocompleteSingle.bind(null, nameDiv);
+		} else {
+			setFunc autocompleteDouble.bind(null, nameDiv, idDiv);
+		}
+
 	},
 	Date;
 	(function() {
