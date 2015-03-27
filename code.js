@@ -926,25 +926,7 @@ window.addEventListener("load", function(oldDate) {
 		}
 	},
 	autocomplete = function(rpcCall, nameDiv, idDiv) {
-		var autocompleteDiv = createElement("ul"),
-		    setFunc,
-		    getFunc;
-		if (typeof idDiv === "undefined") {
-			setFunc = function(value) {
-				nameDiv.value = value;
-			};
-			getFunc = function(value) {
-				return value;
-			};
-		} else {
-			setFunc = function(values) {
-				nameDiv.value = values[0];
-				idDiv.value = values[1]
-			};
-			getFunc = function(values) {
-				return values[0];
-			};
-		}
+		var autocompleteDiv = createElement("ul");
 		autocompleteDiv.setAttribute("class", "autocompleter");
 		nameDiv.addEventListener("keypress", function() {
 			var valUp = nameDiv.value.toUpperCase();
@@ -955,17 +937,20 @@ window.addEventListener("load", function(oldDate) {
 				}
 				for (var i = 0; i < values.length; i++) {
 					var li = autocompleteDiv.appendChild(createElement("li")),
-					    value = getFunc(values[i]),
+					    value = values[i].Value,
 					    startPos = value.toUpperCase().indexOf(valUp),
 					    matchHighlight = createElement("b");
 					li.appendChild(document.createTextNode(value.slice(0, startPos)));
 					matchHighlight.appendChild(document.createTextNode(value.slice(startPos, startPos+valUp.length)));
 					li.appendChild(matchHighlight);
 					li.appendChild(document.createTextNode(value.slice(startPos+valUp.length)));
-					li.addEventListener("click", function() {
-						setFunc(values[i]);
+					li.addEventListener("click", function(val) {
+						nameDiv.value = val.Value;
+						if (typeof idDiv !== "undefined") {
+							idDiv.value = val.ID;
+						}
 						layer.removeChild(autocompleteDiv);
-					});
+					}.bind(null, values[i]));
 				}
 				var bounds = nameDiv.getBoundingClientRect();
 				autocompleteDiv.style.left = Math.round(bounds.left + (window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft) - (document.documentElement.clientLeft || document.body.clientLeft || 0)) + "px";
