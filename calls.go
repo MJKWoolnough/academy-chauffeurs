@@ -299,3 +299,125 @@ type Message struct {
 func (c *Calls) SendMessage(m Message, _ *struct{}) error {
 	return nil
 }
+
+type AutocompleteAddressRequest struct {
+	Priority int
+	Partial  string
+}
+
+type AutocompleteValue struct {
+	ID    int64
+	Value string
+}
+
+func makeAutocompleteSQL(column, table string, notIDs []int64) string {
+	sql := "SELECT [ID], [" + column + "] FROM [" + table + "] WHERE [" + column + "] LIKE ?"
+	if len(notIDs) > 0 {
+		sql += " AND [ID] NOT IN ("
+		for n := range notIDs {
+			if n > 0 {
+				sql += ", "
+			}
+			sql += "?"
+		}
+		sql += ")"
+	}
+	return sql + " LIMIT ?;"
+}
+
+const MAXRETURN = 10
+
+func (c *Calls) autocomplete(vals *[]AutocompleteValue, column, table, partial string, notIDs ...int64) error {
+	if len(*vals) >= MAXRETURN {
+		return nil
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	stmt, err := c.db.Prepare(makeAutocompleteSQL(column, table, notIDs))
+	if err != nil {
+		return err
+	}
+	params := make([]interface{}, 1, len(notIDs)+2)
+	params[0] = partial
+	for _, n := range notIDs {
+		params = append(params, n)
+	}
+	params = append(params, MAXRETURN-len(notIDs))
+	rows, err := stmt.Query(params...)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var a AutocompleteValue
+		err := rows.Scan(&a.ID, &a.Value)
+		if err != nil {
+			return err
+		}
+		*vals = append(*vals, a)
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return stmt.Close()
+}
+
+func (c *Calls) AutocompleteCompanyName(partial string, vals *[]AutocompleteValue) error {
+	*vals = make([]AutocompleteValue, 0, MAXRETURN)
+	err := c.autocomplete(vals, "Name", "Company", partial+"%")
+	if err != nil || len(*vals) >= MAXRETURN {
+		return err
+	}
+	notIDs := make([]int64, 0, MAXRETURN)
+	for _, v := range *vals {
+		notIDs = append(notIDs, v.ID)
+	}
+	return c.autocomplete(vals, "Name", "Company", "%"+partial+"%", notIDs...)
+}
+
+func (c *Calls) AutocompleteClientName(partial string, vals *[]AutocompleteValue) error {
+	*vals = make([]AutocompleteValue, 0, MAXRETURN)
+	err := c.autocomplete(vals, "Name", "Client", partial+"%")
+	if err != nil || len(*vals) >= MAXRETURN {
+		return err
+	}
+	notIDs := make([]int64, 0, MAXRETURN)
+	for _, v := range *vals {
+		notIDs = append(notIDs, v.ID)
+	}
+	return c.autocomplete(vals, "Name", "Client", "%"+partial+"%", notIDs...)
+}
+
+func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]AutocompleteValue) error {
+	*vals = make([]AutocompleteValue, 0, MAXRETURN)
+	var first, second string
+	if req.Priority == 0 {
+		first = "From"
+		second = "To"
+	} else {
+		first = "From"
+		second = "To"
+	}
+	err := c.autocomplete(vals, first, "Event", req.Partial+"%")
+	if err != nil || len(*vals) >= MAXRETURN {
+		return err
+	}
+	notIDs := make([]int64, 0, MAXRETURN)
+	for _, v := range *vals {
+		notIDs = append(notIDs, v.ID)
+	}
+	err = c.autocomplete(vals, second, "Event", req.Partial+"%", notIDs...)
+	if err != nil || len(*vals) >= MAXRETURN {
+		return err
+	}
+	for _, v := range *vals {
+		notIDs = append(notIDs, v.ID)
+	}
+	err = c.autocomplete(vals, first, "Event", "%"+req.Partial+"%", notIDs...)
+	if err != nil || len(*vals) >= MAXRETURN {
+		return err
+	}
+	for _, v := range *vals {
+		notIDs = append(notIDs, v.ID)
+	}
+	return c.autocomplete(vals, second, "Event", "%"+req.Partial+"%", notIDs...)
+}
