@@ -133,7 +133,7 @@ window.addEventListener("load", function(oldDate) {
 		this.setCanceler = function(callback) {
 			canceler[canceler.length-1] = callback;
 		};
-		document.addEventListener("keypress", function(e) {
+		document.addEventListener("keydown", function(e) {
 			if (canceler[canceler.length-1] !== null) {
 				e = e || window.event;
 				if (e.keyCode === 27) {
