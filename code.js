@@ -942,6 +942,13 @@ window.addEventListener("load", function(oldDate) {
 				    value = values[i].Value,
 				    startPos = value.toUpperCase().indexOf(valUp),
 				    matchHighlight = createElement("b");
+				if (typeof idDiv !== "undefined") {
+					if (value.toUpperCase() === valUp) {
+						idDiv.value = values[i].ID;
+					} else {
+						idDiv.value = 0;
+					}
+				}
 				li.appendChild(document.createTextNode(value.slice(0, startPos)));
 				matchHighlight.appendChild(document.createTextNode(value.slice(startPos, startPos+valUp.length)));
 				li.appendChild(matchHighlight);
