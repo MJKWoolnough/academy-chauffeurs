@@ -287,3 +287,10 @@ div.error + br {
 .autocompleter li:nth-child(odd) {
 	background-color : #eee;
 }
+
+.event {
+	position : absolute;
+	height : 100px;
+	z-index : 6;
+	background-color : #000;
+}

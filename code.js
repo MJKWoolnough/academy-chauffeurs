@@ -180,7 +180,7 @@ window.addEventListener("load", function(oldDate) {
 			    maxOnScreen = unix + ((screenWidth / 2) * 60000),
 			    minOnScreenDayStart = minOnScreen - (minOnScreen % 86400000) - 86400000,
 			    maxOnScreenDayEnd = maxOnScreen - (maxOnScreen % 86400000) + 2 * 86400000,
-			    tDate, year, month, day, t,
+			    tDate, year, month, day, t, i,
 			    toCenter = {}, keys, object,
 			    newEventListPos = (screenWidth / 2) - mins;
 			if (minOnScreenDayStart < startEnd[0]) {
@@ -206,7 +206,14 @@ window.addEventListener("load", function(oldDate) {
 				month = tDate.getMonth();
 				day = tDate.getDate();
 				if (addDay(year, month, day)) {
-					// TODO: get events
+					var driverIDs = Object.keys(drivers);
+					for (i = 0; i < driverIDs.length; i++) {
+						rpc.getEventsWithDriver(parseInt(driverIDs[i]), tDate.getTime(), tDate.getTime() + 86400000, function(events) {
+							for(var i = 0; i < events.length; i++) {
+								addEventToTable(events[i]);
+							}
+						});
+					}
 				}
 				toCenter["year_" + year] = true;
 				toCenter["month_" + year + "_" + month] = true;
@@ -370,7 +377,6 @@ window.addEventListener("load", function(oldDate) {
 				}.bind(this));
 				for (var i = 0; i < ds.length; i++) {
 					this.addDriver(ds[i]);
-					//drivers[ds[i].ID] = ;
 				}
 				layer.appendChild(plusDriver);
 				layer.appendChild(eventList).setAttribute("class", "events slider");
@@ -439,7 +445,7 @@ window.addEventListener("load", function(oldDate) {
 		    },
 		    cellIdToDate = function(id) {
 			var parts = id.split("_");
-			return new Date(parts[2], parts[3], parts[4], parts[5], parts[6] * 15);
+			return new Date(parts[2], parts[3], parts[4], parts[5], parts[6] * 15).getTime();
 		    },
 		    getEventsBetween = function(id) {
 			if (eventSelected === null) {
@@ -448,8 +454,8 @@ window.addEventListener("load", function(oldDate) {
 			var thatID = eventSelected.getAttribute("id"),
 			    thisDriverID = cellIdToDriver(id),
 			    thatDriverID = cellIdToDriver(thatID),
-			    thisTime = cellIdToDate(id).getTime(),
-			    thatTime = cellIdToDate(thatID).getTime(),
+			    thisTime = cellIdToDate(id),
+			    thatTime = cellIdToDate(thatID),
 			    events = [];
 			if (thisDriverID !== thatDriverID || thisTime <= thatTime || thisTime - thatTime > 86400000) {
 				return null;
@@ -520,11 +526,38 @@ window.addEventListener("load", function(oldDate) {
 			} else if (getEventsBetween(e.target.getAttribute("id")) !== null){
 				eventsHighlighted.push(eventSelected);
 				var id = e.target.getAttribute("id");
-				stack.addLayer("addEvent", this.addEvent.bind(this));
-				addEvent(drivers[cellIdToDriver(id)], cellIdToDate(eventSelected.getAttribute("id")), cellIdToDate(id));
+				stack.addLayer("addEvent", addEventToTable);
+				addEvent(drivers[cellIdToDriver(id)], new Date(cellIdToDate(eventSelected.getAttribute("id"))), new Date(cellIdToDate(id) + 900000));
 				eventSelected = null;
 			}
-		    }.bind(this);
+		    }.bind(this),
+		    addEventToTable = function(e) {
+			if (typeof e === "undefined") {
+				return;
+			}
+			drivers[e.DriverID].events[e.Start] = e;
+			var eventDate = new Date(e.Start),
+			    year = eventDate.getFullYear(),
+			    month = eventDate.getMonth(),
+			    day = eventDate.getDate(),
+			    hour = eventDate.getHours(),
+			    block = eventDate.getMinutes() / 15,
+			    dayStr = year + "_" + month + "_" + day,
+			    blockStr = e.DriverID + "_" + dayStr + "_" + hour + "_" + block,
+			    eventDiv = createElement("div"),
+			    eventCell;
+			if (typeof days[dayStr] === "undefined") {
+				return;
+			}
+			eventCell = days[dayStr].removeChild(days[dayStr].querySelector("#cell_" + blockStr));
+			eventDiv.setAttribute("class", "event");
+			eventDiv.addEventListener("click", showEvent.bind(null, e));
+			eventDiv.style.left = eventCell.style.left;
+			eventDiv.style.top = eventCell.style.top;
+			eventDiv.style.width = (e.End - e.Start) / 60000 + "px";
+			eventDiv.setAttribute("id", "event_" + blockStr);
+			days[dayStr].appendChild(eventDiv);
+		};
 		this.addDriver = function(d) {
 			if (typeof d === "undefined") {
 				return;
@@ -538,8 +571,7 @@ window.addEventListener("load", function(oldDate) {
 			dDiv.setAttribute("class", "driverName simpleButton");
 			dDiv.setAttribute("id", "driver_" + d.ID);
 			dDiv.addEventListener("click", function() {
-				stack.addLayer("viewDriver");
-				viewDriver(drivers[d.ID]);
+				showDriver(drivers[d.ID]);
 			});
 			dDiv.style.top = (nextDriverPos + 20) + "px";
 			nextDriverPos += 100;
@@ -579,13 +611,6 @@ window.addEventListener("load", function(oldDate) {
 		};
 		this.removeDriver = function(d) {
 			window.location.search = "?date="+dateTime.getTime();
-		};
-		this.addEvent = function(e) {
-			if (typeof e === "undefined") {
-				return;
-			}
-			drivers[e.DriverID].events[e.Start] = e;
-
 		};
 		this.updateEvent = function(e) {
 			if (typeof e === "undefined") {
@@ -702,9 +727,6 @@ window.addEventListener("load", function(oldDate) {
 	addTitle = function(id, add, edit) {
 		layer.appendChild(createElement("h1")).innerHTML = (id == 0) ? add : edit;
 	},
-	viewDriver = function(driver, events) {
-		alert(driver.Name);
-	},
 	addFormElement = function(name, type, id, contents, onBlur) {
 		var label = createElement("label"),
 		    input;
@@ -748,6 +770,10 @@ window.addEventListener("load", function(oldDate) {
 	},
 	enableElement = function(part) {
 		part.removeAttribute("disabled");
+	},
+	showDriver = function(driver, events) {
+		stack.addLayer("showDriver");
+		alert(driver.Name);
 	},
 	setDriver = function(driver) {
 		stack.addFragment();
@@ -867,6 +893,10 @@ window.addEventListener("load", function(oldDate) {
 			"Address": "",
 		});
 	},
+	showEvent = function(e) {
+		stack.addLayer("showEvent");
+		alert(e.Start);
+	},
 	setEvent = (function() {
 		var fromAddressRPC = rpc.autocompleteAddress.bind(rpc, 0),
 		    toAddressRPC = rpc.autocompleteAddress.bind(rpc, 1);
@@ -875,8 +905,8 @@ window.addEventListener("load", function(oldDate) {
 			addTitle(event.ID, "Add Event", "Edit Event");
 			addFormElement("Driver", "text", "", event.DriverName);
 			addFormElement("Start", "text", "", dateTimeFormat(event.Start));
-			addFormElement("End", "text", "", dateTimeFormat(event.End));
-			var from = addFormElement("From", "textarea", "from", event.From),
+			var driverTime = addFormElement("End", "text", "", dateTimeFormat(event.End)),
+			    from = addFormElement("From", "textarea", "from", event.From),
 			    to = addFormElement("To", "textarea", "to", event.To),
 			    clientID = addFormElement("", "hidden", "", event.ClientID),
 			    clientName = addFormElement("Client Name", "text", "client_name", event.ClientName);
@@ -898,13 +928,14 @@ window.addEventListener("load", function(oldDate) {
 				var parts = [this, clientName[0], to[0], from[0]];
 				parts.map(disableElement);
 				event.ClientID = parseInt(clientID.value);
-				event.From = from[0].innerHTML;
-				event.To = to[0].innerHTML;
+				event.From = from[0].value;
+				event.To = to[0].value;
 				rpc.setEvent(event, function(resp) {
 					if (resp.Errors) {
 						clientName[1].innerHTML = resp.ClientError;
 						from[1].innerHTML = resp.FromError;
 						to[1].innerHTML = resp.ToError;
+						driverTime[1].innerHTML = resp.TimeError;
 						parts.map(enableElement);
 					} else {
 						event.ID = resp.ID;
