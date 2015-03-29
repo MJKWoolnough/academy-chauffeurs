@@ -203,7 +203,7 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 	} else if e.DriverID != 0 {
 		var exists int64
 		c.mu.Lock()
-		err := c.statements[EventOverlap].QueryRow(e.ID, e.DriverID, e.Start, e.End).Scan(&exists)
+		err := c.statements[EventOverlap].QueryRow(e.ID, e.DriverID, e.Start.Time, e.End.Time).Scan(&exists)
 		c.mu.Unlock()
 		if err != nil {
 			return err

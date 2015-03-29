@@ -33,12 +33,17 @@ func (t Time) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatInt(t.Unix(), 10)), nil
 }
 
-func (t Time) UnmarshalJSON(data []byte) error {
-	num, err := strconv.ParseInt(string(data), 10, 64)
+func (t *Time) UnmarshalJSON(data []byte) error {
+	numStr := string(data)
+	seconds, err := strconv.ParseInt(numStr[:len(data)-3], 10, 64)
 	if err != nil {
 		return err
 	}
-	t.Time = time.Unix(num, 0)
+	milliseconds, err := strconv.ParseInt(numStr[len(data)-3:], 10, 64)
+	if err != nil {
+		return err
+	}
+	t.Time = time.Unix(seconds, milliseconds*1000000)
 	return nil
 }
 
@@ -103,7 +108,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"[Driver]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [RegistrationNumber] TEXT, [PhoneNumber] TEXT);",
 		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT);",
 		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER REFERENCES [Company]([ID]) ON DELETE CASCADE, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT);",
-		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER REFERENCES [Driver]([ID]) ON DELETE CASCADE, [ClientID] INTEGER REFERENCES [Client]([ID]) ON DELETE CASCADE, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [MessageSent] BOOLEAN NOT NULL CHECK ([MessageSent] IN (0,1)));",
+		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER REFERENCES [Driver]([ID]) ON DELETE CASCADE, [ClientID] INTEGER REFERENCES [Client]([ID]) ON DELETE CASCADE, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)));",
 	} {
 		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
 			return nil, err
@@ -199,12 +204,12 @@ func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
 
 type EventsFilter struct {
 	DriverID   int64
-	Start, End time.Time
+	Start, End Time
 }
 
 func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
-	return c.getList(DriverEvents, is{f.DriverID, f.Start, f.End}, func() is {
+	return c.getList(DriverEvents, is{f.DriverID, f.Start.Time, f.End.Time}, func() is {
 		var (
 			e   Event
 			pos = len(*events)
@@ -214,8 +219,8 @@ func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 			&(*events)[pos].ID,
 			&(*events)[pos].DriverID,
 			&(*events)[pos].ClientID,
-			&(*events)[pos].Start,
-			&(*events)[pos].End,
+			&(*events)[pos].Start.Time,
+			&(*events)[pos].End.Time,
 			&(*events)[pos].From,
 			&(*events)[pos].To,
 		}
