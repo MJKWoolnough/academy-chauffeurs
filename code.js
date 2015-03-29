@@ -60,7 +60,8 @@ window.addEventListener("load", function(oldDate) {
 		this.autocompleteAddress = function(priority, partial, callback) {
 			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
 		}
-		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName") // partial, callbakc
+		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName") // partial, callback
+		this.autocompleteClientName = request.bind(this, "AutocompleteClientName")   // partial, callback
 	})(function() {
 		events.init();	
 	}),
@@ -645,7 +646,7 @@ window.addEventListener("load", function(oldDate) {
 					return;
 				}
 				var row = createElement("tr"),
-				    nameCell = row.appendChild(createElement("td"));
+				    nameCell = row.appendChild(createElement("td")),
 				    companyCell = row.appendChild(createElement("td")),
 				    setCompanyCell = function() {
 					companyCell.innerHTML = companies[client.CompanyID].Name;
@@ -653,6 +654,8 @@ window.addEventListener("load", function(oldDate) {
 					companyCell.addEventListener("click", showCompany.bind(null, companies[client.CompanyID]));
 				    };
 				nameCell.innerHTML = client.Name;
+				nameCell.setAttribute("class", "simpleButton");
+				nameCell.addEventListener("click", showClient.bind(null, client));
 				if (typeof companies[client.CompanyID] !== "undefined") {
 					setCompanyCell();
 				} else {
@@ -881,7 +884,7 @@ window.addEventListener("load", function(oldDate) {
 			});
 			autocomplete(fromAddressRPC, from[0]);
 			autocomplete(toAddressRPC, to[0]);
-			//autocomplete(autocompleteClientName, clientName[0], clientID);
+			autocomplete(rpc.autocompleteClientName, clientName[0], clientID);
 			addFormSubmit("Add Event", function() {
 				var parts = [this, clientName[0], to[0], from[0]];
 				parts.map(disableElement);
@@ -965,15 +968,15 @@ window.addEventListener("load", function(oldDate) {
 			};
 		}
 		autocompleteDiv.setAttribute("class", "autocompleter");
-		/*nameDiv.addEventListener("blur", function(e) {
-			if (autocompleteDiv.parentNode === layer) {
-				layer.removeChild(autocompleteDiv);
+		nameDiv.addEventListener("blur", window.setTimeout.bind(window, function(e) {
+			if (autocompleteDiv.parentNode !== null) {
+				autocompleteDiv.parentNode.removeChild(autocompleteDiv);
 			}
-		});*/
+		}, 100), false);
 		nameDiv.addEventListener("keyup", function() {
 			var valUp = nameDiv.value.toUpperCase();
-			if (autocompleteDiv.parentNode === layer) {
-				layer.removeChild(autocompleteDiv);
+			if (autocompleteDiv.parentNode !== null) {
+				autocompleteDiv.parentNode.removeChild(autocompleteDiv);
 			}
 			if (valUp.length === 0) {
 				return;
@@ -986,7 +989,7 @@ window.addEventListener("load", function(oldDate) {
 			} else {
 				func(valUp, cache[valUp]);
 			}
-		});
+		}, true);
 	},
 	Date;
 	(function() {
