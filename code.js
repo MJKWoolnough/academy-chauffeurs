@@ -60,6 +60,7 @@ window.addEventListener("load", function(oldDate) {
 		this.autocompleteAddress = function(priority, partial, callback) {
 			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
 		}
+		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName") // partial, callbakc
 	})(function() {
 		events.init();	
 	}),
@@ -926,38 +927,65 @@ window.addEventListener("load", function(oldDate) {
 		}
 	},
 	autocomplete = function(rpcCall, nameDiv, idDiv) {
-		var autocompleteDiv = createElement("ul");
-		autocompleteDiv.setAttribute("class", "autocompleter");
-		nameDiv.addEventListener("keypress", function() {
-			var valUp = nameDiv.value.toUpperCase();
-			rpcCall(nameDiv.value, function(values) {
+		var autocompleteDiv = createElement("ul"),
+		    cache = {},
+		    clicker,
+		    func = function(valUp, values){
+			while (autocompleteDiv.hasChildNodes()) {
+				autocompleteDiv.removeChild(autocompleteDiv.lastChild);
+			}
+			for (var i = 0; i < values.length; i++) {
+				var li = autocompleteDiv.appendChild(createElement("li")),
+				    value = values[i].Value,
+				    startPos = value.toUpperCase().indexOf(valUp),
+				    matchHighlight = createElement("b");
+				li.appendChild(document.createTextNode(value.slice(0, startPos)));
+				matchHighlight.appendChild(document.createTextNode(value.slice(startPos, startPos+valUp.length)));
+				li.appendChild(matchHighlight);
+				li.appendChild(document.createTextNode(value.slice(startPos+valUp.length)));
+				li.addEventListener("click", clicker.bind(null, values[i]));
+			}
+
+			var bounds = nameDiv.getBoundingClientRect();
+			autocompleteDiv.style.left = Math.round(bounds.left + (window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft) - (document.documentElement.clientLeft || document.body.clientLeft || 0)) + "px";
+			autocompleteDiv.style.top = Math.round(bounds.bottom + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop) - (document.documentElement.clientTop || document.body.clientTop || 0)) + "px";
+			autocompleteDiv.style.width = (bounds.right - bounds.left) + "px";
+			layer.appendChild(autocompleteDiv);
+		    };
+		if (typeof idDiv !== "undefined") {
+			clicker = function(val) {
+				nameDiv.value = val.Value;
+				idDiv.value = val.ID;
 				layer.removeChild(autocompleteDiv);
-				while (autocompleteDiv.hasChildNodes()) {
-					autocompleteDiv.removeChild(autocompleteDiv.lastChild);
-				}
-				for (var i = 0; i < values.length; i++) {
-					var li = autocompleteDiv.appendChild(createElement("li")),
-					    value = values[i].Value,
-					    startPos = value.toUpperCase().indexOf(valUp),
-					    matchHighlight = createElement("b");
-					li.appendChild(document.createTextNode(value.slice(0, startPos)));
-					matchHighlight.appendChild(document.createTextNode(value.slice(startPos, startPos+valUp.length)));
-					li.appendChild(matchHighlight);
-					li.appendChild(document.createTextNode(value.slice(startPos+valUp.length)));
-					li.addEventListener("click", function(val) {
-						nameDiv.value = val.Value;
-						if (typeof idDiv !== "undefined") {
-							idDiv.value = val.ID;
-						}
-						layer.removeChild(autocompleteDiv);
-					}.bind(null, values[i]));
-				}
-				var bounds = nameDiv.getBoundingClientRect();
-				autocompleteDiv.style.left = Math.round(bounds.left + (window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft) - (document.documentElement.clientLeft || document.body.clientLeft || 0)) + "px";
-				autocompleteDiv.style.top = Math.round(bounds.bottom + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop) - (document.documentElement.clientTop || document.body.clientTop || 0)) + "px";
-				autocompleteDiv.style.width = (bounds.right - bounds.left) + "px";
-				layer.appendChild(autocompleteDiv);
-			});
+			};
+		} else {
+			clicker = function(val) {
+				nameDiv.value = val.Value;
+				layer.removeChild(autocompleteDiv);
+			};
+		}
+		autocompleteDiv.setAttribute("class", "autocompleter");
+		/*nameDiv.addEventListener("blur", function(e) {
+			if (autocompleteDiv.parentNode === layer) {
+				layer.removeChild(autocompleteDiv);
+			}
+		});*/
+		nameDiv.addEventListener("keyup", function() {
+			var valUp = nameDiv.value.toUpperCase();
+			if (autocompleteDiv.parentNode === layer) {
+				layer.removeChild(autocompleteDiv);
+			}
+			if (valUp.length === 0) {
+				return;
+			}
+			if (typeof cache[valUp] === "undefined") {
+				rpcCall(valUp, function(values) {
+					func(valUp, values);
+					cache[valUp] = values;
+				});
+			} else {
+				func(valUp, cache[valUp]);
+			}
 		});
 	},
 	Date;

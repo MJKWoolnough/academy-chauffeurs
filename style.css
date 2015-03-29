@@ -262,3 +262,28 @@ div.error + br {
 	background-color : #000;
 	color : #eee;
 }
+
+.autocompleter {
+	position : absolute;
+	background-color : #fff;
+	cursor : pointer;
+	cursor : hand;
+	list-style : none;
+	margin : 1px 0 0 0;
+	padding : 0;
+}
+
+.autocompleter li {
+	border : 1px solid #000;
+	border-collapse: collapse;
+	text-align : center;
+	margin-top : -1px;
+}
+
+.autocompleter li:nth-child(even) {
+	background-color : #ddd;
+}
+
+.autocompleter li:nth-child(odd) {
+	background-color : #eee;
+}
