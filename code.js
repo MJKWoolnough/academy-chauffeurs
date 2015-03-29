@@ -348,7 +348,14 @@ window.addEventListener("load", function(oldDate) {
 					item.setAttribute("class", "simpleButton");
 					item.addEventListener("click", callback);
 				};
-			    }();
+			    }(),
+			    params = window.location.search.substring(1).split("&"), i = 0, paramParts;
+			for (; i < params.length; i++) {
+				paramParts = params[i].split("=");
+				if (paramParts.length === 2 && paramParts[0] === "date") {
+					now = new Date(parseInt(paramParts[1]));
+				}
+			}
 			addToBar("Companies", companyList);
 			addToBar("Clients", clientList);
 			addToBar("Messages", messageList);
@@ -524,6 +531,7 @@ window.addEventListener("load", function(oldDate) {
 			}
 			drivers[d.ID] = d;
 			drivers[d.ID].yPos = nextDriverPos;
+			drivers[d.ID].events = [];
 			var dDiv = createElement("div"),
 			    t;
 			dDiv.appendChild(createElement("div")).innerHTML = d.Name;
@@ -570,13 +578,14 @@ window.addEventListener("load", function(oldDate) {
 			drivers[d.ID] = d;
 		};
 		this.removeDriver = function(d) {
-			
+			window.location.search = "?date="+dateTime.getTime();
 		};
 		this.addEvent = function(e) {
 			if (typeof e === "undefined") {
 				return;
 			}
-			drivers[e.DriverID].events = e;
+			drivers[e.DriverID].events[e.Start] = e;
+
 		};
 		this.updateEvent = function(e) {
 			if (typeof e === "undefined") {
