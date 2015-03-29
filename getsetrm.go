@@ -38,7 +38,7 @@ func (c *Calls) GetCompany(id int64, cy *Company) error {
 func (c *Calls) GetEvent(id int64, e *Event) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadEvent].QueryRow(id).Scan(&(*e).DriverID, &(*e).ClientID, &(*e).Start.Time, &(*e).End.Time, &(*e).From, &(*e).To)
+	err := c.statements[ReadEvent].QueryRow(id).Scan(&(*e).DriverID, &(*e).ClientID, &(*e).Start, &(*e).End, &(*e).From, &(*e).To)
 	if err == sql.ErrNoRows {
 		return nil
 	}
@@ -197,13 +197,13 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 			resp.ClientError = "Valid Client Required"
 		}
 	}
-	if e.Start.IsZero() || e.End.IsZero() {
+	if e.Start == 0 || e.End == 0 {
 		resp.Errors = true
 		resp.TimeError = "Invalid Time(s)"
 	} else if e.DriverID != 0 {
 		var exists int64
 		c.mu.Lock()
-		err := c.statements[EventOverlap].QueryRow(e.ID, e.DriverID, e.Start.Time, e.End.Time).Scan(&exists)
+		err := c.statements[EventOverlap].QueryRow(e.ID, e.DriverID, e.Start, e.End).Scan(&exists)
 		c.mu.Unlock()
 		if err != nil {
 			return err
@@ -226,13 +226,13 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 		c.mu.Lock()
 		defer c.mu.Unlock()
 		if e.ID == 0 {
-			r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start.Time, e.End.Time, e.From, e.To)
+			r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, e.From, e.To)
 			if er == nil {
 				resp.ID, er = r.LastInsertId()
 			}
 			err = er
 		} else {
-			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start.Time, e.End.Time, e.From, e.To, e.ID)
+			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, e.From, e.To, e.ID)
 		}
 	}
 	return err

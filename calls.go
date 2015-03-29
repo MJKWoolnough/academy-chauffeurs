@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"net/rpc"
-	"strconv"
 	"sync"
 	"time"
 
@@ -25,31 +24,9 @@ type Client struct {
 	Name, PhoneNumber, Reference string
 }
 
-type Time struct {
-	time.Time
-}
-
-func (t Time) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.FormatInt(t.Unix(), 10)), nil
-}
-
-func (t *Time) UnmarshalJSON(data []byte) error {
-	numStr := string(data)
-	seconds, err := strconv.ParseInt(numStr[:len(data)-3], 10, 64)
-	if err != nil {
-		return err
-	}
-	milliseconds, err := strconv.ParseInt(numStr[len(data)-3:], 10, 64)
-	if err != nil {
-		return err
-	}
-	t.Time = time.Unix(seconds, milliseconds*1000000)
-	return nil
-}
-
 type Event struct {
 	ID, DriverID, ClientID int64
-	Start, End             Time
+	Start, End             int64
 	From, To               string
 	MessageSent            bool
 }
@@ -154,7 +131,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
-		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?2 AND ?3);",
+		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND [Start] Between ? AND ?;",
 		// Event Overlaps
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4);",
 
@@ -203,13 +180,12 @@ func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
 }
 
 type EventsFilter struct {
-	DriverID   int64
-	Start, End Time
+	DriverID, Start, End int64
 }
 
 func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
-	return c.getList(DriverEvents, is{f.DriverID, f.Start.Time, f.End.Time}, func() is {
+	return c.getList(DriverEvents, is{f.DriverID, f.Start, f.End}, func() is {
 		var (
 			e   Event
 			pos = len(*events)
@@ -219,8 +195,8 @@ func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 			&(*events)[pos].ID,
 			&(*events)[pos].DriverID,
 			&(*events)[pos].ClientID,
-			&(*events)[pos].Start.Time,
-			&(*events)[pos].End.Time,
+			&(*events)[pos].Start,
+			&(*events)[pos].End,
 			&(*events)[pos].From,
 			&(*events)[pos].To,
 		}
