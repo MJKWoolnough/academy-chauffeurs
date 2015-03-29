@@ -796,16 +796,16 @@ window.addEventListener("load", function(oldDate) {
 		addFormSubmit("Add Client", function() {
 			var parts = [this, clientName[0], companyName[0], clientPhone[0], clientRef[0]];
 			parts.map(disableElement);
-			client.Name = clientNeme[0].value;
-			client.CompanyID = parseInt(companyID[0].value);
+			client.Name = clientName[0].value;
+			client.CompanyID = parseInt(companyID.value);
 			client.PhoneNumber = clientPhone[0].value;
 			client.Reference = clientRef[0].value;
 			rpc.setClient(client, function (resp) {
-				if (resp.errors) {
+				if (resp.Errors) {
 					clientName[1].innerHTML = resp.NameError;
-					companyName[1].innerHTML = resp.CompanyNameError;
+					companyName[1].innerHTML = resp.CompanyError;
 					clientPhone[1].innerHTML = resp.PhoneError;
-					clientRef[1].innerHTML = resp.RefError;
+					clientRef[1].innerHTML = resp.ReferenceError;
 					parts.map(enableElement);
 				} else {
 					client.ID = resp.ID;
