@@ -976,6 +976,7 @@ window.addEventListener("load", function(oldDate) {
 		}
 		autocompleteDiv.setAttribute("class", "autocompleter");
 		nameDiv.addEventListener("blur", window.setTimeout.bind(window, function(e) {
+			cache = {};
 			if (autocompleteDiv.parentNode !== null) {
 				autocompleteDiv.parentNode.removeChild(autocompleteDiv);
 			}
