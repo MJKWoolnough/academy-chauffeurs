@@ -471,7 +471,7 @@ window.addEventListener("load", function(oldDate) {
 				    day = tDate.getDate(),
 				    hour = tDate.getHours(),
 				    block = tDate.getMinutes() / 15,
-				    cell = days[year + "_" + month + "_" + day].querySelector("#cell_" + thisDriverID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+				    cell = days[year + "_" + month + "_" + day].getElementById("cell_" + thisDriverID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 				if (cell === null) {
 					return null;
 				}
@@ -553,7 +553,7 @@ window.addEventListener("load", function(oldDate) {
 			if (typeof days[dayStr] === "undefined") {
 				return;
 			}
-			eventCell = days[dayStr].removeChild(days[dayStr].querySelector("#cell_" + blockStr));
+			eventCell = days[dayStr].removeChild(days[dayStr].getElementById("cell_" + blockStr));
 			eventDiv.setAttribute("class", "event");
 			eventDiv.addEventListener("click", showEvent.bind(null, e));
 			eventDiv.style.left = eventCell.style.left;
@@ -592,7 +592,7 @@ window.addEventListener("load", function(oldDate) {
 				for (var hour = 0; hour < 24; hour++) {
 					for (var block = 0; block < 4; block++) {
 						var cellDiv = createElement("div"),
-						    fifteenDiv = dayDiv.querySelector("#minute_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+						    fifteenDiv = dayDiv.getElementById("minute_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 						cellDiv.setAttribute("class", "eventCell " + (block % 2 !== oddEven ? "cellOdd" : "cellEven"));
 						cellDiv.setAttribute("id", "cell_" + d.ID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 						cellDiv.style.left = timeToPos(new Date(year, month, day, hour, block * 15));
@@ -1278,4 +1278,7 @@ window.addEventListener("load", function(oldDate) {
 			},
 		};
 	}());
+	Element.prototype.getElementById = function(id) {
+		return this.querySelector("#" + id);
+	};
 }.bind(null, Date));
