@@ -296,7 +296,7 @@ window.addEventListener("load", function(oldDate) {
 			for (; i < 24; i++) {
 				addHour(year, month, day, i);
 			}
-			eventList.appendChild(dayEnclosure);
+			fixedDates.appendChild(dayEnclosure);
 			return true;
 		    },
 		    addHour = function(year, month, day, hour) {
