@@ -368,6 +368,23 @@ func (c *Calls) AutocompleteClientName(partial string, vals *[]AutocompleteValue
 	return c.autocomplete(vals, "Name", "Client", "%"+partial+"%", notIDs...)
 }
 
+func filterDupes(vals *[]AutocompleteValue) {
+	filtered := make([]AutocompleteValue, 0, len(*vals))
+Loop:
+	for i := 0; i < len(*vals); i++ {
+		for j := 0; j < len(*vals); j++ {
+			if i == j {
+				continue
+			}
+			if (*vals)[i] == (*vals)[j] {
+				continue Loop
+			}
+		}
+		filtered = append(filtered, (*vals)[i])
+	}
+	*vals = filtered
+}
+
 func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]AutocompleteValue) error {
 	*vals = make([]AutocompleteValue, 0, MAXRETURN)
 	var first, second string
@@ -375,30 +392,37 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 		first = "From"
 		second = "To"
 	} else {
-		first = "From"
-		second = "To"
+		first = "To"
+		second = "From"
 	}
 	err := c.autocomplete(vals, first, "Event", req.Partial+"%")
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
-	notIDs := make([]int64, 0, MAXRETURN)
+	filterDupes(vals)
+	notIDsOne := make([]int64, 0, MAXRETURN)
 	for _, v := range *vals {
-		notIDs = append(notIDs, v.ID)
+		notIDsOne = append(notIDsOne, v.ID)
 	}
-	err = c.autocomplete(vals, second, "Event", req.Partial+"%", notIDs...)
+	preLen := len(*vals)
+	err = c.autocomplete(vals, second, "Event", req.Partial+"%")
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
-	for _, v := range *vals {
-		notIDs = append(notIDs, v.ID)
+	filterDupes(vals)
+	notIDsTwo := make([]int64, 0, MAXRETURN)
+	for _, v := range (*vals)[preLen:] {
+		notIDsTwo = append(notIDsTwo, v.ID)
 	}
-	err = c.autocomplete(vals, first, "Event", "%"+req.Partial+"%", notIDs...)
+	err = c.autocomplete(vals, first, "Event", "%"+req.Partial+"%", notIDsOne...)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
-	for _, v := range *vals {
-		notIDs = append(notIDs, v.ID)
+	filterDupes(vals)
+	err = c.autocomplete(vals, second, "Event", "%"+req.Partial+"%", notIDsTwo...)
+	if err != nil || len(*vals) >= MAXRETURN {
+		return err
 	}
-	return c.autocomplete(vals, second, "Event", "%"+req.Partial+"%", notIDs...)
+	filterDupes(vals)
+	return err
 }
