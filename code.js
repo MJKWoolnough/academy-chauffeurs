@@ -156,6 +156,7 @@ window.addEventListener("load", function(oldDate) {
 		var dateTime,
 		    dateShift,
 		    eventList = createElement("div"),
+		    fixedDates = eventList.appendChild(createElement("div")),
 		    drivers = [],
 		    days = {},
 		    startEnd = [dateShift, dateShift],
@@ -191,12 +192,13 @@ window.addEventListener("load", function(oldDate) {
 			}
 			keys = Object.keys(days);
 			for (t = 0; t < keys.length; t++) {
-				var node = days[keys[t]];
+				var node = days[keys[t]][0];
 				if (node.parentNode !== null) {
 					var parts = keys[t].split("_");
 					unix = (new Date(parts[0], parts[1], parts[2])).getTime();
 					if (unix < minOnScreenDayStart || unix > maxOnScreenDayEnd) {
-						eventList.removeChild(days[keys[t]]);
+						fixedDates.removeChild(days[keys[t]][0]);
+						eventList.removeChild(days[keys[t]][1]);
 					}
 				}
 			}
@@ -271,7 +273,8 @@ window.addEventListener("load", function(oldDate) {
 		    },
 		    addDay = function(year, month, day) {
 			if (typeof days[year + "_" + month + "_" + day] !== "undefined") {
-				eventList.appendChild(days[year + "_" + month + "_" + day]);
+				fixedDates.appendChild(days[year + "_" + month + "_" + day][0]);
+				eventList.appendChild(days[year + "_" + month + "_" + day][1]);
 				return;
 			} else if (document.getElementById("month_" + year + "_" + month) === null) {
 				addMonth(year, month);
@@ -288,7 +291,8 @@ window.addEventListener("load", function(oldDate) {
 			dayDiv.style.left = timeToPos(dayDate);
 			dayEnclosure.appendChild(dayDiv);
 			dayEnclosure.setAttribute("class", "dayEnclosure");
-			days[year + "_" + month + "_" + day] = dayEnclosure;
+
+			days[year + "_" + month + "_" + day] = [dayEnclosure, eventList.appendChild(createElement("div"))];
 			for (; i < 24; i++) {
 				addHour(year, month, day, i);
 			}
@@ -302,7 +306,7 @@ window.addEventListener("load", function(oldDate) {
 			hourDiv.innerHTML = formatNum(hour);
 			hourDiv.style.left = timeToPos(hourDate);
 			hourDiv.addEventListener("click", update.bind(null, hourDate));
-			days[year + "_" + month + "_" + day].appendChild(hourDiv);
+			days[year + "_" + month + "_" + day][0].appendChild(hourDiv);
 			addFifteen(year, month, day, hour, 0);
 			addFifteen(year, month, day, hour, 1);
 			addFifteen(year, month, day, hour, 2);
@@ -319,7 +323,7 @@ window.addEventListener("load", function(oldDate) {
 			fifteenDiv.setAttribute("id", "minute_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 			fifteenDiv.innerHTML = formatNum(block * 15);
 			fifteenDiv.style.left = leftPos;
-			dayDiv.appendChild(fifteenDiv);
+			dayDiv[0].appendChild(fifteenDiv);
 			for (var i = 0; i < driverIDs.length; i++) {
 				cellDiv = createElement("div");
 				cellDiv.setAttribute("class", "eventCell " + (block % 2 == i % 2 ? "cellOdd" : "cellEven"));
@@ -331,7 +335,7 @@ window.addEventListener("load", function(oldDate) {
 				cellDiv.addEventListener("mouseout", eventOnMouseOut);
 				cellDiv.addEventListener("mouseout", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute"));
 				cellDiv.addEventListener("click", eventOnClick);
-				dayDiv.appendChild(cellDiv);
+				dayDiv[1].appendChild(cellDiv);
 			}
 		    },
 		    isOnScreen = function(div) {
@@ -471,7 +475,7 @@ window.addEventListener("load", function(oldDate) {
 				    day = tDate.getDate(),
 				    hour = tDate.getHours(),
 				    block = tDate.getMinutes() / 15,
-				    cell = days[year + "_" + month + "_" + day].getElementById("cell_" + thisDriverID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+				    cell = days[year + "_" + month + "_" + day][1].getElementById("cell_" + thisDriverID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 				if (cell === null) {
 					return null;
 				}
@@ -553,14 +557,14 @@ window.addEventListener("load", function(oldDate) {
 			if (typeof days[dayStr] === "undefined") {
 				return;
 			}
-			eventCell = days[dayStr].removeChild(days[dayStr].getElementById("cell_" + blockStr));
+			eventCell = days[dayStr][1].removeChild(days[dayStr][1].getElementById("cell_" + blockStr));
 			eventDiv.setAttribute("class", "event");
 			eventDiv.addEventListener("click", showEvent.bind(null, e));
 			eventDiv.style.left = eventCell.style.left;
 			eventDiv.style.top = eventCell.style.top;
 			eventDiv.style.width = (e.End - e.Start) / 60000 + "px";
 			eventDiv.setAttribute("id", "event_" + blockStr);
-			days[dayStr].appendChild(eventDiv);
+			days[dayStr][1].appendChild(eventDiv);
 		};
 		this.addDriver = function(d) {
 			if (typeof d === "undefined") {
@@ -592,7 +596,7 @@ window.addEventListener("load", function(oldDate) {
 				for (var hour = 0; hour < 24; hour++) {
 					for (var block = 0; block < 4; block++) {
 						var cellDiv = createElement("div"),
-						    fifteenDiv = dayDiv.getElementById("minute_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+						    fifteenDiv = dayDiv[0].getElementById("minute_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 						cellDiv.setAttribute("class", "eventCell " + (block % 2 !== oddEven ? "cellOdd" : "cellEven"));
 						cellDiv.setAttribute("id", "cell_" + d.ID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 						cellDiv.style.left = timeToPos(new Date(year, month, day, hour, block * 15));
@@ -602,7 +606,7 @@ window.addEventListener("load", function(oldDate) {
 						cellDiv.addEventListener("mouseout", eventOnMouseOut);
 						cellDiv.addEventListener("mouseout", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute"));
 						cellDiv.addEventListener("click", eventOnClick);
-						dayDiv.appendChild(cellDiv);
+						dayDiv[1].appendChild(cellDiv);
 					}
 				}
 			}
