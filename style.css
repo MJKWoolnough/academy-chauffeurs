@@ -105,12 +105,25 @@ div.error + br {
 	transition-timing-function : ease-out;
 }
 
-.events {
+.dates {
 	user-select : none;
 	-moz-user-select : none;
 	-webkit-user-select : none;
 	position : absolute;
 	top : 20px;
+}
+
+.driverEvents {
+	position : absolute;
+	top : 120px;
+	left : 0px;
+	right : 0;
+	bottom : 0;
+	overflow-x : hidden;
+}
+
+.events {
+	position : absolute;
 }
 
 .year {
@@ -182,7 +195,7 @@ div.error + br {
 	-moz-user-select : none;
 	-webkit-user-select : none;
 	line-height : 100%;
-	position : fixed;
+	position : absolute;
 	width : 20px;
 	z-index : 6;
 	height : 20px;

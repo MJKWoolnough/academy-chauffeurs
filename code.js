@@ -155,13 +155,14 @@ window.addEventListener("load", function(oldDate) {
 	events = new (function() {
 		var dateTime,
 		    dateShift,
-		    eventList = createElement("div"),
-		    fixedDates = eventList.appendChild(createElement("div")),
+		    driverEvents = createElement("div"),
+		    eventCells = driverEvents.appendChild(createElement("div")),
+		    dates = createElement("div"),
 		    drivers = [],
 		    days = {},
 		    startEnd = [dateShift, dateShift],
-		    plusDriver = createElement("div"),
-		    nextDriverPos = 100,
+		    plusDriver = driverEvents.appendChild(createElement("div")),
+		    nextDriverPos = 0,
 		    eventClicked = function(driver, time) {
 			    
 		    },
@@ -197,8 +198,8 @@ window.addEventListener("load", function(oldDate) {
 					var parts = keys[t].split("_");
 					unix = (new Date(parts[0], parts[1], parts[2])).getTime();
 					if (unix < minOnScreenDayStart || unix > maxOnScreenDayEnd) {
-						fixedDates.removeChild(days[keys[t]][0]);
-						eventList.removeChild(days[keys[t]][1]);
+						dates.removeChild(days[keys[t]][0]);
+						eventCells.removeChild(days[keys[t]][1]);
 					}
 				}
 			}
@@ -221,7 +222,8 @@ window.addEventListener("load", function(oldDate) {
 				toCenter["month_" + year + "_" + month] = true;
 				toCenter["day_" + year + "_" + month + "_" + day] = true;
 			}
-			eventList.style.left = newEventListPos + "px";
+			eventCells.style.left = newEventListPos + "px";
+			dates.style.left = newEventListPos + "px";
 			keys = Object.keys(toCenter);
 			for (t = 0; t < keys.length; t++) {
 				object = document.getElementById(keys[t]);
@@ -253,7 +255,7 @@ window.addEventListener("load", function(oldDate) {
 			} else {
 				yearDiv.style.width = "525600px";
 			}
-			eventList.appendChild(yearDiv);
+			dates.appendChild(yearDiv);
 		    },
 		    addMonth = function(year, month) {
 			if (document.getElementById("year_" + year) === null) {
@@ -269,12 +271,12 @@ window.addEventListener("load", function(oldDate) {
 			monthDiv.setAttribute("id", "month_" + year + "_" + month);
 			monthDiv.style.left = timeToPos(monthDate);
 			monthDiv.style.width = (monthDate.daysInMonth() * 24 * 60) + "px";
-			eventList.appendChild(monthDiv);
+			dates.appendChild(monthDiv);
 		    },
 		    addDay = function(year, month, day) {
 			if (typeof days[year + "_" + month + "_" + day] !== "undefined") {
-				fixedDates.appendChild(days[year + "_" + month + "_" + day][0]);
-				eventList.appendChild(days[year + "_" + month + "_" + day][1]);
+				dates.appendChild(days[year + "_" + month + "_" + day][0]);
+				eventCells.appendChild(days[year + "_" + month + "_" + day][1]);
 				return;
 			} else if (document.getElementById("month_" + year + "_" + month) === null) {
 				addMonth(year, month);
@@ -292,11 +294,11 @@ window.addEventListener("load", function(oldDate) {
 			dayEnclosure.appendChild(dayDiv);
 			dayEnclosure.setAttribute("class", "dayEnclosure");
 
-			days[year + "_" + month + "_" + day] = [dayEnclosure, eventList.appendChild(createElement("div"))];
+			days[year + "_" + month + "_" + day] = [dayEnclosure, eventCells.appendChild(createElement("div"))];
 			for (; i < 24; i++) {
 				addHour(year, month, day, i);
 			}
-			fixedDates.appendChild(dayEnclosure);
+			dates.appendChild(dayEnclosure);
 			return true;
 		    },
 		    addHour = function(year, month, day, hour) {
@@ -339,7 +341,7 @@ window.addEventListener("load", function(oldDate) {
 			}
 		    },
 		    isOnScreen = function(div) {
-			var left = parseInt(eventList.style.left, 10) + parseInt(div.style.left, 10),
+			var left = parseInt(eventCells.style.left, 10) + parseInt(div.style.left, 10),
 			    right = left + div.offsetWidth;
 			return !(left > window.innerWidth || right < 0);
 		    },
@@ -386,8 +388,12 @@ window.addEventListener("load", function(oldDate) {
 				for (var i = 0; i < ds.length; i++) {
 					this.addDriver(ds[i]);
 				}
-				layer.appendChild(plusDriver);
-				layer.appendChild(eventList).setAttribute("class", "events slider");
+				var eventsDiv = layer.appendChild(createElement("div"));
+				eventsDiv.setAttribute("class", "dates");
+				driverEvents.setAttribute("class", "driverEvents");
+				eventCells.setAttribute("class", "events slider");
+				layer.appendChild(dates).setAttribute("class", "dates slider");
+				layer.appendChild(driverEvents);
 				for (i = 0; i < 10; i++) {
 					var div = layer.appendChild(createElement("div"));
 					if (i % 2 === 0) {
@@ -581,10 +587,10 @@ window.addEventListener("load", function(oldDate) {
 			dDiv.addEventListener("click", function() {
 				showDriver(drivers[d.ID]);
 			});
-			dDiv.style.top = (nextDriverPos + 20) + "px";
+			dDiv.style.top = nextDriverPos + "px";
 			nextDriverPos += 100;
-			plusDriver.style.top = (nextDriverPos + 20) + "px";
-			layer.appendChild(dDiv);
+			plusDriver.style.top = nextDriverPos + "px";
+			driverEvents.appendChild(dDiv);
 			var keys = Object.keys(days),
 			    oddEven = Object.keys(drivers).length % 2;
 			for (var i = 0; i < keys.length; i++) {
