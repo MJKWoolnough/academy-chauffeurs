@@ -298,9 +298,10 @@ window.addEventListener("load", function(oldDate) {
 		    addHour = function(year, month, day, hour) {
 			var hourDate = new Date(year, month, day, hour),
 			    hourDiv = createElement("div");
-			hourDiv.setAttribute("class", "hour");
+			hourDiv.setAttribute("class", "hour simpleButton");
 			hourDiv.innerHTML = formatNum(hour);
 			hourDiv.style.left = timeToPos(hourDate);
+			hourDiv.addEventListener("click", update.bind(null, hourDate));
 			days[year + "_" + month + "_" + day].appendChild(hourDiv);
 			addFifteen(year, month, day, hour, 0);
 			addFifteen(year, month, day, hour, 1);
@@ -315,6 +316,7 @@ window.addEventListener("load", function(oldDate) {
 			    cellDiv,
 			    leftPos = timeToPos(fifteenDate);
 			fifteenDiv.setAttribute("class", "minute");
+			fifteenDiv.setAttribute("id", "minute_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 			fifteenDiv.innerHTML = formatNum(block * 15);
 			fifteenDiv.style.left = leftPos;
 			dayDiv.appendChild(fifteenDiv);
@@ -325,7 +327,9 @@ window.addEventListener("load", function(oldDate) {
 				cellDiv.style.left = leftPos;
 				cellDiv.style.top = drivers[driverIDs[i]].yPos + "px";
 				cellDiv.addEventListener("mouseover", eventOnMouseOver);
+				cellDiv.addEventListener("mouseover", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute select"));
 				cellDiv.addEventListener("mouseout", eventOnMouseOut);
+				cellDiv.addEventListener("mouseout", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute"));
 				cellDiv.addEventListener("click", eventOnClick);
 				dayDiv.appendChild(cellDiv);
 			}
@@ -587,13 +591,16 @@ window.addEventListener("load", function(oldDate) {
 				    dayDiv = days[keys[i]];
 				for (var hour = 0; hour < 24; hour++) {
 					for (var block = 0; block < 4; block++) {
-						var cellDiv = createElement("div");
+						var cellDiv = createElement("div"),
+						    fifteenDiv = dayDiv.querySelector("#minute_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 						cellDiv.setAttribute("class", "eventCell " + (block % 2 !== oddEven ? "cellOdd" : "cellEven"));
 						cellDiv.setAttribute("id", "cell_" + d.ID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 						cellDiv.style.left = timeToPos(new Date(year, month, day, hour, block * 15));
 						cellDiv.style.top = drivers[d.ID].yPos + "px";
 						cellDiv.addEventListener("mouseover", eventOnMouseOver);
+						cellDiv.addEventListener("mouseover", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute select"));
 						cellDiv.addEventListener("mouseout", eventOnMouseOut);
+						cellDiv.addEventListener("mouseout", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute"));
 						cellDiv.addEventListener("click", eventOnClick);
 						dayDiv.appendChild(cellDiv);
 					}
