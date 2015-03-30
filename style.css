@@ -1,4 +1,6 @@
 html, body {
+	color : #000;
+	background-color : #fff;
 	width : 100%;
 	overflow-x : hidden;
 }
@@ -84,7 +86,7 @@ div.error + br {
 	height : 100px;
 	position : absolute;
 	width : 100px;
-	z-index : 6;
+	z-index : 7;
 }
 
 #plusDriver {
@@ -154,7 +156,7 @@ div.error + br {
 	border-style : solid;
 	border-color : #000;
 	border-width : 0 0 0 1px;
-	background-color : #fff;
+	background-color : #fff !important;
 	z-index : 4;
 }
 
@@ -167,6 +169,12 @@ div.error + br {
 	transform: rotate(-90deg);
 	background-color : #fff;
 	z-index : 5;
+	transition :color 0.2s;
+	transition-timing-function : ease;
+}
+
+.minute.select {
+	color : #f00;
 }
 
 .moveLeft, .moveRight {
@@ -252,14 +260,13 @@ div.error + br {
 
 .simpleButton {
 	background-color : #eee;
-	color : #000;
 	transition : background-color 0.25s, color 0.25s;
 	transition-timing-function : ease;
 }
 
 .simpleButton:hover {
 	cursor : pointer;
-	background-color : #000;
+	background-color : #000 !important;
 	color : #eee;
 }
 
