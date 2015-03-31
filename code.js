@@ -770,8 +770,9 @@ window.addEventListener("load", function(oldDate) {
 		}
 		if (id === "") {
 			input.setAttribute("readonly", "readonly");
+		} else {
+			label.setAttribute("for", id);
 		}
-		label.setAttribute("for", id);
 		if (typeof onBlur === "function") {
 			input.addEventListener("blur", onBlur.bind(input));
 		}
