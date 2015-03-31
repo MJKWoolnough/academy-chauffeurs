@@ -79,7 +79,6 @@ div.error + br {
 }
 
 .driverName, #plusDriver {
-	user-select : none;
 	-moz-user-select : none;
 	-webkit-user-select : none;
 	left : 0;
@@ -106,7 +105,6 @@ div.error + br {
 }
 
 .dates {
-	user-select : none;
 	-moz-user-select : none;
 	-webkit-user-select : none;
 	position : absolute;
@@ -191,7 +189,6 @@ div.error + br {
 }
 
 .moveLeft, .moveRight {
-	user-select : none;
 	-moz-user-select : none;
 	-webkit-user-select : none;
 	line-height : 100%;
@@ -287,7 +284,6 @@ div.error + br {
 	position : absolute;
 	background-color : #fff;
 	cursor : pointer;
-	cursor : hand;
 	list-style : none;
 	margin : 1px 0 0 0;
 	padding : 0;
@@ -302,7 +298,7 @@ div.error + br {
 
 .autocompleter li:nth-child(even), .autocompleter li:nth-child(even) .disambiguator {
 	background-color : #ddd;
-	border-color-left : #ddd;
+	border-left-color : #ddd;
 }
 
 .autocompleter li:nth-child(odd), .autocompleter li:nth-child(odd) .disambiguator {
