@@ -294,18 +294,20 @@ div.error + br {
 }
 
 .autocompleter li {
-	border : 1px solid #000;
+	border : 1px solid #000 !important;
 	border-collapse: collapse;
 	text-align : center;
 	margin-top : -1px;
 }
 
-.autocompleter li:nth-child(even) {
+.autocompleter li:nth-child(even), .autocompleter li:nth-child(even) .disambiguator {
 	background-color : #ddd;
+	border-color-left : #ddd;
 }
 
-.autocompleter li:nth-child(odd) {
+.autocompleter li:nth-child(odd), .autocompleter li:nth-child(odd) .disambiguator {
 	background-color : #eee;
+	border-left-color : #eee;
 }
 
 .event {
@@ -313,4 +315,24 @@ div.error + br {
 	height : 100px;
 	z-index : 2;
 	background-color : #000;
+}
+
+.disambiguator {
+	display : inline;
+	transform : translate(-1px, -1px) scaleX(0);
+	position : absolute;
+	overflow : hidden;
+	background-color : transparent;
+	transition : transform 0.5s;
+	transition-timing-function : ease-in-out;
+	transform-origin : 0;
+	-webkit-transform-origin : 0;
+	white-space : nowrap;
+	border-width : 1px 1px 1px 0;
+	border-style : solid;
+	border-color : #000;
+}
+
+.autocompleter li:hover .disambiguator {
+	transform : translate(-1px, -1px) scaleX(1);
 }
