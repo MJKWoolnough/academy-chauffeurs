@@ -855,6 +855,7 @@ window.addEventListener("load", function(oldDate) {
 		    clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
 		    clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code"));
 		addLister(companyName[1], function() {
+			companyName[1].innerHTML = "";
 			stack.addLayer("companyList", function(company) {
 				if (typeof company === "undefined") {
 					return;
@@ -946,6 +947,7 @@ window.addEventListener("load", function(oldDate) {
 			    clientID = addFormElement("", "hidden", "", event.ClientID),
 			    clientName = addFormElement("Client Name", "text", "client_name", event.ClientName, regexpCheck(/.+/, "Client Name Required"));
 			addLister(clientName[1], function() {
+				clientName[1].innerHTML = "";
 				stack.addLayer("clientList", function(client) {
 					if (typeof client === "undefined") {
 						return;
