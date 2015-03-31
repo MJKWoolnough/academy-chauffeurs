@@ -75,7 +75,8 @@ window.addEventListener("load", function(oldDate) {
 	stack = new (function(){
 		var stack = [],
 		    canceler = [],
-		    body = document.body;
+		    body = document.body,
+		    oLayer;
 		this.addLayer = function(layerID, callback) {
 			if (stack.length == 0) {
 				canceler.push(null);
@@ -112,14 +113,14 @@ window.addEventListener("load", function(oldDate) {
 		};
 		this.addFragment = function () {
 			if (typeof layer == "object" && layer.nodeType !== 11) {
+				oLayer = layer;
 				layer = document.createDocumentFragment();
 			}
 		};
 		this.setFragment = function () {
 			if (typeof layer == "object" && layer.nodeType === 11) {
-				var firstChild = body.lastChild.getElementsByTagName("div")[0];
-				firstChild.appendChild(layer);
-				layer = firstChild;
+				oLayer.appendChild(layer);
+				layer = oLayer;
 			}
 		};
 		this.clearLayer = function(callback) {
@@ -1011,6 +1012,10 @@ window.addEventListener("load", function(oldDate) {
 			while (autocompleteDiv.hasChildNodes()) {
 				autocompleteDiv.removeChild(autocompleteDiv.lastChild);
 			}
+			var bounds = nameDiv.getBoundingClientRect();
+			autocompleteDiv.style.left = Math.round(bounds.left + (window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft) - (document.documentElement.clientLeft || document.body.clientLeft || 0)) + "px";
+			autocompleteDiv.style.top = Math.round(bounds.bottom + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop) - (document.documentElement.clientTop || document.body.clientTop || 0)) + "px";
+			autocompleteDiv.style.width = (bounds.right - bounds.left) + "px";
 			for (var i = 0; i < values.length; i++) {
 				var li = autocompleteDiv.appendChild(createElement("li")),
 				    value = values[i].Value,
@@ -1028,12 +1033,19 @@ window.addEventListener("load", function(oldDate) {
 				li.appendChild(matchHighlight);
 				li.appendChild(document.createTextNode(value.slice(startPos+valUp.length)));
 				li.addEventListener("click", clicker.bind(null, values[i]));
-			}
+				if (values[i].Disambiguation !== "") {
+					/*li.addEventListener("mouseover", function() {
 
-			var bounds = nameDiv.getBoundingClientRect();
-			autocompleteDiv.style.left = Math.round(bounds.left + (window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft) - (document.documentElement.clientLeft || document.body.clientLeft || 0)) + "px";
-			autocompleteDiv.style.top = Math.round(bounds.bottom + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop) - (document.documentElement.clientTop || document.body.clientTop || 0)) + "px";
-			autocompleteDiv.style.width = (bounds.right - bounds.left) + "px";
+					});
+					li.addEventListener("mouseout", function() {
+
+					});*/
+					var disambiguator = li.appendChild(createElement("div"));
+					disambiguator.innerHTML  = values[i].Disambiguation;
+					disambiguator.setAttribute("class", "disambiguator");
+					disambiguator.style.left = autocompleteDiv.style.width;
+				}
+			}
 			layer.appendChild(autocompleteDiv);
 		    };
 		if (typeof idDiv !== "undefined") {

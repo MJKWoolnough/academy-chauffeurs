@@ -58,6 +58,7 @@ const (
 	CompanyList
 	ClientList
 	UnsentMessages
+	DisambiguateClients
 
 	TotalStmts
 )
@@ -143,6 +144,9 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Events with unsent messages
 		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [MessageSent] = 0 AND [Start] > ?;",
+
+		// Disambiguate clients
+		"SELECT [Company].[Name], [Client].[Reference] FROM [Client] JOIN [Company] ON [Client].[CompanyID] = [Company].[ID] WHERE [Client].[ID] = ?;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
@@ -287,8 +291,8 @@ type AutocompleteAddressRequest struct {
 }
 
 type AutocompleteValue struct {
-	ID    int64
-	Value string
+	ID                    int64
+	Value, Disambiguation string
 }
 
 func makeAutocompleteSQL(column, table string, notIDs []int64) string {
@@ -365,7 +369,19 @@ func (c *Calls) AutocompleteClientName(partial string, vals *[]AutocompleteValue
 	for _, v := range *vals {
 		notIDs = append(notIDs, v.ID)
 	}
-	return c.autocomplete(vals, "Name", "Client", "%"+partial+"%", notIDs...)
+	err = c.autocomplete(vals, "Name", "Client", "%"+partial+"%", notIDs...)
+	if err != nil {
+		return err
+	}
+	for n := range *vals {
+		var cName, ref string
+		err := c.statements[DisambiguateClients].QueryRow((*vals)[n].ID).Scan(&cName, &ref)
+		if err != nil {
+			return err
+		}
+		(*vals)[n].Disambiguation = cName + " (" + ref + ")"
+	}
+	return nil
 }
 
 func filterDupes(vals *[]AutocompleteValue) {
