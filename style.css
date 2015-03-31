@@ -58,7 +58,7 @@ div.adder {
 	float : left;
 	font-weight : bold;
 	color : #fff;
-	text-shadow : #000 -1px -1px 0, #000 1px -1px 0, #000 1px 1px 0, #000 -1px 1px 0, #000 -1px 0 0, #000 1px 0 0;
+	text-shadow : #000 -1px -1px 0, #000 1px -1px 0, #000 1px 1px 0, #000 -1px 1px 0, #000 -1px 0 0, #000 1px 0 0, #000 0 -1px 0, #000 0 1px 0;
 	transition : color 0.25s;
 	transition-timing-function : ease;
 }
