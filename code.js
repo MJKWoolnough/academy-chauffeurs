@@ -589,6 +589,7 @@ window.addEventListener("load", function(oldDate) {
 			drivers[d.ID].events = [];
 			var dDiv = createElement("div"),
 			    t;
+			drivers[d.ID].driverDiv = dDiv;
 			dDiv.appendChild(createElement("div")).setInnerText(d.Name);
 			dDiv.setAttribute("class", "driverName simpleButton");
 			dDiv.setAttribute("id", "driver_" + d.ID);
@@ -626,12 +627,10 @@ window.addEventListener("load", function(oldDate) {
 			}
 		};
 		this.updateDriver = function(d) {
-			document.getElementById("driver_" + d.ID).getElementsByTagName("div")[0].setInnerText(d.Name);
 			d.events = drivers[d.ID].events;
 			d.yPos = drivers[d.ID].yPos;
-			//for (var i = 0; i < d.events.length; i++) {
-			//	d.events[i].DriverName = d.Name;
-			//}
+			d.driverDiv = drivers[d.ID].driverDiv;
+			d.driverDiv.getElementsByTagName("div")[0].setInnerText(d.Name);
 			drivers[d.ID] = d;
 		};
 		this.removeDriver = function(d) {
@@ -654,7 +653,6 @@ window.addEventListener("load", function(oldDate) {
 		};
 	})(),
 	showCompany = function(company) {
-		stack.addLayer("showCompany");
 		alert(company.Name);
 	},
 	companyList = function(addList) {
@@ -671,7 +669,16 @@ window.addEventListener("load", function(oldDate) {
 				    nameCell = row.appendChild(createElement("td")).appendChild(createElement("div"));
 				nameCell.setInnerText(company.Name);
 				nameCell.setAttribute("class", "simpleButton");
-				nameCell.addEventListener("click", showCompany.bind(null, company));
+				nameCell.addEventListener("click", function() {
+					stack.addLayer("showCompany", function(c) {
+						if (typeof c !== "undefined") {
+							stack.removeLayer();
+							stack.addLayer("companyList");
+							companyList();
+						}
+					});
+					showCompany(company);
+				});
 				if (addList === true) {
 					addLister(nameCell, stack.removeLayer.bind(null, company));
 				}
@@ -800,7 +807,32 @@ window.addEventListener("load", function(oldDate) {
 	},
 	showDriver = function(driver) {
 		stack.addLayer("showDriver");
-		alert(driver.Name);
+		stack.addFragment();
+		layer.appendChild(createElement("h1")).setInnerText(driver.Name);
+		var editDelete = layer.appendChild(createElement("div")),
+		    edit = editDelete.appendChild(createElement("div")).setInnerText("Edit"),
+		    deleter = editDelete.appendChild(createElement("div")).setInnerText("Delete");
+		editDelete.setAttribute("class", "editDelete");
+		edit.setAttribute("class", "simpleButton");
+		edit.addEventListener("click", function() {
+			stack.addLayer("editDriver", function(d) {
+				if (typeof d !== "undefined") {
+					stack.removeLayer();
+					events.updateDriver(d);
+					showDriver(d);
+				}
+			});
+			setDriver(driver);
+		});
+		deleter.setAttribute("class", "simpleButton");
+		deleter.addEventListener("click", function() {
+			if(confirm("Are you sure you want to remove this driver?")) {
+				rpc.removeDriver(driver.ID);
+				stack.removeLayer();
+				events.removeDriver(driver);
+			}
+		});
+		stack.setFragment();
 	},
 	setDriver = function(driver) {
 		stack.addFragment();

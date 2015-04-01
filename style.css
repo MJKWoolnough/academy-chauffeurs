@@ -88,10 +88,6 @@ div.error + br {
 	z-index : 3;
 }
 
-#plusDriver {
-	top : 120px;
-}
-
 .driverName > div, #plusDriver > div {
 	position : relative;
 	top : 50%;
@@ -331,4 +327,16 @@ div.error + br {
 
 .autocompleter li:hover .disambiguator {
 	transform : translate(-1px, -1px) scaleX(1);
+}
+
+.editDelete {
+	width : 50%;
+	margin : 0 auto;
+	overflow : hidden;
+}
+
+.editDelete > div {
+	width : 50%;
+	float : left;
+	text-align : center;
 }
