@@ -83,10 +83,10 @@ func newCalls(dbFName string) (*Calls, error) {
 	// Tables
 
 	for _, ct := range []string{
-		"[Driver]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [RegistrationNumber] TEXT, [PhoneNumber] TEXT);",
-		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT);",
-		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER REFERENCES [Company]([ID]) ON DELETE CASCADE, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT);",
-		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER REFERENCES [Driver]([ID]) ON DELETE CASCADE, [ClientID] INTEGER REFERENCES [Client]([ID]) ON DELETE CASCADE, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)));",
+		"[Driver]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [RegistrationNumber] TEXT, [PhoneNumber] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER REFERENCES [Company]([ID]) ON DELETE CASCADE, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER REFERENCES [Driver]([ID]) ON DELETE CASCADE, [ClientID] INTEGER REFERENCES [Client]([ID]) ON DELETE CASCADE, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 	} {
 		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
 			return nil, err
@@ -107,10 +107,10 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Read
 
-		"SELECT [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] WHERE [ID] = ?;",
-		"SELECT [Name], [Address] FROM [Company] WHERE [ID] = ?;",
-		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [ID] = ?;",
-		"SELECT [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ID] = ?;",
+		"SELECT [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [Name], [Address] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
 
 		// Update
 
@@ -119,31 +119,31 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ? WHERE [ID] = ?;",
 
-		// Delete
+		// Delete (set deleted)
 
-		"DELETE FROM [Driver] WHERE [ID] = ?;",
-		"DELETE FROM [Company] WHERE [ID] = ?;",
-		"DELETE FROM [Client] WHERE [ID] = ?;",
-		"DELETE FROM [Event] WHERE [ID] = ?;",
+		"UPDATE [Driver] SET [Deleted] = 1 WHERE [ID] = ?;",
+		"UPDATE [Company] SET [Deleted] = 1 WHERE [ID] = ?;",
+		"UPDATE [Client] SET [Deleted] = 1 WHERE [ID] = ?;",
+		"UPDATE [Event] SET [Deleted] = 1 WHERE [ID] = ?;",
 
 		// Searches
 
 		// All Drivers
-		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] ORDER BY [ID] ASC;",
+		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
-		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND [Start] Between ? AND ?;",
+		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND [Deleted] = 0 AND [Start] Between ? AND ?;",
 		// Event Overlaps
-		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4);",
+		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4);",
 
 		// Company List
-		"SELECT [ID], [Name], [Address] FROM [Company] ORDER BY [ID] ASC;",
+		"SELECT [ID], [Name], [Address] FROM [Company] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Client List
-		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] ORDER BY [ID] ASC;",
+		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Events with unsent messages
-		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [MessageSent] = 0 AND [Start] > ?;",
+		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [MessageSent] = 0 AND [Start] > ? AND [Deleted] = 0;",
 
 		// Disambiguate clients
 		"SELECT [Company].[Name], [Client].[Reference] FROM [Client] JOIN [Company] ON [Client].[CompanyID] = [Company].[ID] WHERE [Client].[ID] = ?;",
@@ -295,8 +295,11 @@ type AutocompleteValue struct {
 	Value, Disambiguation string
 }
 
-func makeAutocompleteSQL(column, table string, notIDs []int64) string {
+func makeAutocompleteSQL(column, table string, includeDeleted bool, notIDs []int64) string {
 	sql := "SELECT [ID], [" + column + "] FROM [" + table + "] WHERE [" + column + "] LIKE ?"
+	if !includeDeleted {
+		sql += " AND [Deleted] = 0"
+	}
 	if len(notIDs) > 0 {
 		sql += " AND [ID] NOT IN ("
 		for n := range notIDs {
@@ -312,13 +315,13 @@ func makeAutocompleteSQL(column, table string, notIDs []int64) string {
 
 const MAXRETURN = 10
 
-func (c *Calls) autocomplete(vals *[]AutocompleteValue, column, table, partial string, notIDs ...int64) error {
+func (c *Calls) autocomplete(vals *[]AutocompleteValue, column, table, partial string, includeDeleted bool, notIDs ...int64) error {
 	if len(*vals) >= MAXRETURN {
 		return nil
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	stmt, err := c.db.Prepare(makeAutocompleteSQL(column, table, notIDs))
+	stmt, err := c.db.Prepare(makeAutocompleteSQL(column, table, includeDeleted, notIDs))
 	if err != nil {
 		return err
 	}
@@ -348,7 +351,7 @@ func (c *Calls) autocomplete(vals *[]AutocompleteValue, column, table, partial s
 
 func (c *Calls) AutocompleteCompanyName(partial string, vals *[]AutocompleteValue) error {
 	*vals = make([]AutocompleteValue, 0, MAXRETURN)
-	err := c.autocomplete(vals, "Name", "Company", partial+"%")
+	err := c.autocomplete(vals, "Name", "Company", partial+"%", false)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
@@ -356,12 +359,12 @@ func (c *Calls) AutocompleteCompanyName(partial string, vals *[]AutocompleteValu
 	for _, v := range *vals {
 		notIDs = append(notIDs, v.ID)
 	}
-	return c.autocomplete(vals, "Name", "Company", "%"+partial+"%", notIDs...)
+	return c.autocomplete(vals, "Name", "Company", "%"+partial+"%", false, notIDs...)
 }
 
 func (c *Calls) AutocompleteClientName(partial string, vals *[]AutocompleteValue) error {
 	*vals = make([]AutocompleteValue, 0, MAXRETURN)
-	err := c.autocomplete(vals, "Name", "Client", partial+"%")
+	err := c.autocomplete(vals, "Name", "Client", partial+"%", false)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
@@ -369,7 +372,7 @@ func (c *Calls) AutocompleteClientName(partial string, vals *[]AutocompleteValue
 	for _, v := range *vals {
 		notIDs = append(notIDs, v.ID)
 	}
-	err = c.autocomplete(vals, "Name", "Client", "%"+partial+"%", notIDs...)
+	err = c.autocomplete(vals, "Name", "Client", "%"+partial+"%", false, notIDs...)
 	if err != nil {
 		return err
 	}
@@ -411,7 +414,7 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 		first = "To"
 		second = "From"
 	}
-	err := c.autocomplete(vals, first, "Event", req.Partial+"%")
+	err := c.autocomplete(vals, first, "Event", req.Partial+"%", true)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
@@ -421,7 +424,7 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 		notIDsOne = append(notIDsOne, v.ID)
 	}
 	preLen := len(*vals)
-	err = c.autocomplete(vals, second, "Event", req.Partial+"%")
+	err = c.autocomplete(vals, second, "Event", req.Partial+"%", true)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
@@ -430,12 +433,12 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 	for _, v := range (*vals)[preLen:] {
 		notIDsTwo = append(notIDsTwo, v.ID)
 	}
-	err = c.autocomplete(vals, first, "Event", "%"+req.Partial+"%", notIDsOne...)
+	err = c.autocomplete(vals, first, "Event", "%"+req.Partial+"%", true, notIDsOne...)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
 	filterDupes(vals)
-	err = c.autocomplete(vals, second, "Event", "%"+req.Partial+"%", notIDsTwo...)
+	err = c.autocomplete(vals, second, "Event", "%"+req.Partial+"%", true, notIDsTwo...)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
