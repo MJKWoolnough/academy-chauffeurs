@@ -78,6 +78,9 @@ window.addEventListener("load", function(oldDate) {
 		    body = document.body,
 		    oLayer;
 		this.addLayer = function(layerID, callback) {
+			if (this.layerExists(layerID)) {
+				return;
+			}
 			if (stack.length == 0) {
 				canceler.push(null);
 			} else {
@@ -99,6 +102,9 @@ window.addEventListener("load", function(oldDate) {
 			outerLayer.appendChild(layer);
 			body.appendChild(outerLayer);
 		};
+		this.layerExists(layerID) {
+			return document.getElementById(layerID) !== null;
+		}
 		this.removeLayer = function() {
 			if (stack.length === 0) {
 				return;
