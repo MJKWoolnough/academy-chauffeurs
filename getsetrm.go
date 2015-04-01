@@ -76,6 +76,7 @@ func (c *Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
 			}
 			err = e
 		} else {
+			resp.ID = d.ID
 			_, err = c.statements[UpdateDriver].Exec(d.Name, d.RegistrationNumber, d.PhoneNumber, d.ID)
 		}
 	}
@@ -125,6 +126,7 @@ func (c *Calls) SetClient(cl Client, resp *SetClientResponse) error {
 			}
 			err = e
 		} else {
+			resp.ID = cl.ID
 			_, err = c.statements[UpdateClient].Exec(cl.CompanyID, cl.Name, cl.PhoneNumber, cl.Reference, cl.ID)
 		}
 	}
@@ -157,6 +159,7 @@ func (c *Calls) SetCompany(cy Company, resp *SetCompanyResponse) error {
 			}
 			err = e
 		} else {
+			resp.ID = cy.ID
 			_, err = c.statements[UpdateCompany].Exec(cy.Name, cy.Address, cy.ID)
 		}
 	}
@@ -232,6 +235,7 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 			}
 			err = er
 		} else {
+			resp.ID = e.ID
 			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, e.From, e.To, e.ID)
 		}
 	}
