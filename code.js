@@ -102,7 +102,7 @@ window.addEventListener("load", function(oldDate) {
 			outerLayer.appendChild(layer);
 			body.appendChild(outerLayer);
 		};
-		this.layerExists(layerID) {
+		this.layerExists = function(layerID) {
 			return document.getElementById(layerID) !== null;
 		}
 		this.removeLayer = function() {
@@ -817,7 +817,37 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText(driver.Name);
 		var editDelete = layer.appendChild(createElement("div")),
 		    edit = editDelete.appendChild(createElement("div")).setInnerText("Edit"),
-		    deleter = editDelete.appendChild(createElement("div")).setInnerText("Delete");
+		    deleter = editDelete.appendChild(createElement("div")).setInnerText("Delete"),
+		    dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
+		    startDate = addFormElement("Start Date", "text", "startDate", (new Date()).toDateString(), dateCheck),
+		    endDate = addFormElement("End Date", "text", "endDate", (new Date()).toDateString(), dateCheck),
+		    getEvents = addFormSubmit("Show Events", function() {
+			while (eventTable.hasChildNodes()) {
+				if (eventTable.lastChild === tableTitles) {
+					break;
+				}
+				eventTable.removeChild(eventTable.lastChild);
+			}
+			// parse dates
+			var startParts = startDate.value.split("/"),
+			    endParts = endDate.value.split("/"),
+			    start = new Date(startParts[0], startParts[1], startParts[2]),
+			    end = new Date(endParts[0], endParts[1], endParts[2]);
+			rpc.getEventsWithDriver(driver.ID, start, end, function(events) {
+				var row,
+				    i = 0;
+				if (events.length === 0) {
+					eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "6");
+					return;
+				}
+				for (; i < events.length; i++) {
+					//row = 
+				}
+			});
+		    }),
+		    eventTable = layer.appendChild(createElement("table")),
+		    tableTitles = eventTable.appendChild(createElement("tr"));
+
 		editDelete.setAttribute("class", "editDelete");
 		edit.setAttribute("class", "simpleButton");
 		edit.addEventListener("click", function() {
@@ -838,6 +868,15 @@ window.addEventListener("load", function(oldDate) {
 				events.removeDriver(driver);
 			}
 		});
+
+
+		tableTitles.appendChild(createElement("th")).setInnerText("Client");
+		tableTitles.appendChild(createElement("th")).setInnerText("From");
+		tableTitles.appendChild(createElement("th")).setInnerText("To");
+		tableTitles.appendChild(createElement("th")).setInnerText("Start");
+		tableTitles.appendChild(createElement("th")).setInnerText("End");
+		tableTitles.appendChild(createElement("th")).setInnerText("Company");
+		getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 		stack.setFragment();
 	},
 	setDriver = function(driver) {
@@ -1317,6 +1356,33 @@ window.addEventListener("load", function(oldDate) {
 					return "";
 				}
 				return dayNames[w];
+			},
+			toDateString: function() {
+				var year = this.getFullYear(),
+				    month = this.getMonth() + 1,
+				    date = this.getDate();
+				if (month < 10) {
+					month = "0" + month;
+				}
+				if (date < 10) {
+					date = "0" + date;
+				}
+				return year + "/" + month + "/" + date;
+			},
+			toTimeString: function() {
+				var hour = this.getHours(),
+				    minutes = this.getMinutes(),
+				    seconds = this.getSeconds();
+				if (hour < 10) {
+					hour = "0" + hour;
+				}
+				if (minutes < 10) {
+					minutes = "0" + minutes;
+				}
+				if (seconds < 10) {
+					seconds = "0" + seconds;
+				}
+				return hour + ":" + minutes + ":" + seconds;
 			},
 			toLocaleString: function() {
 				var year = this.getFullYear(),
