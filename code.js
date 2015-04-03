@@ -828,12 +828,11 @@ window.addEventListener("load", function(oldDate) {
 				}
 				eventTable.removeChild(eventTable.lastChild);
 			}
-			// parse dates
 			var startParts = startDate[0].value.split("/"),
 			    endParts = endDate[0].value.split("/"),
-			    start = new Date(startParts[0], startParts[1], startParts[2]),
-			    end = new Date(endParts[0], endParts[1], endParts[2]);
-			rpc.getEventsWithDriver(driver.ID, start.getTime(), end.getTime(), function(events) {
+			    start = new Date(startParts[0], startParts[1]-1, startParts[2]),
+			    end = new Date(endParts[0], endParts[1]-1, endParts[2]);
+			rpc.getEventsWithDriver(driver.ID, start.getTime(), end.getTime() + (24 * 3600 * 1000), function(events) {
 				var row,
 				    i = 0;
 				if (events.length === 0) {
@@ -842,19 +841,19 @@ window.addEventListener("load", function(oldDate) {
 				}
 				for (; i < events.length; i++) {
 					row = createElement("tr");
-					var client = row.appendChild(createElement("td")),
-					    company = createElement("td");
+					var clientCell = row.appendChild(createElement("td")),
+					    companyCell = createElement("td");
 					row.appendChild(createElement("td")).setInnerText(events[i].From);
 					row.appendChild(createElement("td")).setInnerText(events[i].To);
 					row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
 					row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
-					row.appendChild(company);
-					rpc.getClient(events[i].ClientID, function(client) {
-						client.setInnerText(client.Name);
+					row.appendChild(companyCell);
+					rpc.getClient(events[i].ClientID, function(clientCell, companyCell, client) {
+						clientCell.setInnerText(client.Name);
 						rpc.getCompany(client.CompanyID, function(company) {
-							company.setInnerText(company.Name);
+							companyCell.setInnerText(company.Name);
 						});
-					});
+					}.bind(null, clientCell, companyCell));
 					eventTable.appendChild(row);
 				}
 			});
