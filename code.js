@@ -829,11 +829,11 @@ window.addEventListener("load", function(oldDate) {
 				eventTable.removeChild(eventTable.lastChild);
 			}
 			// parse dates
-			var startParts = startDate.value.split("/"),
-			    endParts = endDate.value.split("/"),
+			var startParts = startDate[0].value.split("/"),
+			    endParts = endDate[0].value.split("/"),
 			    start = new Date(startParts[0], startParts[1], startParts[2]),
 			    end = new Date(endParts[0], endParts[1], endParts[2]);
-			rpc.getEventsWithDriver(driver.ID, start, end, function(events) {
+			rpc.getEventsWithDriver(driver.ID, start.getTime(), end.getTime(), function(events) {
 				var row,
 				    i = 0;
 				if (events.length === 0) {
@@ -841,7 +841,21 @@ window.addEventListener("load", function(oldDate) {
 					return;
 				}
 				for (; i < events.length; i++) {
-					//row = 
+					row = createElement("tr");
+					var client = row.appendChild(createElement("td")),
+					    company = createElement("td");
+					row.appendChild(createElement("td")).setInnerText(events[i].From);
+					row.appendChild(createElement("td")).setInnerText(events[i].To);
+					row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
+					row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
+					row.appendChild(company);
+					rpc.getClient(events[i].ClientID, function(client) {
+						client.setInnerText(client.Name);
+						rpc.getCompany(client.CompanyID, function(company) {
+							company.setInnerText(company.Name);
+						});
+					});
+					eventTable.appendChild(row);
 				}
 			});
 		    }),
