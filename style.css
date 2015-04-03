@@ -331,12 +331,16 @@ div.error + br {
 
 .editDelete {
 	width : 50%;
-	margin : 0 auto;
+	margin : 0 auto 20px auto;
 	overflow : hidden;
 }
 
 .editDelete > div {
 	width : 50%;
 	float : left;
+	text-align : center;
+}
+
+#showDriver table td:first-child:last-child {
 	text-align : center;
 }
