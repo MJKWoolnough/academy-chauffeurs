@@ -52,6 +52,11 @@ const (
 	DeleteClient
 	DeleteEvent
 
+	DeleteDriverEvents
+	DeleteClientEvents
+	DeleteCompanyClients
+	DeleteCompanyEvents
+
 	DriverList
 	DriverEvents
 	ClientEvents
@@ -128,6 +133,11 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Company] SET [Deleted] = 1 WHERE [ID] = ?;",
 		"UPDATE [Client] SET [Deleted] = 1 WHERE [ID] = ?;",
 		"UPDATE [Event] SET [Deleted] = 1 WHERE [ID] = ?;",
+
+		"UPDATE [Event] SET [Deleted] = 1 WHERE [DriverID] = ?;",
+		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] = ?;",
+		"UPDATE [Client] SET [Deleted] = 1 WHERE [CompanyID] = ?;",
+		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?);",
 
 		// Searches
 
