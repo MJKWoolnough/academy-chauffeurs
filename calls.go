@@ -59,6 +59,7 @@ const (
 	EventOverlap
 	CompanyList
 	ClientList
+	ClientForCompanyList
 	UnsentMessages
 	DisambiguateClients
 
@@ -150,6 +151,9 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Client List
 		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
+
+		// Clients for company
+		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [CompanyID] = ? AND [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Events with unsent messages
 		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [MessageSent] = 0 AND [Start] > ? AND [Deleted] = 0;",
@@ -292,6 +296,24 @@ func (c *Calls) Companies(_ struct{}, companies *[]Company) error {
 func (c *Calls) Clients(_ struct{}, clients *[]Client) error {
 	*clients = make([]Client, 0)
 	return c.getList(ClientList, is{}, func() is {
+		var (
+			cl  Client
+			pos = len(*clients)
+		)
+		*clients = append(*clients, cl)
+		return is{
+			&(*clients)[pos].ID,
+			&(*clients)[pos].CompanyID,
+			&(*clients)[pos].Name,
+			&(*clients)[pos].PhoneNumber,
+			&(*clients)[pos].Reference,
+		}
+	})
+}
+
+func (c *Calls) ClientsForCompany(companyID int64, clients *[]Client) error {
+	*clients = make([]Client, 0)
+	return c.getList(ClientForCompanyList, is{companyID}, func() is {
 		var (
 			cl  Client
 			pos = len(*clients)
