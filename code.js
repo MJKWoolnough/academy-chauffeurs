@@ -55,13 +55,19 @@ window.addEventListener("load", function(oldDate) {
 		this.clients       = request.bind(this, "Clients", null);          // callback
 		this.unsentMessages = request.bind(this, "UnsentMessages", null);  // callback
 		this.getEventsWithDriver = function(driverID, start, end, callback) {
-			request("DriverEvents", {"DriverID": driverID, "Start": start, "End": end}, callback);
-		}
+			request("DriverEvents", {"ID": driverID, "Start": start, "End": end}, callback);
+		};
+		this.getEventsWithClient = function(clientID, start, end, callback) {
+			request("ClientEvents", {"ID": clientID, "Start": start, "End": end}, callback);
+		};
+		this.getEventsWithCompany = function(companyID, start, end, callback) {
+			request("CompanyEvents", {"ID": companyID, "Start": start, "End": end}, callback);
+		};
 		this.autocompleteAddress = function(priority, partial, callback) {
 			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
-		}
-		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName") // partial, callback
-		this.autocompleteClientName = request.bind(this, "AutocompleteClientName")   // partial, callback
+		};
+		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName"); // partial, callback
+		this.autocompleteClientName = request.bind(this, "AutocompleteClientName");   // partial, callback
 	})(function() {
 		events.init();	
 	}),

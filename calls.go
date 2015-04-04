@@ -54,6 +54,8 @@ const (
 
 	DriverList
 	DriverEvents
+	ClientEvents
+	CompanyEvents
 	EventOverlap
 	CompanyList
 	ClientList
@@ -133,6 +135,13 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Row of Events for driver
 		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND [Deleted] = 0 AND [Start] Between ? AND ? ORDER BY [Start] ASC;",
+
+		// Row of Events for client
+		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ClientID] = ? AND [Deleted] = 0 AND [Start] Between ? AND ? ORDER BY [Start] ASC;",
+
+		// Row of Events for company
+		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Deleted] = 0 AND [Start] Between ? AND ? ORDER BY [Start] ASC;",
+
 		// Event Overlaps
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4);",
 
@@ -184,12 +193,52 @@ func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
 }
 
 type EventsFilter struct {
-	DriverID, Start, End int64
+	ID, Start, End int64
 }
 
 func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
-	return c.getList(DriverEvents, is{f.DriverID, f.Start, f.End}, func() is {
+	return c.getList(DriverEvents, is{f.ID, f.Start, f.End}, func() is {
+		var (
+			e   Event
+			pos = len(*events)
+		)
+		*events = append(*events, e)
+		return is{
+			&(*events)[pos].ID,
+			&(*events)[pos].DriverID,
+			&(*events)[pos].ClientID,
+			&(*events)[pos].Start,
+			&(*events)[pos].End,
+			&(*events)[pos].From,
+			&(*events)[pos].To,
+		}
+	})
+}
+
+func (c *Calls) ClientEvents(f EventsFilter, events *[]Event) error {
+	*events = make([]Event, 0)
+	return c.getList(ClientEvents, is{f.ID, f.Start, f.End}, func() is {
+		var (
+			e   Event
+			pos = len(*events)
+		)
+		*events = append(*events, e)
+		return is{
+			&(*events)[pos].ID,
+			&(*events)[pos].DriverID,
+			&(*events)[pos].ClientID,
+			&(*events)[pos].Start,
+			&(*events)[pos].End,
+			&(*events)[pos].From,
+			&(*events)[pos].To,
+		}
+	})
+}
+
+func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
+	*events = make([]Event, 0)
+	return c.getList(CompanyEvents, is{f.ID, f.Start, f.End}, func() is {
 		var (
 			e   Event
 			pos = len(*events)
