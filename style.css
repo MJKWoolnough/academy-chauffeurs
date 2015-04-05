@@ -341,6 +341,6 @@ div.error + br {
 	text-align : center;
 }
 
-#showDriver table td:first-child:last-child {
+table td:first-child:last-child {
 	text-align : center;
 }

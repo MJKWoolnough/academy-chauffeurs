@@ -709,9 +709,76 @@ window.addEventListener("load", function(oldDate) {
 			stack.setFragment();
 		});
 	},
-	showClient = function(client, company) {
+	showClient = function(client) {
 		stack.addLayer("showClient");
-		alert(client.Name);
+		stack.addFragment();
+		layer.appendChild(createElement("h1")).setInnerText(client.Name);
+		var editDelete = layer.appendChild(createElement("div")),
+		    edit = editDelete.appendChild(createElement("div")).setInnerText("Edit"),
+		    deleter = editDelete.appendChild(createElement("div")).setInnerText("Delete"),
+		    dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
+		    startDate = addFormElement("Start Date", "text", "startDate", (new Date()).toDateString(), dateCheck),
+		    endDate = addFormElement("End Date", "text", "endDate", (new Date()).toDateString(), dateCheck),
+		    getEvents = addFormSubmit("Show Events", function() {
+			while (eventTable.hasChildNodes()) {
+				if (eventTable.lastChild === tableTitles) {
+					break;
+				}
+				eventTable.removeChild(eventTable.lastChild);
+			}
+			var startParts = startDate[0].value.split("/"),
+			    endParts = endDate[0].value.split("/"),
+			    start = new Date(startParts[0], startParts[1]-1, startParts[2]),
+			    end = new Date(endParts[0], endParts[1]-1, endParts[2]);
+			rpc.getEventsWithClient(client.ID, start.getTime(), end.getTime() + (24 * 3600 * 1000), function(events) {
+				var row,
+				    i = 0;
+				if (events.length === 0) {
+					eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
+					return;
+				}
+				for (; i < events.length; i++) {
+					row = createElement("tr");
+					var driverCell = row.appendChild(createElement("td"));
+					row.appendChild(createElement("td")).setInnerText(events[i].From);
+					row.appendChild(createElement("td")).setInnerText(events[i].To);
+					row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
+					row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
+					rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
+						driverCell.setInnerText(driver.Name);
+					}.bind(null, driverCell));
+					eventTable.appendChild(row);
+				}
+			});
+		    }),
+		    eventTable = layer.appendChild(createElement("table")),
+		    tableTitles = eventTable.appendChild(createElement("tr"));
+
+		editDelete.setAttribute("class", "editDelete");
+		edit.setAttribute("class", "simpleButton");
+		edit.addEventListener("click", function() {
+			stack.addLayer("editClient", function(c) {
+				if (typeof c !== "undefined") {
+					stack.removeLayer(c);
+					showClient(c.ID);
+				}
+			});
+			setClient(client);
+		});
+		deleter.setAttribute("class", "simpleButton");
+		deleter.addEventListener("click", function() {
+			if(confirm("Are you sure you want to remove this client?")) {
+				rpc.removeClient(client.ID);
+				stack.removeLayer(c.ID);
+			}
+		});
+		tableTitles.appendChild(createElement("th")).setInnerText("Driver");
+		tableTitles.appendChild(createElement("th")).setInnerText("From");
+		tableTitles.appendChild(createElement("th")).setInnerText("To");
+		tableTitles.appendChild(createElement("th")).setInnerText("Start");
+		tableTitles.appendChild(createElement("th")).setInnerText("End");
+		getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
+		stack.setFragment();
 	},
 	clientList = function(addList) {
 		rpc.clients(function(clients) {
@@ -731,10 +798,11 @@ window.addEventListener("load", function(oldDate) {
 					companyCell.setInnerText(companies[client.CompanyID].Name);
 					companyCell.setAttribute("class", "simpleButton");
 					companyCell.addEventListener("click", showCompany.bind(null, companies[client.CompanyID]));
+					client.CompanyName = companies[client.CompanyID].Name;
+					nameCell.addEventListener("click", showClient.bind(null, client));
 				    };
 				nameCell.setInnerText(client.Name);
 				nameCell.setAttribute("class", "simpleButton");
-				nameCell.addEventListener("click", showClient.bind(null, client));
 				if (addList === true) {
 					addLister(nameCell, stack.removeLayer.bind(null, client));
 				}
