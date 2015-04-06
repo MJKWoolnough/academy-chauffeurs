@@ -674,7 +674,9 @@ window.addEventListener("load", function(oldDate) {
 		    eventsClients = layer.appendChild(createElement("div")),
 		    clientsButton = eventsClients.appendChild(createElement("div")).setInnerText("Clients"),
 		    eventsButton = eventsClients.appendChild(createElement("div")).setInnerText("Events"),
-		    eventsClientsDiv = layer.appendChild(createElement("div"));
+		    eventsClientsDiv = layer.appendChild(createElement("div")),
+		    eventsStartDate = new Date(),
+		    eventsEndDate = new Date();
 		eventsClients.setAttribute("class", "eventsClients");
 		eventsClientsDiv.setAttribute("class", "eventsClientsDiv");
 		clientsButton.addEventListener("click", function() {
@@ -715,8 +717,8 @@ window.addEventListener("load", function(oldDate) {
 			layer = eventsClientsDiv;
 			stack.addFragment();
 			var dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
-			    startDate = addFormElement("Start Date", "text", "startDate", (new Date()).toDateString(), dateCheck),
-			    endDate = addFormElement("End Date", "text", "endDate", (new Date()).toDateString(), dateCheck),
+			    startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
+			    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
 			    getEvents = addFormSubmit("Show Events", function() {
 				while (eventTable.hasChildNodes()) {
 					if (eventTable.lastChild === tableTitles) {
@@ -725,10 +727,15 @@ window.addEventListener("load", function(oldDate) {
 					eventTable.removeChild(eventTable.lastChild);
 				}
 				var startParts = startDate[0].value.split("/"),
-				    endParts = endDate[0].value.split("/"),
-				    start = new Date(startParts[0], startParts[1]-1, startParts[2]),
-				    end = new Date(endParts[0], endParts[1]-1, endParts[2]);
-				rpc.getEventsWithCompany(company.ID, start.getTime(), end.getTime() + (24 * 3600 * 1000), function(events) {
+				    endParts = endDate[0].value.split("/");
+				    eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
+				    eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+				if (eventsStartDate.getTime() > eventsEndDate.getTime()) {
+					endDate[1].setInnerText("Cannot be before start date");
+					eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
+					return;
+				}
+				rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 					var row,
 					    i = 0;
 					if (events.length === 0) {
