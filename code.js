@@ -677,27 +677,35 @@ window.addEventListener("load", function(oldDate) {
 		    eventsClientsDiv = layer.appendChild(createElement("div"));
 		eventsClients.setAttribute("class", "eventsClients");
 		eventsClientsDiv.setAttribute("class", "eventsClientsDiv");
-		clientsButton.addEventListener("click", rpc.clientsForCompany.bind(null, company.ID, function(clients) {
-			while (eventsClientsDiv.hasChildNodes()) {
-				eventsClientsDiv.removeChild(eventsClientsDiv.lastChild);
+		clientsButton.addEventListener("click", function() {
+			if (clientsButton.getAttribute("class") === "selected") {
+				return;
 			}
-			eventsButton.removeAttribute("class");
-			clientsButton.setAttribute("class", "selected");
-			var clientsTable = createElement("table"),
-			    headerRow = clientsTable.appendChild(createElement("tr")),
-			    i = 0;
-			headerRow.appendChild(createElement("th")).setInnerText("Name");
-			headerRow.appendChild(createElement("th")).setInnerText("Phone Number");
-			headerRow.appendChild(createElement("th")).setInnerText("Reference");
-			for (; i < clients.length; i++) {
-				var row = clientsTable.appendChild(createElement("tr")),
-				    name = row.appendChild(createElement("td")).setInnerText(clients[i].Name);
-				row.appendChild(createElement("td")).setInnerText(clients[i].PhoneNumber);
-				row.appendChild(createElement("td")).setInnerText(clients[i].Reference);
-			}
-			eventsClientsDiv.appendChild(clientsTable);
-		}));
+			rpc.clientsForCompany(company.ID, function(clients) {
+				while (eventsClientsDiv.hasChildNodes()) {
+					eventsClientsDiv.removeChild(eventsClientsDiv.lastChild);
+				}
+				eventsButton.removeAttribute("class");
+				clientsButton.setAttribute("class", "selected");
+				var clientsTable = createElement("table"),
+				    headerRow = clientsTable.appendChild(createElement("tr")),
+				    i = 0;
+				headerRow.appendChild(createElement("th")).setInnerText("Name");
+				headerRow.appendChild(createElement("th")).setInnerText("Phone Number");
+				headerRow.appendChild(createElement("th")).setInnerText("Reference");
+				for (; i < clients.length; i++) {
+					var row = clientsTable.appendChild(createElement("tr")),
+					    name = row.appendChild(createElement("td")).setInnerText(clients[i].Name);
+					row.appendChild(createElement("td")).setInnerText(clients[i].PhoneNumber);
+					row.appendChild(createElement("td")).setInnerText(clients[i].Reference);
+				}
+				eventsClientsDiv.appendChild(clientsTable);
+			});
+		});
 		eventsButton.addEventListener("click", function() {
+			if (eventsButton.getAttribute("class") === "selected") {
+				return;
+			}
 			while (eventsClientsDiv.hasChildNodes()) {
 				eventsClientsDiv.removeChild(eventsClientsDiv.lastChild);
 			}

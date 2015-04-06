@@ -368,7 +368,6 @@ table td:first-child:last-child {
 
 .eventsClients > div {
 	border : 1px solid #000;
-	cursor : pointer;
 	display : inline-block;
 	position : relative;
 	z-index : 1;
@@ -381,6 +380,11 @@ table td:first-child:last-child {
 	text-shadow : 0 1px #fff;
 	-moz-user-select : none;
 	-webkit-user-select : none;
+}
+
+.eventsClients > div:hover {
+	background : linear-gradient(to bottom, #faa 1%, #ffecec 50%, #d1d1d1 100%);
+	cursor : pointer;
 }
 
 .eventsClients > div:before, .eventsClients > div:after {
@@ -410,6 +414,11 @@ table td:first-child:last-child {
 	border-bottom-color : #fff;
 	z-index : 2;
 	background : #fff;
+}
+
+.eventsClients > div.selected:hover {
+	background : #fff;
+	cursor : default;
 }
 
 .eventsClients > div.selected:before {
