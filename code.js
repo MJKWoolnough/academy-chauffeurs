@@ -580,17 +580,55 @@ window.addEventListener("load", function(oldDate) {
 			    dayStr = year + "_" + month + "_" + day,
 			    blockStr = e.DriverID + "_" + dayStr + "_" + hour + "_" + block,
 			    eventDiv = createElement("div"),
-			    eventCell;
+			    eventCell, left, width;
 			if (typeof days[dayStr] === "undefined") {
 				return;
 			}
 			eventCell = days[dayStr][1].removeChild(days[dayStr][1].getElementById("cell_" + blockStr));
+			left = eventCell.style.left;
+			width = (e.End - e.Start) / 60000 + "px";
 			eventDiv.setAttribute("class", "event");
 			eventDiv.addEventListener("click", showEvent.bind(null, e));
-			eventDiv.style.left = eventCell.style.left;
+			eventDiv.style.left = left;
 			eventDiv.style.top = eventCell.style.top;
-			eventDiv.style.width = (e.End - e.Start) / 60000 + "px";
+			eventDiv.style.width = width;
 			eventDiv.setAttribute("id", "event_" + blockStr);
+			rpc.getClient(e.ClientID, function(c) {
+				var name = eventDiv.appendChild(createElement("div")).setInnerText(c.Name),
+				    from = eventDiv.appendChild(createElement("div")).setInnerText(e.From),
+				    to = eventDiv.appendChild(createElement("div")).setInnerText(e.To),
+				    nameWidth = c.Name.getWidth("14px Serif"),
+				    fromWidth = e.From.getWidth("14px Serif"),
+				    toWidth = e.To.getWidth("14px Serif"),
+				    maxWidth = nameWidth;
+				name.style.width = nameWidth + "px";
+				from.style.width = fromWidth + "px";
+				to.style.width = toWidth + "px";
+				if (fromWidth > maxWidth) {
+					maxWidth = fromWidth;
+				}
+				if (toWidth > maxWidth) {
+					maxWidth = toWidth;
+				}
+				
+				if (maxWidth + 12 > parseInt(width)) { // 1px left border + 5px left padding + 5px right padding + 1px right border
+					var newLeft = parseInt(left) - ((maxWidth - parseInt(width)) / 2);
+					eventDiv.addEventListener("mouseover", function() {
+						name.style.marginLeft = (maxWidth - nameWidth) / 2 + "px";
+						from.style.marginLeft = (maxWidth - fromWidth) / 2 + "px";
+						to.style.marginLeft = (maxWidth - toWidth) / 2 + "px";
+						eventDiv.style.width = maxWidth + 12 + "px";
+						eventDiv.style.left = newLeft + "px";
+					});
+					eventDiv.addEventListener("mouseout", function() {
+						name.style.marginLeft = "0";
+						from.style.marginLeft = "0";
+						to.style.marginLeft = "0";
+						eventDiv.style.left = left;
+						eventDiv.style.width = width;
+					});
+				}
+			});
 			days[dayStr][1].appendChild(eventDiv);
 		};
 		this.addDriver = function(d) {
@@ -974,6 +1012,7 @@ window.addEventListener("load", function(oldDate) {
 		    input;
 		if (type === "textarea") {
 			input = createElement("textarea");
+			input.setAttribute("spellcheck", "false");
 		} else {
 			input = createElement("input");
 			input.setAttribute("type", type);
@@ -1634,4 +1673,12 @@ window.addEventListener("load", function(oldDate) {
 		this.appendChild(document.createTextNode(text));
 		return this;
 	};
+	String.prototype.getWidth = (function (){
+		var canvas = document.createElement("canvas");
+		return function(font) {
+			var ctx = canvas.getContext("2d");
+			ctx.font = font;
+			return ctx.measureText(this).width;
+		};
+	}());
 }.bind(null, Date));
