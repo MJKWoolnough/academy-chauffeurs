@@ -379,7 +379,7 @@ table td:first-child:last-child {
 	text-align : center;
 }
 
-.eventsClients {
+.tabs {
 	line-height : 24px;
 	position : relative;
 	width : 100%;
@@ -388,7 +388,7 @@ table td:first-child:last-child {
 	padding : 0 0 0 20px;
 }
 
-.eventsClients:after {
+.tabs:after {
 	position : absolute;
 	content : "";
 	width : 100%;
@@ -398,9 +398,10 @@ table td:first-child:last-child {
 	z-index : 1;
 	overflow : hidden;
 	text-align : center;
+	transform : translateX(-20px);
 }
 
-.eventsClients > div {
+.tabs > div {
 	border : 1px solid #000;
 	display : inline-block;
 	position : relative;
@@ -416,12 +417,12 @@ table td:first-child:last-child {
 	-webkit-user-select : none;
 }
 
-.eventsClients > div:hover {
+.tabs > div:hover {
 	background : linear-gradient(to bottom, #faa 1%, #ffecec 50%, #d1d1d1 100%);
 	cursor : pointer;
 }
 
-.eventsClients > div:before, .eventsClients > div:after {
+.tabs > div:before, .tabs > div:after {
 	position : absolute;
 	bottom : -1px;
 	width : 6px;
@@ -430,39 +431,39 @@ table td:first-child:last-child {
 	border : 1px solid #000;
 }
 
-.eventsClients > div:before {
+.tabs > div:before {
 	left : -7px;
 	border-bottom-right-radius : 6px;
 	border-width : 0 1px 1px 0;
 	box-shadow: 2px 2px 0 #d1d1d1;
 }
 
-.eventsClients > div:after {
+.tabs > div:after {
 	right : -7px;
 	border-bottom-left-radius : 6px;
 	border-width : 0 0 1px 1px;
 	box-shadow: -2px 2px 0 #d1d1d1;
 }
 
-.eventsClients > div.selected {
+.tabs > div.selected {
 	border-bottom-color : #fff;
 	z-index : 2;
 	background : #fff;
 }
 
-.eventsClients > div.selected:hover {
+.tabs > div.selected:hover {
 	background : #fff;
 	cursor : default;
 }
 
-.eventsClients > div.selected:before {
+.tabs > div.selected:before {
 	box-shadow: 2px 2px 0 #fff;
 }
 
-.eventsClients > div.selected:after {
+.tabs > div.selected:after {
 	box-shadow: -2px 2px 0 #fff;
 }
 
-.eventsClientsDiv {
+.eventsClients {
 	margin-top : 10px;
 }

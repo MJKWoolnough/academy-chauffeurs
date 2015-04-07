@@ -732,8 +732,8 @@ window.addEventListener("load", function(oldDate) {
 		    eventsClientsDiv = layer.appendChild(createElement("div")),
 		    eventsStartDate = new Date(),
 		    eventsEndDate = new Date();
-		eventsClients.setAttribute("class", "eventsClients");
-		eventsClientsDiv.setAttribute("class", "eventsClientsDiv");
+		eventsClients.setAttribute("class", "tabs");
+		eventsClientsDiv.setAttribute("class", "eventsClients");
 		clientsButton.addEventListener("click", function() {
 			if (clientsButton.getAttribute("class") === "selected") {
 				return;
