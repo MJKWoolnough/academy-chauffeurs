@@ -85,7 +85,7 @@ div.error + br {
 	height : 100px;
 	position : absolute;
 	width : 100px;
-	z-index : 3;
+	z-index : 4;
 }
 
 .driverName > div, #plusDriver > div {
@@ -311,14 +311,36 @@ div.error + br {
 	border : 1px solid #000;
 	padding : 5px;
 	overflow : hidden;
-	transition : left 1s, width 1s;
 	font : 14px Serif;
+	-moz-user-select : none;
+	-webkit-user-select : none;
+}
+
+.event.expandable {
+	transition : z-index 1s step-end, left 1s, width 1s;
+}
+
+.event.expandable:hover {
+	z-index : 3;
+	transition : z-index 0s step-start, left 1s, width 1s;
 }
 
 .event > div {
 	margin-left : 0;
 	transition : margin-left 1s;
 	white-space : nowrap;
+}
+
+.event > div.time {
+	width : 100%;
+	text-align : center;
+	transition : color 1s;
+	color : #eee;
+}
+
+.event:hover > div.time {
+	visibility : visible;
+	color : #000;
 }
 
 .disambiguator {

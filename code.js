@@ -618,8 +618,8 @@ window.addEventListener("load", function(oldDate) {
 				if (toWidth > maxWidth) {
 					maxWidth = toWidth;
 				}
-				
 				if (maxWidth + 12 > parseInt(width)) { // 1px left border + 5px left padding + 5px right padding + 1px right border
+					eventDiv.setAttribute("class", "event expandable");
 					eventDiv.appendChild(start);
 					eventDiv.appendChild(end);
 					if (startWidth > maxWidth) {
@@ -642,6 +642,7 @@ window.addEventListener("load", function(oldDate) {
 						to.style.marginLeft = "0";
 						eventDiv.style.left = left;
 						eventDiv.style.width = width;
+
 					});
 				}
 			});
