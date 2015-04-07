@@ -597,10 +597,18 @@ window.addEventListener("load", function(oldDate) {
 				var name = eventDiv.appendChild(createElement("div")).setInnerText(c.Name),
 				    from = eventDiv.appendChild(createElement("div")).setInnerText(e.From),
 				    to = eventDiv.appendChild(createElement("div")).setInnerText(e.To),
+				    startText = (new Date(e.Start)).toLocaleString(),
+				    endText = (new Date(e.End)).toLocaleString(),
+				    start = createElement("div").setInnerText(startText),
+				    end = createElement("div").setInnerText(endText),
 				    nameWidth = c.Name.getWidth("14px Serif"),
 				    fromWidth = e.From.getWidth("14px Serif"),
 				    toWidth = e.To.getWidth("14px Serif"),
+				    startWidth = startText.getWidth("14px Serif"),
+				    endWidth = endText.getWidth("14px Serif"),
 				    maxWidth = nameWidth;
+				start.setAttribute("class", "time");
+				end.setAttribute("class", "time");
 				name.style.width = nameWidth + "px";
 				from.style.width = fromWidth + "px";
 				to.style.width = toWidth + "px";
@@ -612,7 +620,15 @@ window.addEventListener("load", function(oldDate) {
 				}
 				
 				if (maxWidth + 12 > parseInt(width)) { // 1px left border + 5px left padding + 5px right padding + 1px right border
-					var newLeft = parseInt(left) - ((maxWidth - parseInt(width)) / 2);
+					eventDiv.appendChild(start);
+					eventDiv.appendChild(end);
+					if (startWidth > maxWidth) {
+						maxWidth = startWidth;
+					}
+					if (endWidth > maxWidth) {
+						maxWidth = endWidth;
+					}
+					var newLeft = parseInt(left) - (((maxWidth + 12) - parseInt(width)) / 2);
 					eventDiv.addEventListener("mouseover", function() {
 						name.style.marginLeft = (maxWidth - nameWidth) / 2 + "px";
 						from.style.marginLeft = (maxWidth - fromWidth) / 2 + "px";
@@ -1013,11 +1029,12 @@ window.addEventListener("load", function(oldDate) {
 		if (type === "textarea") {
 			input = createElement("textarea");
 			input.setAttribute("spellcheck", "false");
+			input.value = contents;
 		} else {
 			input = createElement("input");
 			input.setAttribute("type", type);
+			input.setAttribute("value", contents);
 		}
-		input.setAttribute("value", contents);
 		input.setAttribute("id", id);
 		if (type === "hidden") {
 			return layer.appendChild(input);
@@ -1254,7 +1271,37 @@ window.addEventListener("load", function(oldDate) {
 	},
 	showEvent = function(e) {
 		stack.addLayer("showEvent");
-		alert(e.Start);
+		stack.addFragment();
+		layer.appendChild(createElement("h1")).setInnerText("Event Details");
+		var editDelete = layer.appendChild(createElement("div")),
+		    edit = editDelete.appendChild(createElement("div")).setInnerText("Edit"),
+		    deleter = editDelete.appendChild(createElement("div")).setInnerText("Delete");
+		editDelete.setAttribute("class", "editDelete");
+		edit.setAttribute("class", "simpleButton");
+		edit.addEventListener("click", function() {
+			stack.addLayer("editEvent", function(e) {
+				if (typeof c !== "undefined") {
+					stack.removeLayer();
+					events.updateEvent(e);
+					showEvent(e);
+				}
+			});
+			rpc.getDriver(e.DriverID, function(d) {
+				e.DriverName = d.Name;
+				rpc.getClient(e.ClientID, function(c) {
+					e.ClientName = c.Name;
+					setEvent(e);
+				});
+			});
+		});
+		deleter.setAttribute("class", "simpleButton");
+		deleter.addEventListener("click", function() {
+			if(confirm("Are you sure you want to remove this event?")) {
+				rpc.removeEvent(e.ID);
+				stack.removeLayer();
+			}
+		});
+		stack.setFragment();
 	},
 	setEvent = (function() {
 		var fromAddressRPC = rpc.autocompleteAddress.bind(rpc, 0),
