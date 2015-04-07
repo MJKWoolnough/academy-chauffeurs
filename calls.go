@@ -154,7 +154,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Deleted] = 0 AND [Start] Between ? AND ? ORDER BY [Start] ASC;",
 
 		// Event Overlaps
-		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND ([Start] Between ? AND ? OR [End] Between ?3 AND ?4);",
+		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND ([Start] <= ? AND [START] > ? OR [End] <= ?3 AND [END] > ?4);",
 
 		// Company List
 		"SELECT [ID], [Name], [Address] FROM [Company] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
