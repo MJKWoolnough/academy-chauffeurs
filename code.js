@@ -863,19 +863,20 @@ window.addEventListener("load", function(oldDate) {
 				var row = createElement("tr"),
 				    nameCell = row.appendChild(createElement("td")).appendChild(createElement("div"));
 				nameCell.setInnerText(company.Name);
-				nameCell.setAttribute("class", "simpleButton");
-				nameCell.addEventListener("click", function() {
-					stack.addLayer("showCompany", function(c) {
-						if (typeof c !== "undefined") {
-							stack.removeLayer();
-							stack.addLayer("companyList");
-							companyList();
-						}
-					});
-					showCompany(company);
-				});
 				if (addList === true) {
 					addLister(nameCell, stack.removeLayer.bind(null, company));
+				} else {
+					nameCell.setAttribute("class", "simpleButton");
+					nameCell.addEventListener("click", function() {
+						stack.addLayer("showCompany", function(c) {
+							if (typeof c !== "undefined") {
+								stack.removeLayer();
+								stack.addLayer("companyList");
+								companyList();
+							}
+						});
+						showCompany(company);
+					});
 				}
 				row.appendChild(createElement("td")).setInnerText(company.Address);
 				table.appendChild(row);
@@ -981,13 +982,14 @@ window.addEventListener("load", function(oldDate) {
 					//companyCell.setAttribute("class", "simpleButton");
 					//companyCell.addEventListener("click", showCompany.bind(null, companies[client.CompanyID]));
 					client.CompanyName = companies[client.CompanyID].Name;
-					nameCell.addEventListener("click", showClient.bind(null, client));
+					if (addList === true) {
+						addLister(nameCell, stack.removeLayer.bind(null, client));
+					} else {
+						nameCell.setAttribute("class", "simpleButton");
+						nameCell.addEventListener("click", showClient.bind(null, client));
+					}
 				    };
 				nameCell.setInnerText(client.Name);
-				nameCell.setAttribute("class", "simpleButton");
-				if (addList === true) {
-					addLister(nameCell, stack.removeLayer.bind(null, client));
-				}
 				if (typeof companies[client.CompanyID] !== "undefined") {
 					setCompanyCell();
 				} else {
