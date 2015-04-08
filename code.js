@@ -1330,34 +1330,47 @@ window.addEventListener("load", function(oldDate) {
 		stack.addLayer("showEvent");
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText("Event Details");
-		var editDelete = layer.appendChild(createElement("div")),
-		    edit = editDelete.appendChild(createElement("div")).setInnerText("Edit"),
-		    deleter = editDelete.appendChild(createElement("div")).setInnerText("Delete");
-		editDelete.setAttribute("class", "editDelete");
-		edit.setAttribute("class", "simpleButton");
-		edit.addEventListener("click", function() {
-			stack.addLayer("editEvent", function(e) {
-				if (typeof c !== "undefined") {
-					stack.removeLayer();
-					events.updateEvent(e);
-					showEvent(e);
-				}
-			});
-			rpc.getDriver(e.DriverID, function(d) {
-				e.DriverName = d.Name;
-				rpc.getClient(e.ClientID, function(c) {
-					e.ClientName = c.Name;
-					setEvent(e);
+		var tabData = new Array();
+		tabData[0] = [ "Details", function () {
+			layer.appendChild(createElement("label")).setInnerText("Start Time");
+			layer.appendChild(createElement("div")).setInnerText(new Date(e.Start).toLocaleString());
+			layer.appendChild(createElement("label")).setInnerText("End Time");
+			layer.appendChild(createElement("div")).setInnerText(new Date(e.End).toLocaleString());
+		}];
+		if (e.Start < (new Date()).getTime()) {
+			tabData[tabData.length] = [ "Finalise", function () {
+
+			}];
+		}
+		tabData[tabData.length] = [ "Options", function () {
+			var edit = layer.appendChild(createElement("div")).setInnerText("Edit"),
+			    deleter = layer.appendChild(createElement("div")).setInnerText("Delete");
+			edit.setAttribute("class", "simpleButton");
+			edit.addEventListener("click", function() {
+				stack.addLayer("editEvent", function(e) {
+					if (typeof c !== "undefined") {
+						stack.removeLayer();
+						events.updateEvent(e);
+						showEvent(e);
+					}
+				});
+				rpc.getDriver(e.DriverID, function(d) {
+					e.DriverName = d.Name;
+					rpc.getClient(e.ClientID, function(c) {
+						e.ClientName = c.Name;
+						setEvent(e);
+					});
 				});
 			});
-		});
-		deleter.setAttribute("class", "simpleButton");
-		deleter.addEventListener("click", function() {
-			if(confirm("Are you sure you want to remove this event?")) {
-				rpc.removeEvent(e.ID);
-				stack.removeLayer();
-			}
-		});
+			deleter.setAttribute("class", "simpleButton");
+			deleter.addEventListener("click", function() {
+				if(confirm("Are you sure you want to remove this event?")) {
+					rpc.removeEvent(e.ID);
+					stack.removeLayer();
+				}
+			});
+		}];
+		layer.appendChild(makeTabs.apply(null, tabData));
 		stack.setFragment();
 	},
 	setEvent = (function() {
