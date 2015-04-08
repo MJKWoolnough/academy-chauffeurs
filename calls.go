@@ -57,6 +57,16 @@ const (
 	DeleteCompanyClients
 	DeleteCompanyEvents
 
+	GetDriverNote
+	GetCompanyNote
+	GetClientNote
+	GetEventNote
+
+	SetDriverNote
+	SetCompanyNote
+	SetClientNote
+	SetEventNote
+
 	DriverList
 	DriverEvents
 	ClientEvents
@@ -96,10 +106,10 @@ func newCalls(dbFName string) (*Calls, error) {
 	// Tables
 
 	for _, ct := range []string{
-		"[Driver]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [RegistrationNumber] TEXT, [PhoneNumber] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
-		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
-		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER REFERENCES [Company]([ID]) ON DELETE CASCADE, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
-		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER REFERENCES [Driver]([ID]) ON DELETE CASCADE, [ClientID] INTEGER REFERENCES [Client]([ID]) ON DELETE CASCADE, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Hours] INTEGER DEFAULT 0, [Other] TEXT, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Driver]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [RegistrationNumber] TEXT, [PhoneNumber] TEXT, [Note] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT, [Note] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Note] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Hours] INTEGER DEFAULT 0, [Price] INTEGER, [Sub] INTEGER, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 	} {
 		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
 			return nil, err
@@ -143,6 +153,20 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] = ?;",
 		"UPDATE [Client] SET [Deleted] = 1 WHERE [CompanyID] = ?;",
 		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?);",
+
+		// Get Notes
+
+		"SELECT [Note] FROM [Driver] WHERE [ID] = ?;",
+		"SELECT [Note] FROM [Company] WHERE [ID] = ?;",
+		"SELECT [Note] FROM [Client] WHERE [ID] = ?;",
+		"SELECT [Note] FROM [Event] WHERE [ID] = ?;",
+
+		// Set Notes
+
+		"UPDATE [Driver] SET [Note] = ? WHERE [ID] = ?;",
+		"UPDATE [Company] SET [Note] = ? WHERE [ID] = ?;",
+		"UPDATE [Client] SET [Note] = ? WHERE [ID] = ?;",
+		"UPDATE [Event] SET [Note] = ? WHERE [ID] = ?;",
 
 		// Searches
 
@@ -206,6 +230,63 @@ func (c *Calls) close() {
 	c.db.Close()
 }
 
+func (c *Calls) NumClients(id int64, num *int64) error {
+	return c.statements[NumClientsForCompany].QueryRow(id).Scan(num)
+}
+
+func (c *Calls) NumEvents(id int64, num *int64) error {
+	return c.statements[NumEventsForCompany].QueryRow(id).Scan(num)
+}
+
+func (c *Calls) NumEventsClient(id int64, num *int64) error {
+	return c.statements[NumEventsForClient].QueryRow(id).Scan(num)
+}
+
+func (c *Calls) NumEventsDriver(id int64, num *int64) error {
+	return c.statements[NumEventsForDriver].QueryRow(id).Scan(num)
+}
+
+func (c *Calls) GetDriverNote(id int64, note *string) error {
+	return c.statements[GetDriverNote].QueryRow(id).Scan(note)
+}
+
+func (c *Calls) GetCompanyNote(id int64, note *string) error {
+	return c.statements[GetCompanyNote].QueryRow(id).Scan(note)
+}
+
+func (c *Calls) GetClientNote(id int64, note *string) error {
+	return c.statements[GetClientNote].QueryRow(id).Scan(note)
+}
+
+func (c *Calls) GetEventNote(id int64, note *string) error {
+	return c.statements[GetEventNote].QueryRow(id).Scan(note)
+}
+
+type NoteID struct {
+	ID   int64
+	Note string
+}
+
+func (c *Calls) SetDriverNote(nid NoteID, _ *struct{}) error {
+	_, err := c.statements[SetDriverNote].Exec(nid.Note, nid.ID)
+	return err
+}
+
+func (c *Calls) SetCompanyNote(nid NoteID, _ *struct{}) error {
+	_, err := c.statements[SetCompanyNote].Exec(nid.Note, nid.ID)
+	return err
+}
+
+func (c *Calls) SetClientNote(nid NoteID, _ *struct{}) error {
+	_, err := c.statements[SetClientNote].Exec(nid.Note, nid.ID)
+	return err
+}
+
+func (c *Calls) SetEventNote(nid NoteID, _ *struct{}) error {
+	_, err := c.statements[SetEventNote].Exec(nid.Note, nid.ID)
+	return err
+}
+
 type is []interface{}
 
 func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
@@ -221,22 +302,6 @@ func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
 		}
 	}
 	return rows.Err()
-}
-
-func (c *Calls) NumClients(id int64, num *int64) error {
-	return c.statements[NumClientsForCompany].QueryRow(id).Scan(num)
-}
-
-func (c *Calls) NumEvents(id int64, num *int64) error {
-	return c.statements[NumEventsForCompany].QueryRow(id).Scan(num)
-}
-
-func (c *Calls) NumEventsClient(id int64, num *int64) error {
-	return c.statements[NumEventsForClient].QueryRow(id).Scan(num)
-}
-
-func (c *Calls) NumEventsDriver(id int64, num *int64) error {
-	return c.statements[NumEventsForDriver].QueryRow(id).Scan(num)
 }
 
 type EventsFilter struct {
