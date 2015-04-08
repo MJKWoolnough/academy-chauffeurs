@@ -439,13 +439,15 @@ window.addEventListener("load", function(oldDate) {
 							clientList();
 						}];
 						if (id !== 0) {
-							toLoad[1] = rpc.getClient.bind(id, function(client) {
-								if (typeof client !== "undefined") {
-									rpc.getCompany(client.CompanyID), function(company) {
-										client.CompanyName = company.Name;
-										stack.addLayer("showClient");
-										showClient(client);
-									}
+							toLoad[1] = rpc.getClient.bind(null, id, function(client) {
+								if (client.ID !== 0) {
+									rpc.getCompany(client.CompanyID, function(company) {
+										if (company.ID !== 0) {
+											client.CompanyName = company.Name;
+											stack.addLayer("showClient");
+											showClient(client);
+										}
+									});
 								}
 							});
 						}
@@ -457,7 +459,7 @@ window.addEventListener("load", function(oldDate) {
 						}];
 						if (id !== 0) {
 							toLoad[1] = rpc.getCompany.bind(null, id, function(company) {
-								if (typeof company !== "undefined") {
+								if (company.ID !== 0) {
 									stack.addLayer("showCompany");
 									showCompany(company);
 								}
@@ -467,7 +469,7 @@ window.addEventListener("load", function(oldDate) {
 					case "event":
 						if (id !== 0) {
 							toLoad = [rpc.getEvent.bind(null, id, function(e) {
-								if (typeof event !== "undefined") {
+								if (e.ID !== 0) {
 									stack.addLayer("showEvent");
 									showEvent(e);
 								}
@@ -1237,7 +1239,7 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
 				var bookings = layer.appendChild(createElement("div"));
 				layer.appendChild(createElement("label")).setInnerText("Notes");
-				layer.appendChild(makeNote(rpc.getClientNote.bind(rpc, driver.ID), rpc.setClientNote.bind(rpc, driver.ID)));
+				layer.appendChild(makeNote(rpc.getDriverNote.bind(rpc, driver.ID), rpc.setDriverNote.bind(rpc, driver.ID)));
 				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
 			}],
 			[ "Events", function() {
@@ -1296,8 +1298,8 @@ window.addEventListener("load", function(oldDate) {
 				};
 			}()],
 			[ "Options", function() {
-				var edit = layer.appendChild(createElement("div")).setInnerText("Edit Client"),
-				    deleter = layer.appendChild(createElement("div")).setInnerText("Delete Client");
+				var edit = layer.appendChild(createElement("div")).setInnerText("Edit Driver"),
+				    deleter = layer.appendChild(createElement("div")).setInnerText("Delete Driver");
 				edit.setAttribute("class", "simpleButton");
 				edit.addEventListener("click", function() {
 					stack.addLayer("editDriver", function(d) {
@@ -1488,8 +1490,8 @@ window.addEventListener("load", function(oldDate) {
 			}];
 		}
 		tabData[tabData.length] = [ "Options", function () {
-			var edit = layer.appendChild(createElement("div")).setInnerText("Edit"),
-			    deleter = layer.appendChild(createElement("div")).setInnerText("Delete");
+			var edit = layer.appendChild(createElement("div")).setInnerText("Edit Event"),
+			    deleter = layer.appendChild(createElement("div")).setInnerText("Delete Event");
 			edit.setAttribute("class", "simpleButton");
 			edit.addEventListener("click", function() {
 				stack.addLayer("editEvent", function(e) {
