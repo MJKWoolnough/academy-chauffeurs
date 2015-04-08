@@ -1235,9 +1235,9 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("Registration Number");
 				layer.appendChild(createElement("div")).setInnerText(driver.RegistrationNumber);
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
-				layer.appendChild(createElement("label")).setInnerText("Notes");
-				layer.appendChild(makeNote(rpc.getClientNote.bind(rpc, client.ID), rpc.setClientNote.bind(rpc, client.ID)));
 				var bookings = layer.appendChild(createElement("div"));
+				layer.appendChild(createElement("label")).setInnerText("Notes");
+				layer.appendChild(makeNote(rpc.getClientNote.bind(rpc, driver.ID), rpc.setClientNote.bind(rpc, driver.ID)));
 				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
 			}],
 			[ "Events", function() {
