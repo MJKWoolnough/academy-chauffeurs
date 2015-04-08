@@ -797,8 +797,8 @@ window.addEventListener("load", function(oldDate) {
 						}
 						var startParts = startDate[0].value.split("/"),
 						    endParts = endDate[0].value.split("/");
-						    eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
-						    eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
+						eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
 						if (eventsStartDate.getTime() > eventsEndDate.getTime()) {
 							endDate[1].setInnerText("Cannot be before start date");
 							eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
@@ -942,10 +942,10 @@ window.addEventListener("load", function(oldDate) {
 							eventTable.removeChild(eventTable.lastChild);
 						}
 						var startParts = startDate[0].value.split("/"),
-						    endParts = endDate[0].value.split("/"),
-						    start = new Date(startParts[0], startParts[1]-1, startParts[2]),
-						    end = new Date(endParts[0], endParts[1]-1, endParts[2]);
-						rpc.getEventsWithClient(client.ID, start.getTime(), end.getTime() + (24 * 3600 * 1000), function(events) {
+						    endParts = endDate[0].value.split("/");
+						eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
+						eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						rpc.getEventsWithClient(client.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							var row,
 							    i = 0;
 							if (events.length === 0) {
