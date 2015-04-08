@@ -401,11 +401,68 @@ window.addEventListener("load", function(oldDate) {
 					item.addEventListener("click", callback);
 				};
 			    }(),
-			    params = window.location.search.substring(1).split("&"), i = 0, paramParts;
+			    params = window.location.search.substring(1).split("&"), i = 0, paramParts, toLoad = [];
 			for (; i < params.length; i++) {
 				paramParts = params[i].split("=");
-				if (paramParts.length === 2 && paramParts[0] === "date") {
-					now = new Date(parseInt(paramParts[1]));
+				if (paramParts.length === 2) {
+					var id = parseInt(paramParts[1]);
+					switch (paramParts[0]){
+					case "date":
+						now = new Date(parseInt(paramParts[1]));
+						break;
+					case "driver":
+						if (id !== 0) {
+							toLoad = [function(id) {
+								var driver = drivers[id];
+								if (typeof driver !== "undefined") {
+									stack.addLayer("showDriver");
+									showDriver(driver);
+								}
+							}.bind(null, id)]
+						}
+						break;
+					case "client":
+						toLoad = [function() {
+							stack.addLayer("clientList");
+							clientList();
+						}];
+						if (id !== 0) {
+							toLoad[1] = rpc.getClient.bind(id, function(client) {
+								if (typeof client !== "undefined") {
+									rpc.getCompany(client.CompanyID), function(company) {
+										client.CompanyName = company.Name;
+										stack.addLayer("showClient");
+										showClient(client);
+									}
+								}
+							});
+						}
+						break;
+					case "company":
+						toLoad = [function() {
+							stack.addLayer("companyList");
+							companyList();
+						}];
+						if (id !== 0) {
+							toLoad[1] = rpc.getCompany.bind(null, id, function(company) {
+								if (typeof company !== "undefined") {
+									stack.addLayer("showCompany");
+									showCompany(company);
+								}
+							});
+						}
+						break;
+					case "event":
+						if (id !== 0) {
+							toLoad = [rpc.getEvent.bind(null, id, function(e) {
+								if (typeof event !== "undefined") {
+									stack.addLayer("showEvent");
+									showEvent(e);
+								}
+							})]
+						}
+						break;
+					}
 				}
 			}
 			addToBar("Companies", function() {
@@ -449,6 +506,9 @@ window.addEventListener("load", function(oldDate) {
 				}
 				stack.setFragment();
 				update(now);
+				for (i = 0; i < toLoad.length; i++) {
+					toLoad[i]();
+				}
 				window.addEventListener("resize", update.bind(this, undefined));
 			}.bind(this));
 		    },
@@ -720,6 +780,13 @@ window.addEventListener("load", function(oldDate) {
 			d.driverDiv = drivers[d.ID].driverDiv;
 			d.driverDiv.getElementsByTagName("div")[0].setInnerText(d.Name);
 			drivers[d.ID] = d;
+		};
+		this.reload = function(key, data) {
+			var additional = "";
+			if (typeof key === "string") {
+				additional = "&" + key + "=" + data;
+			}
+			window.location.search = "?date="+dateTime.getTime() + additional;
 		};
 		this.removeDriver = function(d) {
 			window.location.search = "?date="+dateTime.getTime();
