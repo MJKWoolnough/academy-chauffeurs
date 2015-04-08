@@ -769,12 +769,12 @@ window.addEventListener("load", function(oldDate) {
 	},
 	makeNote = function(getter, setter) {
 		var note = createElement("textarea");
-		notes.setAttribute("class", "note");
-		getter(function(note) {
-			notes.value = note;
+		note.setAttribute("class", "note");
+		getter(function(n) {
+			note.value = n;
 		});
 		note.addEventListener("blur", function() {
-			setter(notes.value);
+			setter(note.value);
 		});
 		return note;
 	},
@@ -792,6 +792,8 @@ window.addEventListener("load", function(oldDate) {
 				    numEvents = createElement("div");
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
 				layer.appendChild(numEvents);
+				layer.appendChild(createElement("label")).setInnerText("Notes");
+				layer.appendChild(makeNote(rpc.getCompanyNote.bind(rpc, company.ID), rpc.setCompanyNote.bind(rpc, company.ID)));
 				rpc.getNumClients(company.ID, numClients.setInnerText.bind(numClients));
 				rpc.getNumEvents(company.ID, numEvents.setInnerText.bind(numEvents));
 			}],
@@ -952,6 +954,8 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("Company Name");
 				layer.appendChild(createElement("div")).setInnerText(client.CompanyName);
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
+				layer.appendChild(createElement("label")).setInnerText("Notes");
+				layer.appendChild(makeNote(rpc.getClientNote.bind(rpc, client.ID), rpc.setClientNote.bind(rpc, client.ID)));
 				var bookings = layer.appendChild(createElement("div"));
 				rpc.getNumEventsClient(client.ID, bookings.setInnerText.bind(bookings));
 			}],
@@ -1150,6 +1154,8 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("Registration Number");
 				layer.appendChild(createElement("div")).setInnerText(driver.RegistrationNumber);
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
+				layer.appendChild(createElement("label")).setInnerText("Notes");
+				layer.appendChild(makeNote(rpc.getClientNote.bind(rpc, client.ID), rpc.setClientNote.bind(rpc, client.ID)));
 				var bookings = layer.appendChild(createElement("div"));
 				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
 			}],
@@ -1381,6 +1387,11 @@ window.addEventListener("load", function(oldDate) {
 			layer.appendChild(createElement("div")).setInnerText(e.From);
 			layer.appendChild(createElement("label")).setInnerText("To");
 			layer.appendChild(createElement("div")).setInnerText(e.To);
+			if (e.Start < (new Date()).getTime()) {
+				//Finalised data
+			}
+			layer.appendChild(createElement("label")).setInnerText("Notes");
+			layer.appendChild(makeNote(rpc.getEventNote.bind(rpc, e.ID), rpc.setEventNote.bind(rpc, e.ID)));
 			rpc.getClient(e.ClientID, function(client) {
 				clientName.setInnerText(client.Name);
 				clientRef.setInnerText(client.Reference);

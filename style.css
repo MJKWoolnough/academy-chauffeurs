@@ -468,10 +468,17 @@ table td:first-child:last-child {
 .tabs + .content {
 	margin-top : 10px;
 	overflow : hidden;
+	padding : 10px;
 }
 
 .tabs + .content label + div {
 	float : none;
 	width : auto;
 	margin-left : 210px;
+}
+
+.tabs + .content label + textarea {
+	width : 400px;
+	height : 200px;
+	margin-left : 10px;
 }
