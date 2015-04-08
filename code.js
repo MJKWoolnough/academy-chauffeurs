@@ -31,7 +31,14 @@ window.addEventListener("load", function(oldDate) {
 			document.body.setInnerText("An error occurred");
 		}
 		ws.onclose = function(event) {
-			if (event.code !== 1000) {
+			switch(event.code) {
+			case 1000:
+				document.body.setInnerText("The server close the connection - did you open a second session?");
+				break;
+			case 1006:
+				document.body.setInnerText("The server unexpectedly closed the connection - this may be an error.");
+				break;
+			default:
 				document.body.setInnerText("Lost Connection To Server! Code: " + event.code);
 			}
 		}

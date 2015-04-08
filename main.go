@@ -7,6 +7,7 @@ import (
 	"net/rpc/jsonrpc"
 	"os"
 	"os/signal"
+	"sync"
 
 	"golang.org/x/net/websocket"
 )
@@ -20,8 +21,27 @@ func (f file) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, f.filename)
 }
 
+var (
+	lock sync.Mutex
+	quit = make(chan struct{})
+)
+
 func rpcHandler(conn *websocket.Conn) {
+	lock.Lock()
+	close(quit)
+	quit = make(chan struct{})
+	myQuit := quit
+	lock.Unlock()
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-myQuit:
+			conn.Close()
+		case <-done:
+		}
+	}()
 	jsonrpc.ServeConn(conn)
+	close(done)
 }
 
 func main() {
