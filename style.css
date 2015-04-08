@@ -43,6 +43,7 @@ label {
 	display : block;
 	float : left;
 	width : 200px;
+	text-align : right;
 }
 
 label:after {
@@ -464,6 +465,13 @@ table td:first-child:last-child {
 	box-shadow: -2px 2px 0 #fff;
 }
 
-.eventsClients {
+.tabs + .content {
 	margin-top : 10px;
+	overflow : hidden;
+}
+
+.tabs + .content label + div {
+	float : none;
+	width : auto;
+	margin-left : 210px;
 }

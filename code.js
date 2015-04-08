@@ -50,6 +50,8 @@ window.addEventListener("load", function(oldDate) {
 		this.removeClient  = request.bind(this, "RemoveClient");  // id     , callback
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
 		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
+		this.getNumClients    = request.bind(this, "NumClients");    // id     , callback
+		this.getNumEvents     = request.bind(this, "NumEvents");     // id     , callback
 		this.drivers       = request.bind(this, "Drivers", null);          // callback
 		this.companies     = request.bind(this, "Companies", null);        // callback
 		this.clients       = request.bind(this, "Clients", null);          // callback
@@ -720,31 +722,52 @@ window.addEventListener("load", function(oldDate) {
 			init.call(this);
 		};
 	})(),
+	makeTabs = function() {
+		var frag = document.createDocumentFragment(),
+		    tabDiv = frag.appendChild(createElement("div")),
+		    contentDiv = frag.appendChild(createElement("div")),
+		    tabs = new Array(arguments.length);
+		tabDiv.setAttribute("class", "tabs");
+		contentDiv.setAttribute("class", "content")
+		for (var i = 0; i < arguments.length; i++) {
+			tabs[i] = tabDiv.appendChild(createElement("div")).setInnerText(arguments[i][0]);
+			tabs[i].addEventListener("click", function(tab, callback) {
+				if (tab.getAttribute("class") === "selected") {
+					return;
+				}
+				while (contentDiv.hasChildNodes()) {
+					contentDiv.removeChild(contentDiv.lastChild);
+				}
+				tabs.map(function(tab) {tab.removeAttribute("class")});
+				tab.setAttribute("class", "selected");
+				var tLayer = layer;
+				layer = contentDiv;
+				callback();
+				layer = tLayer;
+			}.bind(null, tabs[i], arguments[i][1]));
+		}
+		tabs[0].dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
+		return [frag, contentDiv];
+	},
 	showCompany = function(company) {
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText(company.Name);
-		var editDelete = layer.appendChild(createElement("div")),
-		    edit = editDelete.appendChild(createElement("div")).setInnerText("Edit"),
-		    deleter = editDelete.appendChild(createElement("div")).setInnerText("Delete"),
-		    eventsClients = layer.appendChild(createElement("div")),
-		    clientsButton = eventsClients.appendChild(createElement("div")).setInnerText("Clients"),
-		    eventsButton = eventsClients.appendChild(createElement("div")).setInnerText("Events"),
-		    eventsClientsDiv = layer.appendChild(createElement("div")),
-		    eventsStartDate = new Date(),
-		    eventsEndDate = new Date();
-		eventsClients.setAttribute("class", "tabs");
-		eventsClientsDiv.setAttribute("class", "eventsClients");
-		clientsButton.addEventListener("click", function() {
-			if (clientsButton.getAttribute("class") === "selected") {
-				return;
-			}
-			rpc.clientsForCompany(company.ID, function(clients) {
-				while (eventsClientsDiv.hasChildNodes()) {
-					eventsClientsDiv.removeChild(eventsClientsDiv.lastChild);
-				}
-				eventsButton.removeAttribute("class");
-				clientsButton.setAttribute("class", "selected");
-				var clientsTable = createElement("table"),
+		var tabs = makeTabs(
+			[ "Details", function() {
+				layer.appendChild(createElement("label")).setInnerText("Company Name");
+				layer.appendChild(createElement("div")).setInnerText(company.Name);
+				layer.appendChild(createElement("label")).setInnerText("Company Address");
+				layer.appendChild(createElement("div")).setInnerText(company.Address);
+				layer.appendChild(createElement("label")).setInnerText("No. of Clients");
+				var numClients = layer.appendChild(createElement("div")),
+				    numEvents = createElement("div");
+				layer.appendChild(createElement("label")).setInnerText("No. of Bookings");
+				layer.appendChild(numEvents);
+				rpc.getNumClients(company.ID, numClients.setInnerText.bind(numClients));
+				rpc.getNumEvents(company.ID, numEvents.setInnerText.bind(numEvents));
+			}],
+			["Client", rpc.clientsForCompany.bind(null, company.ID, function(clients) {
+				var clientsTable = content.appendChild(createElement("table")),
 				    headerRow = clientsTable.appendChild(createElement("tr")),
 				    i = 0;
 				headerRow.appendChild(createElement("th")).setInnerText("Name");
@@ -756,99 +779,92 @@ window.addEventListener("load", function(oldDate) {
 					row.appendChild(createElement("td")).setInnerText(clients[i].PhoneNumber);
 					row.appendChild(createElement("td")).setInnerText(clients[i].Reference);
 				}
-				eventsClientsDiv.appendChild(clientsTable);
-			});
-		});
-		eventsButton.addEventListener("click", function() {
-			if (eventsButton.getAttribute("class") === "selected") {
-				return;
-			}
-			while (eventsClientsDiv.hasChildNodes()) {
-				eventsClientsDiv.removeChild(eventsClientsDiv.lastChild);
-			}
-			clientsButton.removeAttribute("class");
-			eventsButton.setAttribute("class", "selected");
-			var oLayer = layer;
-			layer = eventsClientsDiv;
-			stack.addFragment();
-			var dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
-			    startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
-			    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
-			    getEvents = addFormSubmit("Show Events", function() {
-				while (eventTable.hasChildNodes()) {
-					if (eventTable.lastChild === tableTitles) {
-						break;
-					}
-					eventTable.removeChild(eventTable.lastChild);
+			})],
+			[ "Events", function() {
+				var eventsStartDate = new Date(),
+				    eventsEndDate = new Date();
+				return function() {
+					var dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
+					    startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
+					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
+					    getEvents = addFormSubmit("Show Events", function() {
+						while (eventTable.hasChildNodes()) {
+							if (eventTable.lastChild === tableTitles) {
+								break;
+							}
+							eventTable.removeChild(eventTable.lastChild);
+						}
+						var startParts = startDate[0].value.split("/"),
+						    endParts = endDate[0].value.split("/");
+						    eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
+						    eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						if (eventsStartDate.getTime() > eventsEndDate.getTime()) {
+							endDate[1].setInnerText("Cannot be before start date");
+							eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
+							return;
+						}
+						rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+							var row,
+							    i = 0;
+							if (events.length === 0) {
+								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
+								return;
+							}
+							for (; i < events.length; i++) {
+								row = createElement("tr");
+								var clientCell = row.appendChild(createElement("td")),
+								    driverCell = row.appendChild(createElement("td"));
+								row.appendChild(createElement("td")).setInnerText(events[i].From);
+								row.appendChild(createElement("td")).setInnerText(events[i].To);
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
+								rpc.getClient(events[i].ClientID, function(clientCell, client) {
+									clientCell.setInnerText(client.Name);
+								}.bind(null, clientCell));
+								rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
+									driverCell.setInnerText(driver.Name);
+								}.bind(null, driverCell));
+								eventTable.appendChild(row);
+							}
+						});
+					    }),
+					    eventFormTable = layer.appendChild(createElement("table")),
+					    eventTable = eventFormTable.appendChild(createElement("table")),
+					    tableTitles = eventTable.appendChild(createElement("tr"));
+					tableTitles.appendChild(createElement("th")).setInnerText("Client");
+					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
+					tableTitles.appendChild(createElement("th")).setInnerText("From");
+					tableTitles.appendChild(createElement("th")).setInnerText("To");
+					tableTitles.appendChild(createElement("th")).setInnerText("Start");
+					tableTitles.appendChild(createElement("th")).setInnerText("End");
+					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				}
-				var startParts = startDate[0].value.split("/"),
-				    endParts = endDate[0].value.split("/");
-				    eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
-				    eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
-				if (eventsStartDate.getTime() > eventsEndDate.getTime()) {
-					endDate[1].setInnerText("Cannot be before start date");
-					eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
-					return;
-				}
-				rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
-					var row,
-					    i = 0;
-					if (events.length === 0) {
-						eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
-						return;
-					}
-					for (; i < events.length; i++) {
-						row = createElement("tr");
-						var clientCell = row.appendChild(createElement("td")),
-						    driverCell = row.appendChild(createElement("td"));
-						row.appendChild(createElement("td")).setInnerText(events[i].From);
-						row.appendChild(createElement("td")).setInnerText(events[i].To);
-						row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
-						row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
-						rpc.getClient(events[i].ClientID, function(clientCell, client) {
-							clientCell.setInnerText(client.Name);
-						}.bind(null, clientCell));
-						rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
-							driverCell.setInnerText(driver.Name);
-						}.bind(null, driverCell));
-						eventTable.appendChild(row);
+			}()],
+			[ "Options", function() {
+				var edit = layer.appendChild(createElement("div")).setInnerText("Edit Client"),
+				    deleter = layer.appendChild(createElement("div")).setInnerText("Delete Client");
+				edit.setAttribute("class", "simpleButton");
+				edit.addEventListener("click", function() {
+					stack.addLayer("editCompany", function(c) {
+						if (typeof c !== "undefined") {
+							stack.removeLayer(c);
+							showCompany(c.ID);
+						}
+					});
+					setCompany(company);
+				});
+				deleter.setAttribute("class", "simpleButton");
+				deleter.addEventListener("click", function() {
+					if(confirm("Are you sure you want to remove this company?")) {
+						rpc.removeCompany(company.ID);
+						stack.removeLayer(company.ID);
 					}
 				});
-			    }),
-			    eventFormTable = layer.appendChild(createElement("table")),
-			    eventTable = eventFormTable.appendChild(createElement("table")),
-			    tableTitles = eventTable.appendChild(createElement("tr"));
-			tableTitles.appendChild(createElement("th")).setInnerText("Client");
-			tableTitles.appendChild(createElement("th")).setInnerText("Driver");
-			tableTitles.appendChild(createElement("th")).setInnerText("From");
-			tableTitles.appendChild(createElement("th")).setInnerText("To");
-			tableTitles.appendChild(createElement("th")).setInnerText("Start");
-			tableTitles.appendChild(createElement("th")).setInnerText("End");
-			getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
-			stack.setFragment();
-			layer = oLayer;
-		});
-
-		editDelete.setAttribute("class", "editDelete");
-		edit.setAttribute("class", "simpleButton");
-		edit.addEventListener("click", function() {
-			stack.addLayer("editCompany", function(c) {
-				if (typeof c !== "undefined") {
-					stack.removeLayer(c);
-					showCompany(c.ID);
-				}
-			});
-			setCompany(company);
-		});
-		deleter.setAttribute("class", "simpleButton");
-		deleter.addEventListener("click", function() {
-			if(confirm("Are you sure you want to remove this company?")) {
-				rpc.removeCompany(company.ID);
-				stack.removeLayer(company.ID);
-			}
-		});
+			}]
+		    ),
+		    content = tabs[1];
+		layer.appendChild(tabs[0]);
 		stack.setFragment();
-		clientsButton.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 	},
 	companyList = function(addList) {
 		rpc.companies(function(companies) {
