@@ -871,7 +871,11 @@ window.addEventListener("load", function(oldDate) {
 				headerRow.appendChild(createElement("th")).setInnerText("Name");
 				headerRow.appendChild(createElement("th")).setInnerText("Phone Number");
 				headerRow.appendChild(createElement("th")).setInnerText("Reference");
-				rpc.clientsForCompany.bind(null, company.ID, function(clients) {
+				rpc.clientsForCompany(company.ID, function(clients) {
+					if (clients.length === 0) {
+						clientsTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Clients").setAttribute("colspan", 4);
+						return;
+					}
 					for (; i < clients.length; i++) {
 						var row = clientsTable.appendChild(createElement("tr")),
 						    name = row.appendChild(createElement("td")).setInnerText(clients[i].Name);
