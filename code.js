@@ -13,7 +13,8 @@ window.addEventListener("load", function(oldDate) {
 			requests[nextID] = callback;
 			ws.send(JSON.stringify(msg));
 			nextID++;
-		};
+		    },
+		    closed = false;
 		ws.onmessage = function (event) {
 			var data = JSON.parse(event.data),
 			req = requests[data.id];
@@ -31,6 +32,9 @@ window.addEventListener("load", function(oldDate) {
 			document.body.setInnerText("An error occurred");
 		}
 		ws.onclose = function(event) {
+			if (closed === true) {
+				return;
+			}
 			switch(event.code) {
 			case 1000:
 				document.body.setInnerText("The server close the connection - did you open a second session?");
@@ -43,6 +47,7 @@ window.addEventListener("load", function(oldDate) {
 			}
 		}
 		window.addEventListener("beforeunload", function() {
+			closed = true;
 			ws.close();
 		});
 		this.getDriver     = request.bind(this, "GetDriver");     // id     , callback
