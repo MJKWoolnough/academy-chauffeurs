@@ -70,6 +70,7 @@ const (
 
 	NumClientsForCompany
 	NumEventsForCompany
+	NumEventsForClient
 
 	TotalStmts
 )
@@ -177,8 +178,11 @@ func newCalls(dbFName string) (*Calls, error) {
 		// Num Clients for company
 		"SELECT COUNT(1) FROM [Client] WHERE [CompanyID] = ? AND [Deleted] = 0;",
 
-		// Num Events
+		// Num Events for company
 		"SELECT COUNT(1) FROM [Event] JOIN [Client] ON [Event].[ClientID] = [Client].[ID] WHERE [Client].[CompanyID] = ? AND [Client].[Deleted] = 0 AND [Event].[Deleted] = 0;",
+
+		// Num Events for client
+		"SELECT COUNT(1) FROM [Event] WHERE [ClientID] = ? AND [Deleted] = 0;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
@@ -221,6 +225,10 @@ func (c *Calls) NumClients(id int64, num *int64) error {
 
 func (c *Calls) NumEvents(id int64, num *int64) error {
 	return c.statements[NumEventsForCompany].QueryRow(id).Scan(num)
+}
+
+func (c *Calls) NumEventsClient(id int64, num *int64) error {
+	return c.statements[NumEventsForClient].QueryRow(id).Scan(num)
 }
 
 type EventsFilter struct {
