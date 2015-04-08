@@ -50,6 +50,10 @@ window.addEventListener("load", function(oldDate) {
 		this.removeClient  = request.bind(this, "RemoveClient");  // id     , callback
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
 		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
+		this.getDriverNote = request.bind(this, "GetDriverNote"); // id     , callback
+		this.getClientNote = request.bind(this, "GetClientNote"); // id     , callback
+		this.getCompanyNote = request.bind(this, "GetCompanyNote"); // id   , callback
+		this.getEventNote = request.bind(this, "GetEventNote") ;  // id     , callback
 		this.getNumClients = request.bind(this, "NumClients");    // id     , callback
 		this.getNumEvents  = request.bind(this, "NumEvents");     // id     , callback
 		this.getNumEventsClient = request.bind(this, "NumEventsClient"); // id, callback
@@ -67,6 +71,18 @@ window.addEventListener("load", function(oldDate) {
 		};
 		this.getEventsWithCompany = function(companyID, start, end, callback) {
 			request("CompanyEvents", {"ID": companyID, "Start": start, "End": end}, callback);
+		};
+		this.setDriverNote = function(id, note) {
+			request("SetDriverNote", {ID: id, Note: note});
+		};
+		this.setClientNote = function(id, note) {
+			request("SetClientNote", {ID: id, Note: note});
+		};
+		this.setCompanyNote = function(id, note) {
+			request("SetCompanyNote", {ID: id, Note: note});
+		};
+		this.setEventNote = function(id, note) {
+			request("SetEventNote", {ID: id, Note: note});
 		};
 		this.autocompleteAddress = function(priority, partial, callback) {
 			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
@@ -750,6 +766,17 @@ window.addEventListener("load", function(oldDate) {
 		}
 		tabs[0].dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 		return frag;
+	},
+	makeNote = function(getter, setter) {
+		var note = createElement("textarea");
+		notes.setAttribute("class", "note");
+		getter(function(note) {
+			notes.value = note;
+		});
+		note.addEventListener("blur", function() {
+			setter(notes.value);
+		});
+		return note;
 	},
 	showCompany = function(company) {
 		stack.addFragment();
