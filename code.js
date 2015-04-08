@@ -1332,13 +1332,42 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText("Event Details");
 		var tabData = new Array();
 		tabData[0] = [ "Details", function () {
+			layer.appendChild(createElement("label")).setInnerText("Client Name");
+			var clientName = layer.appendChild(createElement("div")),
+			    clientRef = createElement("div"),
+			    companyName = createElement("div"),
+			    driverName = createElement("div"),
+			    driverReg = createElement("div");
+			layer.appendChild(createElement("label")).setInnerText("Client Reference");
+			layer.appendChild(clientRef);
+			layer.appendChild(createElement("label")).setInnerText("Company Name");
+			layer.appendChild(companyName);
+			layer.appendChild(createElement("label")).setInnerText("Driver Name");
+			layer.appendChild(driverName);
+			layer.appendChild(createElement("label")).setInnerText("Driver Registration");
+			layer.appendChild(driverReg);
 			layer.appendChild(createElement("label")).setInnerText("Start Time");
 			layer.appendChild(createElement("div")).setInnerText(new Date(e.Start).toLocaleString());
 			layer.appendChild(createElement("label")).setInnerText("End Time");
 			layer.appendChild(createElement("div")).setInnerText(new Date(e.End).toLocaleString());
+			layer.appendChild(createElement("label")).setInnerText("From");
+			layer.appendChild(createElement("div")).setInnerText(e.From);
+			layer.appendChild(createElement("label")).setInnerText("To");
+			layer.appendChild(createElement("div")).setInnerText(e.To);
+			rpc.getClient(e.ClientID, function(client) {
+				clientName.setInnerText(client.Name);
+				clientRef.setInnerText(client.Reference);
+				rpc.getCompany(client.CompanyID, function(company) {
+					companyName.setInnerText(company.Name);
+				});
+			});
+			rpc.getDriver(e.DriverID, function(driver) {
+				driverName.setInnerText(driver.Name);
+				driverReg.setInnerText(driver.RegistrationNumber);
+			});
 		}];
 		if (e.Start < (new Date()).getTime()) {
-			tabData[tabData.length] = [ "Finalise", function () {
+			tabData[tabData.length] = [ "Final Details", function () {
 
 			}];
 		}
