@@ -231,34 +231,50 @@ func (c *Calls) close() {
 }
 
 func (c *Calls) NumClients(id int64, num *int64) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.statements[NumClientsForCompany].QueryRow(id).Scan(num)
 }
 
 func (c *Calls) NumEvents(id int64, num *int64) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.statements[NumEventsForCompany].QueryRow(id).Scan(num)
 }
 
 func (c *Calls) NumEventsClient(id int64, num *int64) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.statements[NumEventsForClient].QueryRow(id).Scan(num)
 }
 
 func (c *Calls) NumEventsDriver(id int64, num *int64) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.statements[NumEventsForDriver].QueryRow(id).Scan(num)
 }
 
 func (c *Calls) GetDriverNote(id int64, note *string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.statements[GetDriverNote].QueryRow(id).Scan(note)
 }
 
 func (c *Calls) GetCompanyNote(id int64, note *string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.statements[GetCompanyNote].QueryRow(id).Scan(note)
 }
 
 func (c *Calls) GetClientNote(id int64, note *string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.statements[GetClientNote].QueryRow(id).Scan(note)
 }
 
 func (c *Calls) GetEventNote(id int64, note *string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.statements[GetEventNote].QueryRow(id).Scan(note)
 }
 
@@ -268,21 +284,29 @@ type NoteID struct {
 }
 
 func (c *Calls) SetDriverNote(nid NoteID, _ *struct{}) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	_, err := c.statements[SetDriverNote].Exec(nid.Note, nid.ID)
 	return err
 }
 
 func (c *Calls) SetCompanyNote(nid NoteID, _ *struct{}) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	_, err := c.statements[SetCompanyNote].Exec(nid.Note, nid.ID)
 	return err
 }
 
 func (c *Calls) SetClientNote(nid NoteID, _ *struct{}) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	_, err := c.statements[SetClientNote].Exec(nid.Note, nid.ID)
 	return err
 }
 
 func (c *Calls) SetEventNote(nid NoteID, _ *struct{}) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	_, err := c.statements[SetEventNote].Exec(nid.Note, nid.ID)
 	return err
 }
