@@ -951,8 +951,7 @@ window.addEventListener("load", function(oldDate) {
 				edit.addEventListener("click", function() {
 					stack.addLayer("editCompany", function(c) {
 						if (typeof c !== "undefined") {
-							stack.removeLayer(c);
-							showCompany(c.ID);
+							events.reload("company", c.ID);
 						}
 					});
 					setCompany(company);
@@ -961,7 +960,7 @@ window.addEventListener("load", function(oldDate) {
 				deleter.addEventListener("click", function() {
 					if(confirm("Are you sure you want to remove this company?")) {
 						rpc.removeCompany(company.ID);
-						stack.removeLayer(company.ID);
+						events.reload("company", 0);
 					}
 				});
 			}]
@@ -1086,8 +1085,7 @@ window.addEventListener("load", function(oldDate) {
 				edit.addEventListener("click", function() {
 					stack.addLayer("editClient", function(c) {
 						if (typeof c !== "undefined") {
-							stack.removeLayer(c);
-							showClient(c);
+							events.reload("client", c.id);
 						}
 					});
 					setClient(client);
@@ -1096,7 +1094,7 @@ window.addEventListener("load", function(oldDate) {
 				deleter.addEventListener("click", function() {
 					if(confirm("Are you sure you want to remove this client?")) {
 						rpc.removeClient(client.ID);
-						stack.removeLayer(client.ID);
+						events.reload("client", 0);
 					}
 				});
 			}]
@@ -1292,9 +1290,7 @@ window.addEventListener("load", function(oldDate) {
 				edit.addEventListener("click", function() {
 					stack.addLayer("editDriver", function(d) {
 						if (typeof d !== "undefined") {
-							stack.removeLayer();
-							events.updateDriver(d);
-							showDriver(d);
+							events.reload("driver", d.ID);
 						}
 					});
 					setDriver(driver);
@@ -1303,8 +1299,7 @@ window.addEventListener("load", function(oldDate) {
 				deleter.addEventListener("click", function() {
 					if(confirm("Are you sure you want to remove this driver?")) {
 						rpc.removeDriver(driver.ID);
-						stack.removeLayer();
-						events.removeDriver(driver);
+						events.reload();
 					}
 				});
 			}]
@@ -1486,10 +1481,8 @@ window.addEventListener("load", function(oldDate) {
 			edit.setAttribute("class", "simpleButton");
 			edit.addEventListener("click", function() {
 				stack.addLayer("editEvent", function(e) {
-					if (typeof c !== "undefined") {
-						stack.removeLayer();
-						events.updateEvent(e);
-						showEvent(e);
+					if (typeof e !== "undefined") {
+						events.reload("event", e.ID);
 					}
 				});
 				rpc.getDriver(e.DriverID, function(d) {
@@ -1504,7 +1497,7 @@ window.addEventListener("load", function(oldDate) {
 			deleter.addEventListener("click", function() {
 				if(confirm("Are you sure you want to remove this event?")) {
 					rpc.removeEvent(e.ID);
-					stack.removeLayer();
+					events.reload();
 				}
 			});
 		}];
