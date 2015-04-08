@@ -71,6 +71,7 @@ const (
 	NumClientsForCompany
 	NumEventsForCompany
 	NumEventsForClient
+	NumEventsForDriver
 
 	TotalStmts
 )
@@ -183,6 +184,9 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Num Events for client
 		"SELECT COUNT(1) FROM [Event] WHERE [ClientID] = ? AND [Deleted] = 0;",
+
+		// Num Events for driver
+		"SELECT COUNT(1) FROM [Event] WHERE [DriverID] = ? AND [Deleted] = 0;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
@@ -229,6 +233,10 @@ func (c *Calls) NumEvents(id int64, num *int64) error {
 
 func (c *Calls) NumEventsClient(id int64, num *int64) error {
 	return c.statements[NumEventsForClient].QueryRow(id).Scan(num)
+}
+
+func (c *Calls) NumEventsDriver(id int64, num *int64) error {
+	return c.statements[NumEventsForDriver].QueryRow(id).Scan(num)
 }
 
 type EventsFilter struct {
