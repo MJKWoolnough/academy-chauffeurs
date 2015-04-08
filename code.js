@@ -53,6 +53,7 @@ window.addEventListener("load", function(oldDate) {
 		this.getNumClients = request.bind(this, "NumClients");    // id     , callback
 		this.getNumEvents  = request.bind(this, "NumEvents");     // id     , callback
 		this.getNumEventsClient = request.bind(this, "NumEventsClient"); // id, callback
+		this.getNumEventsDriver = request.bind(this, "NumEventsDriver"); // id, callback
 		this.drivers       = request.bind(this, "Drivers", null);          // callback
 		this.companies     = request.bind(this, "Companies", null);        // callback
 		this.clients       = request.bind(this, "Clients", null);          // callback
@@ -748,12 +749,12 @@ window.addEventListener("load", function(oldDate) {
 			}.bind(null, tabs[i], arguments[i][1]));
 		}
 		tabs[0].dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
-		return [frag, contentDiv];
+		return frag;
 	},
 	showCompany = function(company) {
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText(company.Name);
-		var tabs = makeTabs(
+		layer.appendChild(makeTabs(
 			[ "Details", function() {
 				layer.appendChild(createElement("label")).setInnerText("Company Name");
 				layer.appendChild(createElement("div")).setInnerText(company.Name);
@@ -767,20 +768,22 @@ window.addEventListener("load", function(oldDate) {
 				rpc.getNumClients(company.ID, numClients.setInnerText.bind(numClients));
 				rpc.getNumEvents(company.ID, numEvents.setInnerText.bind(numEvents));
 			}],
-			["Client", rpc.clientsForCompany.bind(null, company.ID, function(clients) {
-				var clientsTable = content.appendChild(createElement("table")),
+			["Client", function() {
+				var clientsTable = layer.appendChild(createElement("table")),
 				    headerRow = clientsTable.appendChild(createElement("tr")),
 				    i = 0;
 				headerRow.appendChild(createElement("th")).setInnerText("Name");
 				headerRow.appendChild(createElement("th")).setInnerText("Phone Number");
 				headerRow.appendChild(createElement("th")).setInnerText("Reference");
-				for (; i < clients.length; i++) {
-					var row = clientsTable.appendChild(createElement("tr")),
-					    name = row.appendChild(createElement("td")).setInnerText(clients[i].Name);
-					row.appendChild(createElement("td")).setInnerText(clients[i].PhoneNumber);
-					row.appendChild(createElement("td")).setInnerText(clients[i].Reference);
-				}
-			})],
+				rpc.clientsForCompany.bind(null, company.ID, function(clients) {
+					for (; i < clients.length; i++) {
+						var row = clientsTable.appendChild(createElement("tr")),
+						    name = row.appendChild(createElement("td")).setInnerText(clients[i].Name);
+						row.appendChild(createElement("td")).setInnerText(clients[i].PhoneNumber);
+						row.appendChild(createElement("td")).setInnerText(clients[i].Reference);
+					}
+				});
+			}],
 			[ "Events", function() {
 				var eventsStartDate = new Date(),
 				    eventsEndDate = new Date();
@@ -862,9 +865,7 @@ window.addEventListener("load", function(oldDate) {
 					}
 				});
 			}]
-		    ),
-		    content = tabs[1];
-		layer.appendChild(tabs[0]);
+		))
 		stack.setFragment();
 	},
 	companyList = function(addList) {
@@ -913,7 +914,7 @@ window.addEventListener("load", function(oldDate) {
 		stack.addLayer("showClient");
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText(client.Name);
-		var tabs = makeTabs(
+		layer.appendChild(makeTabs(
 			[ "Details", function() {
 				layer.appendChild(createElement("label")).setInnerText("Name");
 				layer.appendChild(createElement("div")).setInnerText(client.Name);
@@ -997,9 +998,7 @@ window.addEventListener("load", function(oldDate) {
 					}
 				});
 			}]
-		    ),
-		    content = tabs[0];
-		layer.appendChild(tabs[0]);
+		));
 		stack.setFragment();
 	},
 	clientList = function(addList) {
@@ -1115,81 +1114,97 @@ window.addEventListener("load", function(oldDate) {
 		stack.addLayer("showDriver");
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText(driver.Name);
-		var editDelete = layer.appendChild(createElement("div")),
-		    edit = editDelete.appendChild(createElement("div")).setInnerText("Edit"),
-		    deleter = editDelete.appendChild(createElement("div")).setInnerText("Delete"),
-		    dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
-		    startDate = addFormElement("Start Date", "text", "startDate", (new Date()).toDateString(), dateCheck),
-		    endDate = addFormElement("End Date", "text", "endDate", (new Date()).toDateString(), dateCheck),
-		    getEvents = addFormSubmit("Show Events", function() {
-			while (eventTable.hasChildNodes()) {
-				if (eventTable.lastChild === tableTitles) {
-					break;
-				}
-				eventTable.removeChild(eventTable.lastChild);
-			}
-			var startParts = startDate[0].value.split("/"),
-			    endParts = endDate[0].value.split("/"),
-			    start = new Date(startParts[0], startParts[1]-1, startParts[2]),
-			    end = new Date(endParts[0], endParts[1]-1, endParts[2]);
-			rpc.getEventsWithDriver(driver.ID, start.getTime(), end.getTime() + (24 * 3600 * 1000), function(events) {
-				var row,
-				    i = 0;
-				if (events.length === 0) {
-					eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "6");
-					return;
-				}
-				for (; i < events.length; i++) {
-					row = createElement("tr");
-					var clientCell = row.appendChild(createElement("td")),
-					    companyCell = createElement("td");
-					row.appendChild(createElement("td")).setInnerText(events[i].From);
-					row.appendChild(createElement("td")).setInnerText(events[i].To);
-					row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
-					row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
-					row.appendChild(companyCell);
-					rpc.getClient(events[i].ClientID, function(clientCell, companyCell, client) {
-						clientCell.setInnerText(client.Name);
-						rpc.getCompany(client.CompanyID, function(company) {
-							companyCell.setInnerText(company.Name);
+		layer.appendChild(makeTabs(
+			[ "Details", function() {
+				layer.appendChild(createElement("label")).setInnerText("Name");
+				layer.appendChild(createElement("div")).setInnerText(driver.Name);
+				layer.appendChild(createElement("label")).setInnerText("Phone Number");
+				layer.appendChild(createElement("div")).setInnerText(driver.PhoneNumber);
+				layer.appendChild(createElement("label")).setInnerText("Registration Number");
+				layer.appendChild(createElement("div")).setInnerText(driver.RegistrationNumber);
+				layer.appendChild(createElement("label")).setInnerText("No. of Events");
+				var bookings = layer.appendChild(createElement("div"));
+				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
+			}],
+			[ "Events", function() {
+				var eventsStartDate = new Date(),
+				    eventsEndDate = new Date();
+				return function () {
+					var dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
+					    startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
+					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
+					    getEvents = addFormSubmit("Show Events", function() {
+						while (eventTable.hasChildNodes()) {
+							if (eventTable.lastChild === tableTitles) {
+								break;
+							}
+							eventTable.removeChild(eventTable.lastChild);
+						}
+						var startParts = startDate[0].value.split("/"),
+						    endParts = endDate[0].value.split("/");
+						eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]),
+						eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						rpc.getEventsWithDriver(driver.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+							var row,
+							    i = 0;
+							if (events.length === 0) {
+								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "6");
+								return;
+							}
+							for (; i < events.length; i++) {
+								row = createElement("tr");
+								var clientCell = row.appendChild(createElement("td")),
+								    companyCell = createElement("td");
+								row.appendChild(createElement("td")).setInnerText(events[i].From);
+								row.appendChild(createElement("td")).setInnerText(events[i].To);
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
+								row.appendChild(companyCell);
+								rpc.getClient(events[i].ClientID, function(clientCell, companyCell, client) {
+									clientCell.setInnerText(client.Name);
+									rpc.getCompany(client.CompanyID, function(company) {
+										companyCell.setInnerText(company.Name);
+									});
+								}.bind(null, clientCell, companyCell));
+								eventTable.appendChild(row);
+							}
 						});
-					}.bind(null, clientCell, companyCell));
-					eventTable.appendChild(row);
-				}
-			});
-		    }),
-		    eventTable = layer.appendChild(createElement("table")),
-		    tableTitles = eventTable.appendChild(createElement("tr"));
-
-		editDelete.setAttribute("class", "editDelete");
-		edit.setAttribute("class", "simpleButton");
-		edit.addEventListener("click", function() {
-			stack.addLayer("editDriver", function(d) {
-				if (typeof d !== "undefined") {
-					stack.removeLayer();
-					events.updateDriver(d);
-					showDriver(d);
-				}
-			});
-			setDriver(driver);
-		});
-		deleter.setAttribute("class", "simpleButton");
-		deleter.addEventListener("click", function() {
-			if(confirm("Are you sure you want to remove this driver?")) {
-				rpc.removeDriver(driver.ID);
-				stack.removeLayer();
-				events.removeDriver(driver);
-			}
-		});
-
-
-		tableTitles.appendChild(createElement("th")).setInnerText("Client");
-		tableTitles.appendChild(createElement("th")).setInnerText("From");
-		tableTitles.appendChild(createElement("th")).setInnerText("To");
-		tableTitles.appendChild(createElement("th")).setInnerText("Start");
-		tableTitles.appendChild(createElement("th")).setInnerText("End");
-		tableTitles.appendChild(createElement("th")).setInnerText("Company");
-		getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
+					    }),
+					    eventTable = layer.appendChild(createElement("table")),
+					    tableTitles = eventTable.appendChild(createElement("tr"));
+					tableTitles.appendChild(createElement("th")).setInnerText("Client");
+					tableTitles.appendChild(createElement("th")).setInnerText("From");
+					tableTitles.appendChild(createElement("th")).setInnerText("To");
+					tableTitles.appendChild(createElement("th")).setInnerText("Start");
+					tableTitles.appendChild(createElement("th")).setInnerText("End");
+					tableTitles.appendChild(createElement("th")).setInnerText("Company");
+					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
+				};
+			}()],
+			[ "Options", function() {
+				var edit = layer.appendChild(createElement("div")).setInnerText("Edit Client"),
+				    deleter = layer.appendChild(createElement("div")).setInnerText("Delete Client");
+				edit.setAttribute("class", "simpleButton");
+				edit.addEventListener("click", function() {
+					stack.addLayer("editDriver", function(d) {
+						if (typeof d !== "undefined") {
+							stack.removeLayer();
+							events.updateDriver(d);
+							showDriver(d);
+						}
+					});
+					setDriver(driver);
+				});
+				deleter.setAttribute("class", "simpleButton");
+				deleter.addEventListener("click", function() {
+					if(confirm("Are you sure you want to remove this driver?")) {
+						rpc.removeDriver(driver.ID);
+						stack.removeLayer();
+						events.removeDriver(driver);
+					}
+				});
+			}]
+		));
 		stack.setFragment();
 	},
 	setDriver = function(driver) {
