@@ -50,8 +50,9 @@ window.addEventListener("load", function(oldDate) {
 		this.removeClient  = request.bind(this, "RemoveClient");  // id     , callback
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
 		this.removeEvent   = request.bind(this, "RemoveEvent");   // id     , callback
-		this.getNumClients    = request.bind(this, "NumClients");    // id     , callback
-		this.getNumEvents     = request.bind(this, "NumEvents");     // id     , callback
+		this.getNumClients = request.bind(this, "NumClients");    // id     , callback
+		this.getNumEvents  = request.bind(this, "NumEvents");     // id     , callback
+		this.getNumEventsClient = request.bind(this, "NumEventsClient"); // id, callback
 		this.drivers       = request.bind(this, "Drivers", null);          // callback
 		this.companies     = request.bind(this, "Companies", null);        // callback
 		this.clients       = request.bind(this, "Clients", null);          // callback
@@ -761,7 +762,7 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("No. of Clients");
 				var numClients = layer.appendChild(createElement("div")),
 				    numEvents = createElement("div");
-				layer.appendChild(createElement("label")).setInnerText("No. of Bookings");
+				layer.appendChild(createElement("label")).setInnerText("No. of Events");
 				layer.appendChild(numEvents);
 				rpc.getNumClients(company.ID, numClients.setInnerText.bind(numClients));
 				rpc.getNumEvents(company.ID, numEvents.setInnerText.bind(numEvents));
@@ -838,11 +839,11 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Start");
 					tableTitles.appendChild(createElement("th")).setInnerText("End");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
-				}
+				};
 			}()],
 			[ "Options", function() {
-				var edit = layer.appendChild(createElement("div")).setInnerText("Edit Client"),
-				    deleter = layer.appendChild(createElement("div")).setInnerText("Delete Client");
+				var edit = layer.appendChild(createElement("div")).setInnerText("Edit Company"),
+				    deleter = layer.appendChild(createElement("div")).setInnerText("Delete Company");
 				edit.setAttribute("class", "simpleButton");
 				edit.addEventListener("click", function() {
 					stack.addLayer("editCompany", function(c) {
@@ -912,71 +913,93 @@ window.addEventListener("load", function(oldDate) {
 		stack.addLayer("showClient");
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText(client.Name);
-		var editDelete = layer.appendChild(createElement("div")),
-		    edit = editDelete.appendChild(createElement("div")).setInnerText("Edit"),
-		    deleter = editDelete.appendChild(createElement("div")).setInnerText("Delete"),
-		    dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
-		    startDate = addFormElement("Start Date", "text", "startDate", (new Date()).toDateString(), dateCheck),
-		    endDate = addFormElement("End Date", "text", "endDate", (new Date()).toDateString(), dateCheck),
-		    getEvents = addFormSubmit("Show Events", function() {
-			while (eventTable.hasChildNodes()) {
-				if (eventTable.lastChild === tableTitles) {
-					break;
-				}
-				eventTable.removeChild(eventTable.lastChild);
-			}
-			var startParts = startDate[0].value.split("/"),
-			    endParts = endDate[0].value.split("/"),
-			    start = new Date(startParts[0], startParts[1]-1, startParts[2]),
-			    end = new Date(endParts[0], endParts[1]-1, endParts[2]);
-			rpc.getEventsWithClient(client.ID, start.getTime(), end.getTime() + (24 * 3600 * 1000), function(events) {
-				var row,
-				    i = 0;
-				if (events.length === 0) {
-					eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
-					return;
-				}
-				for (; i < events.length; i++) {
-					row = createElement("tr");
-					var driverCell = row.appendChild(createElement("td"));
-					row.appendChild(createElement("td")).setInnerText(events[i].From);
-					row.appendChild(createElement("td")).setInnerText(events[i].To);
-					row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
-					row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
-					rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
-						driverCell.setInnerText(driver.Name);
-					}.bind(null, driverCell));
-					eventTable.appendChild(row);
-				}
-			});
-		    }),
-		    eventTable = layer.appendChild(createElement("table")),
-		    tableTitles = eventTable.appendChild(createElement("tr"));
-
-		editDelete.setAttribute("class", "editDelete");
-		edit.setAttribute("class", "simpleButton");
-		edit.addEventListener("click", function() {
-			stack.addLayer("editClient", function(c) {
-				if (typeof c !== "undefined") {
-					stack.removeLayer(c);
-					showClient(c.ID);
-				}
-			});
-			setClient(client);
-		});
-		deleter.setAttribute("class", "simpleButton");
-		deleter.addEventListener("click", function() {
-			if(confirm("Are you sure you want to remove this client?")) {
-				rpc.removeClient(client.ID);
-				stack.removeLayer(client.ID);
-			}
-		});
-		tableTitles.appendChild(createElement("th")).setInnerText("Driver");
-		tableTitles.appendChild(createElement("th")).setInnerText("From");
-		tableTitles.appendChild(createElement("th")).setInnerText("To");
-		tableTitles.appendChild(createElement("th")).setInnerText("Start");
-		tableTitles.appendChild(createElement("th")).setInnerText("End");
-		getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
+		var tabs = makeTabs(
+			[ "Details", function() {
+				layer.appendChild(createElement("label")).setInnerText("Name");
+				layer.appendChild(createElement("div")).setInnerText(client.Name);
+				layer.appendChild(createElement("label")).setInnerText("Phone Number");
+				layer.appendChild(createElement("div")).setInnerText(client.PhoneNumber);
+				layer.appendChild(createElement("label")).setInnerText("Reference");
+				layer.appendChild(createElement("div")).setInnerText(client.Reference);
+				layer.appendChild(createElement("label")).setInnerText("Company Name");
+				layer.appendChild(createElement("div")).setInnerText(client.CompanyName);
+				layer.appendChild(createElement("label")).setInnerText("No. of Events");
+				var bookings = layer.appendChild(createElement("div"));
+				rpc.getNumEventsClient(client.ID, bookings.setInnerText.bind(bookings));
+			}],
+			[ "Events", function () {
+				var eventsStartDate = new Date(),
+				    eventsEndDate = new Date();
+				return function() {
+					var dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
+					    startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
+					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
+					    getEvents = addFormSubmit("Show Events", function() {
+						while (eventTable.hasChildNodes()) {
+							if (eventTable.lastChild === tableTitles) {
+								break;
+							}
+							eventTable.removeChild(eventTable.lastChild);
+						}
+						var startParts = startDate[0].value.split("/"),
+						    endParts = endDate[0].value.split("/"),
+						    start = new Date(startParts[0], startParts[1]-1, startParts[2]),
+						    end = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						rpc.getEventsWithClient(client.ID, start.getTime(), end.getTime() + (24 * 3600 * 1000), function(events) {
+							var row,
+							    i = 0;
+							if (events.length === 0) {
+								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
+								return;
+							}
+							for (; i < events.length; i++) {
+								row = createElement("tr");
+								var driverCell = row.appendChild(createElement("td"));
+								row.appendChild(createElement("td")).setInnerText(events[i].From);
+								row.appendChild(createElement("td")).setInnerText(events[i].To);
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
+								rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
+									driverCell.setInnerText(driver.Name);
+								}.bind(null, driverCell));
+								eventTable.appendChild(row);
+							}
+						});
+					    }),
+					    eventTable = layer.appendChild(createElement("table")),
+					    tableTitles = eventTable.appendChild(createElement("tr"));
+					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
+					tableTitles.appendChild(createElement("th")).setInnerText("From");
+					tableTitles.appendChild(createElement("th")).setInnerText("To");
+					tableTitles.appendChild(createElement("th")).setInnerText("Start");
+					tableTitles.appendChild(createElement("th")).setInnerText("End");
+					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
+				};
+			}()],
+			[ "Options", function () {
+				var edit = layer.appendChild(createElement("div")).setInnerText("Edit Client"),
+				    deleter = layer.appendChild(createElement("div")).setInnerText("Delete Client");
+				edit.setAttribute("class", "simpleButton");
+				edit.addEventListener("click", function() {
+					stack.addLayer("editClient", function(c) {
+						if (typeof c !== "undefined") {
+							stack.removeLayer(c);
+							showClient(c);
+						}
+					});
+					setClient(client);
+				});
+				deleter.setAttribute("class", "simpleButton");
+				deleter.addEventListener("click", function() {
+					if(confirm("Are you sure you want to remove this client?")) {
+						rpc.removeClient(client.ID);
+						stack.removeLayer(client.ID);
+					}
+				});
+			}]
+		    ),
+		    content = tabs[0];
+		layer.appendChild(tabs[0]);
 		stack.setFragment();
 	},
 	clientList = function(addList) {
