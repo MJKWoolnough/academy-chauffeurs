@@ -7,6 +7,7 @@ import (
 	"net/rpc/jsonrpc"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sync"
 
 	"golang.org/x/net/websocket"
@@ -45,6 +46,7 @@ func rpcHandler(conn *websocket.Conn) {
 }
 
 func main() {
+	os.Chdir(filepath.Dir(os.Args[0]))
 	const (
 		address = "127.0.0.1:8080"
 		dbFName = "test.db"
