@@ -492,7 +492,7 @@ window.addEventListener("load", function(oldDate) {
 			addToBar("Messages", messageList);
 			dateShift = now.getTime();
 			rpc.drivers(function(ds) {
-				plusDriver.appendChild(createElement("div")).setInnerText("+");
+				plusDriver.appendChild(createElement("div")).setInnerText("Add Driver");
 				plusDriver.setAttribute("id", "plusDriver");
 				plusDriver.setAttribute("class", "simpleButton");
 				plusDriver.addEventListener("click", function() {
@@ -1489,12 +1489,12 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("Total Price");
 				layer.appendChild(price);
 				rpc.getEventFinals(e.ID, function(eventFinals) {
-					inCar.setInnerText((new Date(eventFinals.InCar)).toLocaleTimeString());
+					inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
 					parking.setInnerText("£" + (eventFinals.Parking / 100));
 					waiting.setInnerText(eventFinals.Waiting + " minutes");
-					inCar.setInnerText((new Date(eventFinals.DropOff)).toLocaleTimeString());
+					dropOff.setInnerText((new Date(eventFinals.DropOff)).toTimeString());
 					miles.setInnerText(eventFinals.Miles);
-					tripTime.setInnerText((new Date(eventFinals.tripTime)).toLocaleTimeString());
+					tripTime.setInnerText((new Date(eventFinals.tripTime)).toTimeString());
 					price.setInnerText("£" + (eventFinals.Price / 100));
 					sub.setInnerText("£" + (eventFinals.Price / 100));
 				});
