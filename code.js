@@ -871,8 +871,8 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("Company Address");
 				layer.appendChild(createElement("div")).setInnerText(company.Address);
 				layer.appendChild(createElement("label")).setInnerText("No. of Clients");
-				var numClients = layer.appendChild(createElement("div")),
-				    numEvents = createElement("div");
+				var numClients = layer.appendChild(createElement("div")).setInnerText("-"),
+				    numEvents = createElement("div").setInnerText("-"etInnerText("-");
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
 				layer.appendChild(numEvents);
 				layer.appendChild(createElement("label")).setInnerText("Notes");
@@ -1042,7 +1042,7 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
 				layer.appendChild(createElement("label")).setInnerText("Notes");
 				layer.appendChild(makeNote(rpc.getClientNote.bind(rpc, client.ID), rpc.setClientNote.bind(rpc, client.ID)));
-				var bookings = layer.appendChild(createElement("div"));
+				var bookings = layer.appendChild(createElement("div")).setInnerText("-");
 				rpc.getNumEventsClient(client.ID, bookings.setInnerText.bind(bookings));
 			}],
 			[ "Events", function () {
@@ -1236,7 +1236,7 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("Registration Number");
 				layer.appendChild(createElement("div")).setInnerText(driver.RegistrationNumber);
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
-				var bookings = layer.appendChild(createElement("div"));
+				var bookings = layer.appendChild(createElement("div")).setInnerText("-");
 				layer.appendChild(createElement("label")).setInnerText("Notes");
 				layer.appendChild(makeNote(rpc.getDriverNote.bind(rpc, driver.ID), rpc.setDriverNote.bind(rpc, driver.ID)));
 				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
@@ -1443,11 +1443,11 @@ window.addEventListener("load", function(oldDate) {
 		var tabData = new Array();
 		tabData[0] = [ "Details", function () {
 			layer.appendChild(createElement("label")).setInnerText("Client Name");
-			var clientName = layer.appendChild(createElement("div")),
-			    clientRef = createElement("div"),
-			    companyName = createElement("div"),
-			    driverName = createElement("div"),
-			    driverReg = createElement("div");
+			var clientName = layer.appendChild(createElement("div")).setInnerText("-"),
+			    clientRef = createElement("div").setInnerText("-"),
+			    companyName = createElement("div").setInnerText("-"),
+			    driverName = createElement("div").setInnerText("-"),
+			    driverReg = createElement("div").setInnerText("-");
 			layer.appendChild(createElement("label")).setInnerText("Client Reference");
 			layer.appendChild(clientRef);
 			layer.appendChild(createElement("label")).setInnerText("Company Name");
@@ -1466,14 +1466,14 @@ window.addEventListener("load", function(oldDate) {
 			layer.appendChild(createElement("div")).setInnerText(e.To);
 			if (e.Start < (new Date()).getTime()) {
 				layer.appendChild(createElement("label")).setInnerText("In Car Time");
-				var inCar = layer.appendChild(createElement("div")),
-				    parking = createElement("div"),
-				    waiting = createElement("div"),
-				    dropOff = createElement("div"),
-				    miles = createElement("div"),
-				    tripTime = createElement("div"),
-				    price = createElement("div"),
-				    sub = createElement("div");
+				var inCar = layer.appendChild(createElement("div")).setInnerText("-"),
+				    parking = createElement("div").setInnerText("-"),
+				    waiting = createElement("div").setInnerText("-"),
+				    dropOff = createElement("div").setInnerText("-"),
+				    miles = createElement("div").setInnerText("-"),
+				    tripTime = createElement("div").setInnerText("-"),
+				    price = createElement("div").setInnerText("-"),
+				    sub = createElement("div").setInnerText("-");
 				layer.appendChild(createElement("label")).setInnerText("Waiting Time");
 				layer.appendChild(waiting);
 				layer.appendChild(createElement("label")).setInnerText("Drop Off Time");
