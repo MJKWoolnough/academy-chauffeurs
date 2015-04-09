@@ -1465,7 +1465,39 @@ window.addEventListener("load", function(oldDate) {
 			layer.appendChild(createElement("label")).setInnerText("To");
 			layer.appendChild(createElement("div")).setInnerText(e.To);
 			if (e.Start < (new Date()).getTime()) {
-				//Finalised data
+				layer.appendChild(createElement("label")).setInnerText("In Car Time");
+				var inCar = layer.appendChild(createElement("div")),
+				    parking = createElement("div"),
+				    waiting = createElement("div"),
+				    dropOff = createElement("div"),
+				    miles = createElement("div"),
+				    tripTime = createElement("div"),
+				    price = createElement("div"),
+				    sub = createElement("div");
+				layer.appendChild(createElement("label")).setInnerText("Waiting Time");
+				layer.appendChild(waiting);
+				layer.appendChild(createElement("label")).setInnerText("Drop Off Time");
+				layer.appendChild(dropOff);
+				layer.appendChild(createElement("label")).setInnerText("Miles Travelled");
+				layer.appendChild(miles);
+				layer.appendChild(createElement("label")).setInnerText("Trip Time");
+				layer.appendChild(tripTime);
+				layer.appendChild(createElement("label")).setInnerText("Parking Costs");
+				layer.appendChild(parking);
+				layer.appendChild(createElement("label")).setInnerText("Sub Price");
+				layer.appendChild(sub);
+				layer.appendChild(createElement("label")).setInnerText("Total Price");
+				layer.appendChild(price);
+				rpc.getEventFinals(e.ID, function(eventFinals) {
+					inCar.setInnerText((new Date(eventFinals.InCar)).toLocaleTimeString());
+					parking.setInnerText("£" + (eventFinals.Parking / 100));
+					waiting.setInnerText(eventFinals.Waiting + " minutes");
+					inCar.setInnerText((new Date(eventFinals.DropOff)).toLocaleTimeString());
+					miles.setInnerText(eventFinals.Miles);
+					tripTime.setInnerText((new Date(eventFinals.tripTime)).toLocaleTimeString());
+					price.setInnerText("£" + (eventFinals.Price / 100));
+					sub.setInnerText("£" + (eventFinals.Price / 100));
+				});
 			}
 			layer.appendChild(createElement("label")).setInnerText("Notes");
 			layer.appendChild(makeNote(rpc.getEventNote.bind(rpc, e.ID), rpc.setEventNote.bind(rpc, e.ID)));
