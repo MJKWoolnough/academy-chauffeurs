@@ -36,7 +36,7 @@ func rpcHandler(conn *websocket.Conn) {
 	go func() {
 		select {
 		case <-myQuit:
-			conn.Close()
+			conn.WriteClose(4000)
 		case <-done:
 		}
 	}()
