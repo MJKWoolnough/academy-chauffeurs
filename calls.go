@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"net/rpc"
+	"strings"
 	"sync"
 	"time"
 
@@ -597,16 +598,14 @@ func (c *Calls) AutocompleteClientName(partial string, vals *[]AutocompleteValue
 func filterDupes(vals *[]AutocompleteValue) {
 	filtered := make([]AutocompleteValue, 0, cap(*vals))
 Loop:
-	for i := 0; i < len(*vals); i++ {
-		for j := 0; j < len(*vals); j++ {
-			if i == j {
-				continue
-			}
-			if (*vals)[i] == (*vals)[j] {
+	for i, val := range *vals {
+		thisVal := strings.ToLower(val.Value)
+		for j := 0; j < i; j++ {
+			if thisVal == strings.ToLower((*vals)[j].Value) {
 				continue Loop
 			}
 		}
-		filtered = append(filtered, (*vals)[i])
+		filtered = append(filtered, val)
 	}
 	*vals = filtered
 }
