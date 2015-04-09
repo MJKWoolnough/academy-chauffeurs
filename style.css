@@ -316,6 +316,7 @@ div.error + br {
 	font : 14px Serif;
 	-moz-user-select : none;
 	-webkit-user-select : none;
+	cursor : pointer;
 }
 
 .event.expandable {
