@@ -291,6 +291,7 @@ div.error + br {
 	border-collapse: collapse;
 	text-align : center;
 	margin-top : -1px;
+	overflow : hidden;
 }
 
 .autocompleter li:nth-child(even), .autocompleter li:nth-child(even) .disambiguator {

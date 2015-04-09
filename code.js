@@ -872,7 +872,7 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("div")).setInnerText(company.Address);
 				layer.appendChild(createElement("label")).setInnerText("No. of Clients");
 				var numClients = layer.appendChild(createElement("div")).setInnerText("-"),
-				    numEvents = createElement("div").setInnerText("-"etInnerText("-");
+				    numEvents = createElement("div").setInnerText("-");
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
 				layer.appendChild(numEvents);
 				layer.appendChild(createElement("label")).setInnerText("Notes");
@@ -1514,9 +1514,9 @@ window.addEventListener("load", function(oldDate) {
 			});
 		}];
 		if (e.Start < (new Date()).getTime()) {
-			tabData[tabData.length] = [ "Final Details", function () {
-
-			}];
+			tabData[tabData.length] = [ "Final Details", rpc.getEventFinals.bind(rpc, e.ID, function(eventFinals) {
+				
+			})];
 		}
 		tabData[tabData.length] = [ "Options", function () {
 			var edit = layer.appendChild(createElement("div")).setInnerText("Edit Event"),
@@ -1648,7 +1648,12 @@ window.addEventListener("load", function(oldDate) {
 				matchHighlight.appendChild(document.createTextNode(value.slice(startPos, startPos+valUp.length)));
 				li.appendChild(matchHighlight);
 				li.appendChild(document.createTextNode(value.slice(startPos+valUp.length)));
-				li.addEventListener("click", clicker.bind(null, values[i]));
+				li.addEventListener("mousedown", function(value, e) {
+					e = e || event;
+					if (e.buttons === 1) {
+						clicker(value);
+					}
+				}.bind(null, values[i]));
 				if (values[i].Disambiguation !== "") {
 					var disambiguator = li.appendChild(createElement("div"));
 					disambiguator.setInnerText(values[i].Disambiguation);
@@ -1662,12 +1667,16 @@ window.addEventListener("load", function(oldDate) {
 			clicker = function(val) {
 				nameDiv.value = val.Value;
 				idDiv.value = val.ID;
-				layer.removeChild(autocompleteDiv);
+				if (autocompleteDiv.parentNode !== null) {
+					autocompleteDiv.parentNode.removeChild(autocompleteDiv);
+				}
 			};
 		} else {
 			clicker = function(val) {
 				nameDiv.value = val.Value;
-				layer.removeChild(autocompleteDiv);
+				if (autocompleteDiv.parentNode !== null) {
+					autocompleteDiv.parentNode.removeChild(autocompleteDiv);
+				}
 			};
 		}
 		autocompleteDiv.setAttribute("class", "autocompleter");
