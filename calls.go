@@ -595,7 +595,7 @@ func (c *Calls) AutocompleteClientName(partial string, vals *[]AutocompleteValue
 }
 
 func filterDupes(vals *[]AutocompleteValue) {
-	filtered := make([]AutocompleteValue, 0, len(*vals))
+	filtered := make([]AutocompleteValue, 0, cap(*vals))
 Loop:
 	for i := 0; i < len(*vals); i++ {
 		for j := 0; j < len(*vals); j++ {
@@ -622,34 +622,34 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 		second = "From"
 	}
 	err := c.autocomplete(vals, first, "Event", req.Partial+"%", true)
+	filterDupes(vals)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
-	filterDupes(vals)
 	notIDsOne := make([]int64, 0, MAXRETURN)
 	for _, v := range *vals {
 		notIDsOne = append(notIDsOne, v.ID)
 	}
 	preLen := len(*vals)
 	err = c.autocomplete(vals, second, "Event", req.Partial+"%", true)
+	filterDupes(vals)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
-	filterDupes(vals)
 	notIDsTwo := make([]int64, 0, MAXRETURN)
 	for _, v := range (*vals)[preLen:] {
 		notIDsTwo = append(notIDsTwo, v.ID)
 	}
 	err = c.autocomplete(vals, first, "Event", "%"+req.Partial+"%", true, notIDsOne...)
+	filterDupes(vals)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
-	filterDupes(vals)
 	err = c.autocomplete(vals, second, "Event", "%"+req.Partial+"%", true, notIDsTwo...)
+	filterDupes(vals)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
-	filterDupes(vals)
 	return err
 }
 
