@@ -1040,10 +1040,10 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("Company Name");
 				layer.appendChild(createElement("div")).setInnerText(client.CompanyName);
 				layer.appendChild(createElement("label")).setInnerText("No. of Events");
-				layer.appendChild(createElement("label")).setInnerText("Notes");
-				layer.appendChild(makeNote(rpc.getClientNote.bind(rpc, client.ID), rpc.setClientNote.bind(rpc, client.ID)));
 				var bookings = layer.appendChild(createElement("div")).setInnerText("-");
 				rpc.getNumEventsClient(client.ID, bookings.setInnerText.bind(bookings));
+				layer.appendChild(createElement("label")).setInnerText("Notes");
+				layer.appendChild(makeNote(rpc.getClientNote.bind(rpc, client.ID), rpc.setClientNote.bind(rpc, client.ID)));
 			}],
 			[ "Events", function () {
 				var eventsStartDate = new Date(),
