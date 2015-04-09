@@ -54,10 +54,12 @@ window.addEventListener("load", function(oldDate) {
 		this.getClient     = request.bind(this, "GetClient");     // id     , callback
 		this.getCompany    = request.bind(this, "GetCompany");    // id     , callback
 		this.getEvent      = request.bind(this, "GetEvent");      // id     , callback
+		this.getEventFinals= request.bind(this, "GetEventFinals");// id     , callback
 		this.setDriver     = request.bind(this, "SetDriver");     // driver , callback
 		this.setClient     = request.bind(this, "SetClient");     // client , callback
 		this.setCompany    = request.bind(this, "SetCompany");    // company, callback
 		this.setEvent      = request.bind(this, "SetEvent");      // event  , callback
+		this.setEventFinals= request.bind(this, "SetEventFinals");// eventFinals
 		this.removeDriver  = request.bind(this, "RemoveDriver");  // id     , callback
 		this.removeClient  = request.bind(this, "RemoveClient");  // id     , callback
 		this.removeCompany = request.bind(this, "RemoveCompany"); // id     , callback
