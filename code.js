@@ -974,7 +974,7 @@ window.addEventListener("load", function(oldDate) {
 				});
 				deleter.setAttribute("class", "simpleButton");
 				deleter.addEventListener("click", function() {
-					if(confirm("Are you sure you want to remove this company?")) {
+					if(confirm("Are you sure you want to remove this company?\n\nNB: This will also remove all clients and events attached to this company.")) {
 						rpc.removeCompany(company.ID);
 						events.reload("company", 0);
 					}
@@ -1108,7 +1108,7 @@ window.addEventListener("load", function(oldDate) {
 				});
 				deleter.setAttribute("class", "simpleButton");
 				deleter.addEventListener("click", function() {
-					if(confirm("Are you sure you want to remove this client?")) {
+					if(confirm("Are you sure you want to remove this client?\n\nNB: This will also remove all events attached to this client.")) {
 						rpc.removeClient(client.ID);
 						events.reload("client", 0);
 					}
@@ -1310,7 +1310,7 @@ window.addEventListener("load", function(oldDate) {
 				});
 				deleter.setAttribute("class", "simpleButton");
 				deleter.addEventListener("click", function() {
-					if(confirm("Are you sure you want to remove this driver?")) {
+					if(confirm("Are you sure you want to remove this driver? NB: This will also remove all events attached to the driver.")) {
 						rpc.removeDriver(driver.ID);
 						events.reload();
 					}
