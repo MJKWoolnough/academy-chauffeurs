@@ -42,7 +42,7 @@ h1 {
 label {
 	display : block;
 	float : left;
-	width : 200px;
+	width : 250px;
 	text-align : right;
 }
 
@@ -476,7 +476,7 @@ table td:first-child:last-child {
 .tabs + .content label + div {
 	float : none;
 	width : auto;
-	margin-left : 210px;
+	margin-left : 260px;
 }
 
 .tabs + .content label + textarea {
