@@ -41,11 +41,13 @@ const (
 	ReadCompany
 	ReadClient
 	ReadEvent
+	ReadEventFinals
 
 	UpdateDriver
 	UpdateCompany
 	UpdateClient
 	UpdateEvent
+	UpdateEventFinals
 
 	DeleteDriver
 	DeleteCompany
@@ -109,7 +111,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"[Driver]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [RegistrationNumber] TEXT, [PhoneNumber] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
-		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Hours] INTEGER DEFAULT 0, [Price] INTEGER, [Sub] INTEGER, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Trip] INTEGER DEFAULT 0, [Price] INTEGER, [Sub] INTEGER, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 	} {
 		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
 			return nil, err
@@ -134,6 +136,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [Name], [Address] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [InCar], [Parking], [Waiting], [Drop], [Miles], [Trip], [Price], [Sub] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
 
 		// Update
 
@@ -141,6 +144,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Company] SET [Name] = ?, [Address] = ? WHERE [ID] = ?;",
 		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ? WHERE [ID] = ?;",
+		"UPDATE [Event] SET [InCar] = ?, [Parking] = ?, [Waiting] = ?, [Drop] = ?, [Miles] = ?, [Trip] = ?, [Price] = ?, [Sub] = ? WHERE [ID] = ?;",
 
 		// Delete (set deleted)
 
@@ -646,5 +650,18 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 		return err
 	}
 	filterDupes(vals)
+	return err
+}
+
+type EventFinals struct {
+	ID, InCar, Parking, Waiting, Drop, Miles, Trip, Price, Sub int64
+}
+
+func (c *Calls) GetEventFinals(id int64, e *EventFinals) error {
+	return c.statements[ReadEventFinals].QueryRow(id).Scan(&e.InCar, &e.Parking, &e.Waiting, &e.Drop, &e.Miles, &e.Trip, &e.Price, &e.Sub)
+}
+
+func (c *Calls) SetEventFinals(e EventFinals, _ *struct{}) error {
+	_, err := c.statements[UpdateEventFinals].Exec(e.InCar, e.Parking, e.Waiting, e.Drop, e.Miles, e.Trip, e.Price, e.Sub, e.ID)
 	return err
 }
