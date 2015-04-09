@@ -37,7 +37,7 @@ window.addEventListener("load", function(oldDate) {
 			}
 			switch(event.code) {
 			case 1000:
-				document.body.setInnerText("The server close the connection - did you open a second session?");
+				document.body.setInnerText("The server closed the connection - did you open a second session?");
 				break;
 			case 1006:
 				document.body.setInnerText("The server unexpectedly closed the connection - this may be an error.");
@@ -1175,9 +1175,6 @@ window.addEventListener("load", function(oldDate) {
 		stack.addLayer("messages");
 		layer.appendChild(createElement("h1")).setInnerText("Messages");
 	},
-	addTitle = function(id, add, edit) {
-		layer.appendChild(createElement("h1")).setInnerText((id == 0) ? add : edit);
-	},
 	addFormElement = function(name, type, id, contents, onBlur) {
 		var label = createElement("label").setInnerText(name),
 		    input;
@@ -1322,11 +1319,11 @@ window.addEventListener("load", function(oldDate) {
 	},
 	setDriver = function(driver) {
 		stack.addFragment();
-		addTitle(driver.ID, "Add Driver", "Edit Driver");
+		layer.appendChild(createElement("h1")).setInnerText((driver.ID == 0) ? "Add Driver" : "Edit Driver");
 		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
-		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
-		    submit = function() {
+		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
+		addFormSubmit((driver.ID == 0) ? "Add Driver" : "Edit Driver", function() {
 			var parts = [this, driverName[0], regNumber[0], phoneNumber[0]];
 			parts.map(disableElement);
 			driver.Name = driverName[0].value;
@@ -1343,9 +1340,7 @@ window.addEventListener("load", function(oldDate) {
 					stack.removeLayer(driver);
 				}
 			});
-		};
-		addFormSubmit("Add Driver", submit);
-
+		});
 		stack.setFragment();
 	},
 	addDriver = function() {
@@ -1358,7 +1353,7 @@ window.addEventListener("load", function(oldDate) {
 	},
 	setClient = function(client) {
 		stack.addFragment();
-		addTitle(client.ID, "Add Client", "Edit Client");
+		layer.appendChild(createElement("h1")).setInnerText((client.ID == 0) ? "Add Client" : "Edit Client");
 		var clientName = addFormElement("Client Name", "text", "client_name", client.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
 		    companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
@@ -1377,7 +1372,7 @@ window.addEventListener("load", function(oldDate) {
 			companyList(true);
 		});
 		autocomplete(rpc.autocompleteCompanyName, companyName[0], companyID);
-		addFormSubmit("Add Client", function() {
+		addFormSubmit((client.ID == 0) ? "Add Client" : "Edit Client", function() {
 			var parts = [this, clientName[0], companyName[0], clientPhone[0], clientRef[0]];
 			parts.map(disableElement);
 			client.Name = clientName[0].value;
@@ -1411,10 +1406,10 @@ window.addEventListener("load", function(oldDate) {
 	},
 	setCompany = function(company) {
 		stack.addFragment();
-		addTitle(company.ID, "Add Company", "Edit Company");
+		layer.appendChild(createElement("h1")).setInnerText((company.ID == 0) ? "Add Company" : "Edit Company");
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address"));
-		addFormSubmit("Add Company", function() {
+		addFormSubmit((company.ID == 0) ? "Add Company" : "Edit Company", function() {
 			var parts = [this, companyName[0], address[0]];
 			parts.map(disableElement);
 			company.Name = companyName[0].value;
@@ -1523,7 +1518,7 @@ window.addEventListener("load", function(oldDate) {
 		    toAddressRPC = rpc.autocompleteAddress.bind(rpc, 1);
 		return function(event) {
 			stack.addFragment();
-			addTitle(event.ID, "Add Event", "Edit Event");
+			layer.appendChild(createElement("h1")).setInnerText((event.ID == 0) ? "Add Event" : "Edit Event");
 			addFormElement("Driver", "text", "", event.DriverName);
 			addFormElement("Start", "text", "", dateTimeFormat(event.Start));
 			var driverTime = addFormElement("End", "text", "", dateTimeFormat(event.End)),
@@ -1546,7 +1541,7 @@ window.addEventListener("load", function(oldDate) {
 			autocomplete(fromAddressRPC, from[0]);
 			autocomplete(toAddressRPC, to[0]);
 			autocomplete(rpc.autocompleteClientName, clientName[0], clientID);
-			addFormSubmit("Add Event", function() {
+			addFormSubmit((event.ID == 0) ? "Add Event" : "Edit Event", function() {
 				var parts = [this, clientName[0], to[0], from[0]];
 				parts.map(disableElement);
 				event.ClientID = parseInt(clientID.value);
