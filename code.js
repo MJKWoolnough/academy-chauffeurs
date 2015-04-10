@@ -1514,9 +1514,29 @@ window.addEventListener("load", function(oldDate) {
 			});
 		}];
 		if (e.Start < (new Date()).getTime()) {
-			tabData[tabData.length] = [ "Final Details", rpc.getEventFinals.bind(rpc, e.ID, function(eventFinals) {
-				
-			})];
+			tabData[tabData.length] = [ "Final Details", function() {
+				var inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]/, "Time format unrecognised (HH:MM)")),
+				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/[0-9]+/, "Please insert a number (or 0)")),
+				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]/, "Time format unrecognised (HH:MM)")),
+				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/[0-9]+/, "Please insert a number (or 0)")),
+				    tripTime =  addFormElement("Trip Time", "text", "trip", "", regexpCheck(/([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]/, "Time format unrecognised (HH:MM)")),
+				    parking = addFormElement("Parking Costs (£)", "text", "parking", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount")),
+				    sub = addFormElement("Sub Price (£)", "text", "sub", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount")),
+				    price = addFormElement("Total Price To Client (£)", "text", "price", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount"));
+				addFormSubmit("Set Details", function() {
+
+				});
+				rpc.getEventFinals(e.ID, function(eventFinals) {
+					inCar.value = eventFinals.InCar;
+					waiting.value = eventFinals.Waiting;
+					dropOff.value = (new Date(eventFinals.DropOff)).toTimeString();
+					miles.value = eventFinals.Miles;
+					tripTime.value = (new Date(eventFinals.Trip)).toTimeString();
+					parking.value = eventFinals.Parking;
+					sub.value = eventFinals.Sub / 100;
+					price.value = eventFinals.Price / 100;
+				});
+			}];
 		}
 		tabData[tabData.length] = [ "Options", function () {
 			var edit = layer.appendChild(createElement("div")).setInnerText("Edit Event"),
@@ -1614,7 +1634,9 @@ window.addEventListener("load", function(oldDate) {
 		return function() {
 			var errorDiv = document.getElementById("error_" + this.getAttribute("id"));
 			if (this.value.match(regexp)) {
-				errorDiv.setInnerText("");
+				while (errorDiv.hasChildNodes()) {
+					errorDiv.removeChild(errorDiv.lastChild);
+				}
 			} else {
 				errorDiv.setInnerText(error);
 			}
