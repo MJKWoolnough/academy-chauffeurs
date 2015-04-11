@@ -1527,14 +1527,14 @@ window.addEventListener("load", function(oldDate) {
 
 				});
 				rpc.getEventFinals(e.ID, function(eventFinals) {
-					inCar.value = eventFinals.InCar;
-					waiting.value = eventFinals.Waiting;
-					dropOff.value = (new Date(eventFinals.DropOff)).toTimeString();
-					miles.value = eventFinals.Miles;
-					tripTime.value = (new Date(eventFinals.Trip)).toTimeString();
-					parking.value = eventFinals.Parking;
-					sub.value = eventFinals.Sub / 100;
-					price.value = eventFinals.Price / 100;
+					inCar[0].value = eventFinals.InCar;
+					waiting[0].value = eventFinals.Waiting;
+					dropOff[0].value = (new Date(eventFinals.DropOff)).toTimeString();
+					miles[0].value = eventFinals.Miles;
+					tripTime[0].value = (new Date(eventFinals.Trip)).toTimeString();
+					parking[0].value = eventFinals.Parking;
+					sub[0].value = eventFinals.Sub / 100;
+					price[0].value = eventFinals.Price / 100;
 				});
 			}];
 		}
