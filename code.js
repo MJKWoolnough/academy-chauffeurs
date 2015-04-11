@@ -1519,20 +1519,41 @@ window.addEventListener("load", function(oldDate) {
 				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/[0-9]+/, "Please insert a number (or 0)")),
 				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]/, "Time format unrecognised (HH:MM)")),
 				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/[0-9]+/, "Please insert a number (or 0)")),
-				    tripTime =  addFormElement("Trip Time", "text", "trip", "", regexpCheck(/([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]/, "Time format unrecognised (HH:MM)")),
+				    tripTime = addFormElement("Trip Time", "text", "trip", "", regexpCheck(/([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]/, "Time format unrecognised (HH:MM)")),
 				    parking = addFormElement("Parking Costs (£)", "text", "parking", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount")),
 				    sub = addFormElement("Sub Price (£)", "text", "sub", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount")),
 				    price = addFormElement("Total Price To Client (£)", "text", "price", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount"));
 				addFormSubmit("Set Details", function() {
-					var errors = false;
-					[inCar, waiting, dropOff, miles, tripTime, parking, sub, price].map(function(error) { if (error[1].hasChildNodes) { errors = true; } } );
+					var errors = false,
+					    eventFinals = {},
+					    parts;
+					[inCar, waiting, dropOff, miles, tripTime, parking, sub, price].map(function(error) {
+						if (error[1].hasChildNodes) {
+							errors = true;
+						}
+					});
 					if (errors) {
 						return;
 					}
-
+					parts = inCar[0].value.split(":");
+					eventFinals.InCar = new Date(0, 0, 0, parseInt(parts[0]), parseInt(parts[1])).getTime();
+					eventFinals.Waiting = parseInt(waiting[0].value);
+					parts = dropOff[0].value.split(":");
+					eventFinals.DropOff = new Date(0, 0, 0, parseInt(parts[0]), parseInt(parts[1])).getTime();
+					eventFinals.Miles = parseInt(miles[0].value);
+					parts = tripTime[0].value.split(":");
+					eventFinals.TripTime = new Date(0, 0, 0, parseInt(parts[0]), parseInt(parts[1])).getTime();
+					eventFinals.Parking = Math.floor(parseFloat(parking[0].value) * 100);
+					eventFinals.Sub = Math.floor(parseFloat(sub[0].value) * 100);
+					eventFinals.Price = Math.floor(parseFloat(price[0].value) * 100);
+					eventFinals.ID = e.ID;
+					rpc.setEventFinals(eventFinals, function() {
+						stack.removeLayer();
+						showEvent(e);
+					});
 				});
 				rpc.getEventFinals(e.ID, function(eventFinals) {
-					inCar[0].value = eventFinals.InCar;
+					inCar[0].value = (new Date(eventFinals.InCar)).toTimeString();
 					waiting[0].value = eventFinals.Waiting;
 					dropOff[0].value = (new Date(eventFinals.DropOff)).toTimeString();
 					miles[0].value = eventFinals.Miles;
