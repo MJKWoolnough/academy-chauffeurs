@@ -1524,6 +1524,11 @@ window.addEventListener("load", function(oldDate) {
 				    sub = addFormElement("Sub Price (£)", "text", "sub", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount")),
 				    price = addFormElement("Total Price To Client (£)", "text", "price", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount"));
 				addFormSubmit("Set Details", function() {
+					var errors = false;
+					[inCar, waiting, dropOff, miles, tripTime, parking, sub, price].map(function(error) { if (error[1].hasChildNodes) { errors = true; } } );
+					if (errors) {
+						return;
+					}
 
 				});
 				rpc.getEventFinals(e.ID, function(eventFinals) {
