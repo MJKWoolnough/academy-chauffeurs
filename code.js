@@ -1528,7 +1528,7 @@ window.addEventListener("load", function(oldDate) {
 					    eventFinals = {},
 					    parts;
 					[inCar, waiting, dropOff, miles, tripTime, parking, sub, price].map(function(error) {
-						if (error[1].hasChildNodes) {
+						if (error[1].hasChildNodes()) {
 							errors = true;
 						}
 					});
