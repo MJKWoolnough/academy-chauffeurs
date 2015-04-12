@@ -1492,9 +1492,9 @@ window.addEventListener("load", function(oldDate) {
 					inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
 					parking.setInnerText("£" + (eventFinals.Parking / 100));
 					waiting.setInnerText(eventFinals.Waiting + " minutes");
-					dropOff.setInnerText((new Date(eventFinals.DropOff)).toTimeString());
+					dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
 					miles.setInnerText(eventFinals.Miles);
-					tripTime.setInnerText((new Date(eventFinals.tripTime)).toTimeString());
+					tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
 					price.setInnerText("£" + (eventFinals.Price / 100));
 					sub.setInnerText("£" + (eventFinals.Price / 100));
 				});
@@ -1515,14 +1515,14 @@ window.addEventListener("load", function(oldDate) {
 		}];
 		if (e.Start < (new Date()).getTime()) {
 			tabData[tabData.length] = [ "Final Details", function() {
-				var inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]/, "Time format unrecognised (HH:MM)")),
-				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/[0-9]+/, "Please insert a number (or 0)")),
-				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]/, "Time format unrecognised (HH:MM)")),
-				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/[0-9]+/, "Please insert a number (or 0)")),
-				    tripTime = addFormElement("Trip Time", "text", "trip", "", regexpCheck(/([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]/, "Time format unrecognised (HH:MM)")),
-				    parking = addFormElement("Parking Costs (£)", "text", "parking", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount")),
-				    sub = addFormElement("Sub Price (£)", "text", "sub", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount")),
-				    price = addFormElement("Total Price To Client (£)", "text", "price", "", regexpCheck(/[0-9]+(\.[0-9][0-9])?/, "Please enter a valid amount"));
+				var inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
+				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
+				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
+				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
+				    tripTime = addFormElement("Trip Time", "text", "trip", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
+				    parking = addFormElement("Parking Costs (£)", "text", "parking", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
+				    sub = addFormElement("Sub Price (£)", "text", "sub", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
+				    price = addFormElement("Total Price To Client (£)", "text", "price", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount"));
 				addFormSubmit("Set Details", function() {
 					var errors = false,
 					    eventFinals = {},
@@ -1536,13 +1536,13 @@ window.addEventListener("load", function(oldDate) {
 						return;
 					}
 					parts = inCar[0].value.split(":");
-					eventFinals.InCar = new Date(0, 0, 0, parseInt(parts[0]), parseInt(parts[1])).getTime();
+					eventFinals.InCar = (new Date(1970, 0, 1, parseInt(parts[0]), parseInt(parts[1]))).getTime();
 					eventFinals.Waiting = parseInt(waiting[0].value);
 					parts = dropOff[0].value.split(":");
-					eventFinals.DropOff = new Date(0, 0, 0, parseInt(parts[0]), parseInt(parts[1])).getTime();
+					eventFinals.Drop = (new Date(1970, 0, 1, parseInt(parts[0]), parseInt(parts[1]))).getTime();
 					eventFinals.Miles = parseInt(miles[0].value);
 					parts = tripTime[0].value.split(":");
-					eventFinals.TripTime = new Date(0, 0, 0, parseInt(parts[0]), parseInt(parts[1])).getTime();
+					eventFinals.Trip = (new Date(1970, 0, 1, parseInt(parts[0]), parseInt(parts[1]))).getTime();
 					eventFinals.Parking = Math.floor(parseFloat(parking[0].value) * 100);
 					eventFinals.Sub = Math.floor(parseFloat(sub[0].value) * 100);
 					eventFinals.Price = Math.floor(parseFloat(price[0].value) * 100);
@@ -1555,10 +1555,10 @@ window.addEventListener("load", function(oldDate) {
 				rpc.getEventFinals(e.ID, function(eventFinals) {
 					inCar[0].value = (new Date(eventFinals.InCar)).toTimeString();
 					waiting[0].value = eventFinals.Waiting;
-					dropOff[0].value = (new Date(eventFinals.DropOff)).toTimeString();
+					dropOff[0].value = (new Date(eventFinals.Drop)).toTimeString();
 					miles[0].value = eventFinals.Miles;
 					tripTime[0].value = (new Date(eventFinals.Trip)).toTimeString();
-					parking[0].value = eventFinals.Parking;
+					parking[0].value = eventFinals.Parking / 100;
 					sub[0].value = eventFinals.Sub / 100;
 					price[0].value = eventFinals.Price / 100;
 				});
