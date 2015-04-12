@@ -1973,18 +1973,14 @@ window.addEventListener("load", function(oldDate) {
 			},
 			toTimeString: function() {
 				var hour = this.getHours(),
-				    minutes = this.getMinutes(),
-				    seconds = this.getSeconds();
+				    minutes = this.getMinutes();
 				if (hour < 10) {
 					hour = "0" + hour;
 				}
 				if (minutes < 10) {
 					minutes = "0" + minutes;
 				}
-				if (seconds < 10) {
-					seconds = "0" + seconds;
-				}
-				return hour + ":" + minutes + ":" + seconds;
+				return hour + ":" + minutes;
 			},
 			toLocaleString: function() {
 				var year = this.getFullYear(),
