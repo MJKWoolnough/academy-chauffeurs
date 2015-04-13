@@ -51,6 +51,11 @@ func main() {
 		address = "127.0.0.1:8080"
 		dbFName = "test.db"
 	)
+	err := backupDatabase(dbFName)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	nc, err := newCalls(dbFName)
 
