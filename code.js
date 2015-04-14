@@ -1024,6 +1024,7 @@ window.addEventListener("load", function(oldDate) {
 			table.setAttribute("class", "toPrint");
 			layer.appendChild(table);
 			stack.setFragment();
+			layer.setAttribute("class", "toPrint");
 		});
 	},
 	showClient = function(client) {
@@ -1173,6 +1174,7 @@ window.addEventListener("load", function(oldDate) {
 			table.setAttribute("class", "toPrint");
 			layer.appendChild(table);
 			stack.setFragment();
+			layer.setAttribute("class", "toPrint");
 		});
 	},
 	messageList = function() {
