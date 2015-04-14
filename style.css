@@ -485,8 +485,37 @@
 		height : 200px;
 		margin-left : 10px;
 	}
+
+	.printOnly {
+		display : none;
+	}
 }
 
 @media print {
 
+	* {
+		visibility : hidden;
+		height : 0;
+		margin : 0;
+		padding : 0;
+		position : absolute;
+		width : 100%;
+	}
+
+	.toPrint, .toPrint * {
+		position : initial;
+		height : initial;
+		margin : initial;
+		padding : initial;
+		width : initial;
+		visibility : visible;
+	}
+
+	.toPrint table {
+		width : 100%;
+	}
+
+	table td:first-child:last-child {
+		text-align : center;
+	}
 }

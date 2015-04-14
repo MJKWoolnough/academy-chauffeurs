@@ -1021,6 +1021,7 @@ window.addEventListener("load", function(oldDate) {
 			headerRow.appendChild(createElement("th")).setInnerText("Company Name");
 			headerRow.appendChild(createElement("th")).setInnerText("Address");
 			companies.map(addCompanyToTable);
+			table.setAttribute("class", "toPrint");
 			layer.appendChild(table);
 			stack.setFragment();
 		});
@@ -1169,6 +1170,7 @@ window.addEventListener("load", function(oldDate) {
 			headerRow.appendChild(createElement("th")).setInnerText("Phone Number");
 			headerRow.appendChild(createElement("th")).setInnerText("Reference");
 			clients.map(addClientToTable);
+			table.setAttribute("class", "toPrint");
 			layer.appendChild(table);
 			stack.setFragment();
 		});
@@ -1261,19 +1263,24 @@ window.addEventListener("load", function(oldDate) {
 						eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
 						rpc.getEventsWithDriver(driver.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							var row,
-							    i = 0;
+							    i = 0,
+							    pT = "Driver Sheet for " + driver.Name + " for " + eventsStartDate.toDateString();
+							if (eventsStartDate.getTime() !== eventsEndDate.getTime()) {
+								pT += " to " + eventsEndDate.toDateString();
+							}
+							printTitle.setInnerText(pT);
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "6");
 								return;
 							}
 							for (; i < events.length; i++) {
 								row = createElement("tr");
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
 								var clientCell = row.appendChild(createElement("td")),
 								    companyCell = createElement("td");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
-								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
-								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
 								row.appendChild(companyCell);
 								rpc.getClient(events[i].ClientID, function(clientCell, companyCell, client) {
 									clientCell.setInnerText(client.Name);
@@ -1285,13 +1292,17 @@ window.addEventListener("load", function(oldDate) {
 							}
 						});
 					    }),
-					    eventTable = layer.appendChild(createElement("table")),
+					    toPrint = layer.appendChild(createElement("div")),
+					    printTitle = toPrint.appendChild(createElement("h2")),
+					    eventTable = toPrint.appendChild(createElement("table")),
 					    tableTitles = eventTable.appendChild(createElement("tr"));
+					toPrint.setAttribute("class", "toPrint");
+					printTitle.setAttribute("class", "printOnly");
+					tableTitles.appendChild(createElement("th")).setInnerText("Start");
+					tableTitles.appendChild(createElement("th")).setInnerText("End");
 					tableTitles.appendChild(createElement("th")).setInnerText("Client");
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
-					tableTitles.appendChild(createElement("th")).setInnerText("Start");
-					tableTitles.appendChild(createElement("th")).setInnerText("End");
 					tableTitles.appendChild(createElement("th")).setInnerText("Company");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
