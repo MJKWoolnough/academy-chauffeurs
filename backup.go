@@ -22,29 +22,8 @@ func backupDatabase(fname string) error {
 		} else {
 			return err
 		}
-	}
-
-	d, _ := os.Open(backupDir)
-	fis, err := d.Readdir(-1)
-	d.Close()
-	if err != nil {
+	} else if _, err = os.Stat(path.Join(backupDir, nfn)); err == nil || !os.IsNotExist(err) {
 		return err
-	}
-	files := make([]string, 0, maxBackups)
-	regex := regexp.MustCompile("backup_[0-9]{4}-[0-9]{2}-[0-9]{2}\\.db")
-	for _, file := range fis {
-		filename := file.Name()
-		if filename == nfn {
-			return nil
-		}
-		if regex.MatchString(filename) {
-			files = append(files, filename)
-		}
-	}
-	sort.Strings(files)
-	for len(files) >= maxBackups {
-		os.Remove(path.Join(backupDir, files[0]))
-		files = files[1:]
 	}
 
 	nf, err := os.Create(path.Join(backupDir, nfn))
@@ -62,5 +41,29 @@ func backupDatabase(fname string) error {
 		os.Remove(path.Join(backupDir, nfn))
 		return err
 	}
+
+	d, _ := os.Open(backupDir)
+	fis, err := d.Readdir(-1)
+	d.Close()
+	if err != nil {
+		return err
+	}
+	files := make([]string, 0, maxBackups)
+	regex := regexp.MustCompile("backup_[0-9]{4}-[0-9]{2}-[0-9]{2}\\.db")
+	for _, file := range fis {
+		filename := file.Name()
+		if filename == nfn {
+			continue
+		}
+		if regex.MatchString(filename) {
+			files = append(files, filename)
+		}
+	}
+	sort.Strings(files)
+	for len(files) >= maxBackups {
+		os.Remove(path.Join(backupDir, files[0]))
+		files = files[1:]
+	}
+
 	return nil
 }
