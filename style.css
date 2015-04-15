@@ -40,17 +40,6 @@
 
 	/* form */
 
-	label {
-		display : block;
-		float : left;
-		width : 250px;
-		text-align : right;
-	}
-
-	label:after {
-		content: ":"
-	}
-
 	label + input, label + div, label + textarea {
 		float : left;
 		width : 200px;
@@ -379,10 +368,6 @@
 		text-align : center;
 	}
 
-	table td:first-child:last-child {
-		text-align : center;
-	}
-
 	.tabs {
 		line-height : 24px;
 		position : relative;
@@ -474,18 +459,6 @@
 		padding : 10px;
 	}
 
-	.tabs + .content label + div {
-		float : none;
-		width : auto;
-		margin-left : 260px;
-	}
-
-	.tabs + .content label + textarea {
-		width : 400px;
-		height : 200px;
-		margin-left : 10px;
-	}
-
 	.printOnly {
 		display : none;
 	}
@@ -502,6 +475,14 @@
 		width : 100%;
 	}
 
+	.layer {
+		display : none;
+	}
+
+	.layer:last-child {
+		display : initial;
+	}
+
 	h1, h2, h3, h4 {
 		text-align : center;
 	}
@@ -512,18 +493,51 @@
 
 	.toPrint, .toPrint * {
 		position : initial;
-		height : initial;
+		height : initial !important;
 		margin : initial;
 		padding : initial;
 		width : initial;
-		visibility : visible;
+		visibility : visible !important;
 	}
 
 	.toPrint table {
 		width : 100%;
 	}
 
-	table td:first-child:last-child {
-		text-align : center;
+	.noPrint {
+		display : none;
+	}
+
+	textarea {
+		background-color : #fff;
+		border : 0;
 	}
 }
+
+table td:first-child:last-child {
+	text-align : center;
+}
+
+.tabs + .content label + textarea {
+	width : 400px;
+	height : 200px !important;
+	margin-left : 10px;
+}
+
+label {
+	display : inline-block;
+	float : left;
+	width : 250px;
+	text-align : right;
+}
+
+label:after {
+	content: ":"
+}
+
+.tabs + .content label + div {
+	float : none;
+	width : auto;
+	margin-left : 260px;
+}
+

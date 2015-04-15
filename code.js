@@ -861,29 +861,40 @@ window.addEventListener("load", function(oldDate) {
 		});
 		return note;
 	},
+	makeInvoice = function(company, startDate, endDate, events) {
+
+	},
 	showCompany = function(company) {
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText(company.Name);
 		layer.appendChild(makeTabs(
 			[ "Details", function() {
-				layer.appendChild(createElement("label")).setInnerText("Company Name");
-				layer.appendChild(createElement("div")).setInnerText(company.Name);
-				layer.appendChild(createElement("label")).setInnerText("Company Address");
-				layer.appendChild(createElement("div")).setInnerText(company.Address);
-				layer.appendChild(createElement("label")).setInnerText("No. of Clients");
-				var numClients = layer.appendChild(createElement("div")).setInnerText("-"),
+				var toPrint = layer.appendChild(createElement("div"));
+				toPrint.setAttribute("class", "toPrint");
+				toPrint.appendChild(createElement("h2")).setInnerText("Company Details").setAttribute("class", "printOnly");
+				toPrint.appendChild(createElement("label")).setInnerText("Company Name");
+				toPrint.appendChild(createElement("div")).setInnerText(company.Name);
+				toPrint.appendChild(createElement("label")).setInnerText("Company Address");
+				toPrint.appendChild(createElement("div")).setInnerText(company.Address);
+				toPrint.appendChild(createElement("label")).setInnerText("No. of Clients");
+				var numClients = toPrint.appendChild(createElement("div")).setInnerText("-"),
 				    numEvents = createElement("div").setInnerText("-");
-				layer.appendChild(createElement("label")).setInnerText("No. of Events");
-				layer.appendChild(numEvents);
-				layer.appendChild(createElement("label")).setInnerText("Notes");
-				layer.appendChild(makeNote(rpc.getCompanyNote.bind(rpc, company.ID), rpc.setCompanyNote.bind(rpc, company.ID)));
+				toPrint.appendChild(createElement("label")).setInnerText("No. of Events");
+				toPrint.appendChild(numEvents);
+				toPrint.appendChild(createElement("label")).setInnerText("Notes");
+				toPrint.appendChild(makeNote(rpc.getCompanyNote.bind(rpc, company.ID), rpc.setCompanyNote.bind(rpc, company.ID)));
 				rpc.getNumClients(company.ID, numClients.setInnerText.bind(numClients));
 				rpc.getNumEvents(company.ID, numEvents.setInnerText.bind(numEvents));
 			}],
 			["Client", function() {
-				var clientsTable = layer.appendChild(createElement("table")),
+				var toPrint = layer.appendChild(createElement("div")),
+				    printOnly = toPrint.appendChild(createElement("div")),
+				    clientsTable = toPrint.appendChild(createElement("table")),
 				    headerRow = clientsTable.appendChild(createElement("tr")),
 				    i = 0;
+				toPrint.setAttribute("class", "toPrint");
+				printOnly.setAttribute("class", "printOnly");
+				printOnly.appendChild(createElement("h1")).setInnerText("Clients for " + company.Name);
 				headerRow.appendChild(createElement("th")).setInnerText("Name");
 				headerRow.appendChild(createElement("th")).setInnerText("Phone Number");
 				headerRow.appendChild(createElement("th")).setInnerText("Reference");
@@ -914,10 +925,19 @@ window.addEventListener("load", function(oldDate) {
 							}
 							eventTable.removeChild(eventTable.lastChild);
 						}
+						while (eventTable.nextSibling !== null) {
+							eventTable.parentNode.removeChild(eventTable.nextSibling);
+						}
 						var startParts = startDate[0].value.split("/"),
-						    endParts = endDate[0].value.split("/");
+						    endParts = endDate[0].value.split("/"),
+						    pT = "";
 						eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
 						eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						pT = "Events for " + company.Name + " for " + eventsStartDate.toDateString();
+						if (eventsStartDate.getTime() !== eventsEndDate.getTime()) {
+							pT += " to " + eventsEndDate.toDateString();
+						}
+						printTitle.setInnerText(pT);
 						if (eventsStartDate.getTime() > eventsEndDate.getTime()) {
 							endDate[1].setInnerText("Cannot be before start date");
 							eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
@@ -925,19 +945,21 @@ window.addEventListener("load", function(oldDate) {
 						}
 						rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							var row,
-							    i = 0;
+							    i = 0,
+							    invoiceButton = createElement("input");
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
 								return;
 							}
 							for (; i < events.length; i++) {
 								row = createElement("tr");
-								var clientCell = row.appendChild(createElement("td")),
-								    driverCell = row.appendChild(createElement("td"));
-								row.appendChild(createElement("td")).setInnerText(events[i].From);
-								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
+								var clientCell = row.appendChild(createElement("td")),
+								    driverCell = createElement("td");
+								row.appendChild(createElement("td")).setInnerText(events[i].From);
+								row.appendChild(createElement("td")).setInnerText(events[i].To);
+								row.appendChild(driverCell);
 								rpc.getClient(events[i].ClientID, function(clientCell, client) {
 									clientCell.setInnerText(client.Name);
 								}.bind(null, clientCell));
@@ -946,17 +968,27 @@ window.addEventListener("load", function(oldDate) {
 								}.bind(null, driverCell));
 								eventTable.appendChild(row);
 							}
+							invoiceButton.setAttribute("class", "noPrint");
+							invoiceButton.setAttribute("type", "button");
+							invoiceButton.value = "Make Invoice";
+							invoiceButton.addEventListener("click", makeInvoice.bind(null, company, eventsStartDate, eventsEndDate, events));
+							eventTable.parentNode.appendChild(invoiceButton);
 						});
 					    }),
-					    eventFormTable = layer.appendChild(createElement("table")),
+					    toPrint = layer.appendChild(createElement("div")),
+					    printTitle = toPrint.appendChild(createElement("h2")),
+					    eventFormTable = toPrint.appendChild(createElement("table")),
 					    eventTable = eventFormTable.appendChild(createElement("table")),
 					    tableTitles = eventTable.appendChild(createElement("tr"));
-					tableTitles.appendChild(createElement("th")).setInnerText("Client");
-					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
-					tableTitles.appendChild(createElement("th")).setInnerText("From");
-					tableTitles.appendChild(createElement("th")).setInnerText("To");
+					toPrint.setAttribute("class", "toPrint");
+					printTitle.setAttribute("class", "printOnly");
+					printTitle.setInnerText("Events for " + company.Name);
 					tableTitles.appendChild(createElement("th")).setInnerText("Start");
 					tableTitles.appendChild(createElement("th")).setInnerText("End");
+					tableTitles.appendChild(createElement("th")).setInnerText("Client");
+					tableTitles.appendChild(createElement("th")).setInnerText("From");
+					tableTitles.appendChild(createElement("th")).setInnerText("To");
+					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
 			}()],
