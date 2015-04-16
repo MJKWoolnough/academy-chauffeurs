@@ -106,12 +106,13 @@ window.addEventListener("load", function(oldDate) {
 	})(function() {
 		events.init();	
 	}),
-	AllLoad = function(callback) {
+	waitGroup = function(callback) {
 		var state = 0;
-		this.add = function() {
-			this.state++;
+		this.add = function(amount) {
+			amount = amount || 1;
+			this.state += amount;
 		};
-		this.sub = function() {
+		this.done = function() {
 			this.state--;
 			if (this.state === 0) {
 				callback();
@@ -1022,7 +1023,7 @@ window.addEventListener("load", function(oldDate) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
 								return;
 							}
-							var loading = new AllLoad(function() {
+							var loading = new waitGroup(function() {
 								var invoiceButton = createElement("input");
 								invoiceButton.setAttribute("class", "noPrint");
 								invoiceButton.setAttribute("type", "button");
@@ -1044,14 +1045,14 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(driverCell);
 								loading.add();
 								rpc.getClient(events[i].ClientID, function(clientCell, i, client) {
-									loading.sub();
+									loading.done();
 									events[i].ClientReference = client.Reference;
 									events[i].ClientName = client.Name;
 									clientCell.setInnerText(client.Name);
 								}.bind(null, clientCell, i));
 								loading.add();
 								rpc.getDriver(events[i].DriverID, function(driverCell, i, driver) {
-									loading.sub();
+									loading.done();
 									events[i].DriverName = driver.Name;
 									driverCell.setInnerText(driver.Name);
 								}.bind(null, driverCell, i));
@@ -1060,7 +1061,7 @@ window.addEventListener("load", function(oldDate) {
 									if (!eventFinals.FinalsSet) {
 										return;
 									}
-									loading.sub();
+									loading.done();
 									events[i].Parking = eventFinals.Parking;
 									events[i].Price = eventFinals.Price;
 								}.bind(null, i));
