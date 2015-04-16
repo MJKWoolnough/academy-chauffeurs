@@ -1628,6 +1628,9 @@ window.addEventListener("load", function(oldDate) {
 				layer.appendChild(createElement("label")).setInnerText("Total Price");
 				layer.appendChild(price);
 				rpc.getEventFinals(e.ID, function(eventFinals) {
+					if (!eventFinals.FinalsSet) {
+						return;
+					}
 					inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
 					parking.setInnerText("£" + (eventFinals.Parking / 100));
 					waiting.setInnerText(eventFinals.Waiting + " minutes");
