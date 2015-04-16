@@ -70,6 +70,9 @@ const (
 	SetClientNote
 	SetEventNote
 
+	GetSettings
+	SetSettings
+
 	DriverList
 	DriverEvents
 	ClientEvents
@@ -113,6 +116,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Trip] INTEGER DEFAULT 0, [Price] INTEGER DEFAULT 0, [Sub] INTEGER DEFAULT 0, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT NOT NULL DEFAULT '', [FinalsSet] BOOLEAN DEFAULT 0 NOT NULL, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOL DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL);",
 	} {
 		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
 			return nil, err
@@ -173,6 +177,11 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Client] SET [Note] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [Note] = ? WHERE [ID] = ?;",
 
+		// Settings
+
+		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent] FROM [Settings];",
+		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?;",
+
 		// Searches
 
 		// All Drivers
@@ -222,6 +231,28 @@ func newCalls(dbFName string) (*Calls, error) {
 			return nil, err
 		}
 		c.statements[n] = stmt
+	}
+
+	count := 0
+	err = db.QueryRow("SELECT COUNT(1) FROM [Settings]").Scan(&count)
+	if err != nil {
+		return nil, err
+	} else if count == 0 {
+		_, err = db.Exec("INSERT INTO [Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent]) VALUES (?, ?, ?, ?, ?, ?, ?);", "username", "password", DefaultTemplate, 1, "Academy Chauffeurs", 20, 10)
+		if err != nil {
+			return nil, err
+		}
+		setMessageVars("username", "password", DefaultTemplate, "Academy Chauffeurs", true)
+	} else {
+		var (
+			username, password, text, from string
+			useNumber                      bool
+		)
+		err := db.QueryRow("SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom] FROM [Settings];").Scan(&username, &password, &text, &useNumber, &from)
+		if err != nil {
+			return nil, err
+		}
+		setMessageVars(username, password, text, from, useNumber)
 	}
 
 	err = rpc.Register(c)
@@ -486,13 +517,6 @@ func (c *Calls) UnsentMessages(_ struct{}, events *[]Event) error {
 	})
 }
 
-type Message struct {
-}
-
-func (c *Calls) SendMessage(m Message, _ *struct{}) error {
-	return nil
-}
-
 type AutocompleteAddressRequest struct {
 	Priority int
 	Partial  string
@@ -663,5 +687,24 @@ func (c *Calls) GetEventFinals(id int64, e *EventFinals) error {
 
 func (c *Calls) SetEventFinals(e EventFinals, _ *struct{}) error {
 	_, err := c.statements[UpdateEventFinals].Exec(e.InCar, e.Parking, e.Waiting, e.Drop, e.Miles, e.Trip, e.Price, e.Sub, e.ID)
+	return err
+}
+
+type Settings struct {
+	TMUseNumber                                bool
+	TMUsername, TMPassword, TMTemplate, TMFrom string
+	VATPercent, AdminPercent                   float64
+}
+
+func (c *Calls) GetSettings(_ struct{}, s *Settings) error {
+	return c.statements[GetSettings].QueryRow().Scan(&s.TMUsername, &s.TMPassword, &s.TMTemplate, &s.TMUseNumber, &s.TMFrom, &s.VATPercent, &s.AdminPercent)
+}
+
+func (c *Calls) SetSettings(s Settings, errStr *string) error {
+	if err := setMessageVars(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMFrom, s.TMUseNumber); err != nil {
+		*errStr = err.Error()
+		return nil
+	}
+	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.VATPercent, s.AdminPercent)
 	return err
 }
