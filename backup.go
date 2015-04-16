@@ -15,6 +15,12 @@ const (
 )
 
 func backupDatabase(fname string) error {
+	if _, err := os.Stat(fname); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
 	nfn := "backup_" + time.Now().Format("2006-01-02") + ".db"
 	if _, err := os.Stat(backupDir); err != nil {
 		if os.IsNotExist(err) {
