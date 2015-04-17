@@ -77,6 +77,8 @@ window.addEventListener("load", function(oldDate) {
 		this.clients       = request.bind(this, "Clients", null);          // callback
 		this.unsentMessages = request.bind(this, "UnsentMessages", null);  // callback
 		this.clientsForCompany = request.bind(this, "ClientsForCompany"); // id, callback
+		this.getSettings   = request.bind(this, "GetSettings", null); //      callback
+		this.setSettings   = request.bind(this, "SetSettings"); // settings , callback
 		this.getEventsWithDriver = function(driverID, start, end, callback) {
 			request("DriverEvents", {"ID": driverID, "Start": start, "End": end}, callback);
 		};
