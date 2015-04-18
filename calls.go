@@ -37,23 +37,31 @@ const (
 	CreateCompany
 	CreateClient
 	CreateEvent
+	CreateFromAddress
+	CreateToAddress
 
 	ReadDriver
 	ReadCompany
 	ReadClient
 	ReadEvent
 	ReadEventFinals
+	ReadFromAddress
+	ReadToAddress
 
 	UpdateDriver
 	UpdateCompany
 	UpdateClient
 	UpdateEvent
 	UpdateEventFinals
+	UpdateFromAddress
+	UpdateToAddress
 
 	DeleteDriver
 	DeleteCompany
 	DeleteClient
 	DeleteEvent
+	DeleteFromAddress
+	DeleteToAddress
 
 	DeleteDriverEvents
 	DeleteClientEvents
@@ -115,8 +123,10 @@ func newCalls(dbFName string) (*Calls, error) {
 		"[Driver]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [RegistrationNumber] TEXT, [PhoneNumber] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
-		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] TEXT, [To] TEXT, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Trip] INTEGER DEFAULT 0, [Price] INTEGER DEFAULT 0, [Sub] INTEGER DEFAULT 0, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT NOT NULL DEFAULT '', [FinalsSet] BOOLEAN DEFAULT 0 NOT NULL, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
-		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOL DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL);",
+		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] INTEGER, [To] INTEGER, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Trip] INTEGER DEFAULT 0, [Price] INTEGER DEFAULT 0, [Sub] INTEGER DEFAULT 0, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT NOT NULL DEFAULT '', [FinalsSet] BOOLEAN DEFAULT 0 NOT NULL, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
+		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL);",
+		"[FromAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT, [Count] INTEGER);",
+		"[ToAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT, [Count] INTEGER);",
 	} {
 		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
 			return nil, err
@@ -134,14 +144,18 @@ func newCalls(dbFName string) (*Calls, error) {
 		"INSERT INTO [Company]([Name], [Address]) VALUES (?, ?);",
 		"INSERT INTO [Client]([CompanyID], [Name], [PhoneNumber], [Reference]) VALUES (?, ?, ?, ?);",
 		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To]) VALUES (?, ?, ?, ?, ?, ?);",
+		"INSERT INTO [FromAddresses]([Address]) VALUES (?);",
+		"INSERT INTO [ToAddresses]([Address], [Count]) VALUES (?, 1);",
 
 		// Read
 
 		"SELECT [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Name], [Address] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
-		"SELECT [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
 		"SELECT [FinalsSet], [InCar], [Parking], [Waiting], [Drop], [Miles], [Trip], [Price], [Sub] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [ID] FROM [FromAddress] WHERE [Address] = ?;",
+		"SELECT [ID] FROM [ToAddress] WHERE [Address] = ?;",
 
 		// Update
 
@@ -150,6 +164,8 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [FinalsSet] = 1, [InCar] = ?, [Parking] = ?, [Waiting] = ?, [Drop] = ?, [Miles] = ?, [Trip] = ?, [Price] = ?, [Sub] = ? WHERE [ID] = ?;",
+		"UPDATE [FromAddresses] SET [Count] = [Count] + 1 WHERE [ID] = ?;",
+		"UPDATE [ToAddresses] SET [Count] = [Count] + 1 WHERE [ID] = ?;",
 
 		// Delete (set deleted)
 
@@ -162,6 +178,8 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] = ?;",
 		"UPDATE [Client] SET [Deleted] = 1 WHERE [CompanyID] = ?;",
 		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?);",
+		"UPDATE [FromAddresses] SET [Count] = [Count] - 1 WHERE [ID] = (SELECT [From] FROM [Event] WHERE [ID] = ?);",
+		"UPDATE [ToAddresses] SET [Count] = [Count] - 1 WHERE [ID] = (SELECT [To] FROM [Event] WHERE [ID] = ?);",
 
 		// Get Notes
 
@@ -253,6 +271,14 @@ func newCalls(dbFName string) (*Calls, error) {
 			return nil, err
 		}
 		setMessageVars(username, password, text, from, useNumber)
+		_, err = db.Exec("DELETE FROM [FromAddresses] WHERE [Count] = 0;")
+		if err != nil {
+			return nil, err
+		}
+		_, err = db.Exec("DELETE FROM [ToAddresses] WHERE [Count] = 0;")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = rpc.Register(c)
@@ -644,7 +670,7 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 		first = "To"
 		second = "From"
 	}
-	err := c.autocomplete(vals, first, "Event", req.Partial+"%", true)
+	err := c.autocomplete(vals, "Address", first+"Addresses", req.Partial+"%", true)
 	filterDupes(vals)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
@@ -654,7 +680,7 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 		notIDsOne = append(notIDsOne, v.ID)
 	}
 	preLen := len(*vals)
-	err = c.autocomplete(vals, second, "Event", req.Partial+"%", true)
+	err = c.autocomplete(vals, "Address", second+"Addresses", req.Partial+"%", true)
 	filterDupes(vals)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
@@ -663,12 +689,12 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 	for _, v := range (*vals)[preLen:] {
 		notIDsTwo = append(notIDsTwo, v.ID)
 	}
-	err = c.autocomplete(vals, first, "Event", "%"+req.Partial+"%", true, notIDsOne...)
+	err = c.autocomplete(vals, "Address", first+"Addresses", "%"+req.Partial+"%", true, notIDsOne...)
 	filterDupes(vals)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
-	err = c.autocomplete(vals, second, "Event", "%"+req.Partial+"%", true, notIDsTwo...)
+	err = c.autocomplete(vals, "Address", second+"Addresses", "%"+req.Partial+"%", true, notIDsTwo...)
 	filterDupes(vals)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err

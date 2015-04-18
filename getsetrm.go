@@ -1,6 +1,9 @@
 package main
 
-import "database/sql"
+import (
+	"database/sql"
+	"strings"
+)
 
 func (c *Calls) GetDriver(id int64, d *Driver) error {
 	c.mu.Lock()
@@ -224,22 +227,71 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 		resp.Errors = true
 		resp.ToError = "To/Dropoff location required"
 	}
-	var err error
 	if !resp.Errors {
 		c.mu.Lock()
 		defer c.mu.Unlock()
+		fromID, err := c.addressID(e.From, false)
+		if err != nil {
+			return err
+		}
+		toID, err := c.addressID(e.To, true)
+		if err != nil {
+			return err
+		}
 		if e.ID == 0 {
-			r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, e.From, e.To)
+			r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID)
 			if er == nil {
 				resp.ID, er = r.LastInsertId()
 			}
 			err = er
 		} else {
+			_, err = c.statements[DeleteFromAddress].Exec(e.ID)
+			if err != nil {
+				return err
+			}
+			_, err = c.statements[DeleteToAddress].Exec(e.ID)
+			if err != nil {
+				return err
+			}
 			resp.ID = e.ID
-			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, e.From, e.To, e.ID)
+			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, e.ID)
+		}
+		if err != nil {
+			return err
 		}
 	}
-	return err
+	return nil
+}
+
+func (c *Calls) addressID(address string, fromTo bool) (int64, error) {
+	var readAddress, createAddress, updateAddress int
+	if fromTo {
+		readAddress = ReadToAddress
+		createAddress = CreateToAddress
+		updateAddress = UpdateToAddress
+	} else {
+		readAddress = ReadFromAddress
+		createAddress = CreateFromAddress
+		updateAddress = UpdateFromAddress
+	}
+	address = strings.TrimSpace(address)
+	var id int64
+	err := c.statements[readAddress].QueryRow(address).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	if id == 0 {
+		r, err := c.statements[createAddress].Exec(address)
+		if err != nil {
+			return 0, err
+		}
+		return r.LastInsertId()
+	}
+	_, err = c.statements[updateAddress].Exec(id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
 func (c *Calls) RemoveDriver(id int64, _ *struct{}) error {
@@ -280,6 +332,14 @@ func (c *Calls) RemoveCompany(id int64, _ *struct{}) error {
 }
 
 func (c *Calls) RemoveEvent(id int64, _ *struct{}) error {
-	_, err := c.statements[DeleteEvent].Exec(id)
+	_, err := c.statements[DeleteFromAddress].Exec(id)
+	if err != nil {
+		return err
+	}
+	_, err = c.statements[DeleteToAddress].Exec(id)
+	if err != nil {
+		return err
+	}
+	_, err = c.statements[DeleteEvent].Exec(id)
 	return err
 }
