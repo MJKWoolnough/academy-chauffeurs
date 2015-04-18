@@ -671,7 +671,6 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 		second = "From"
 	}
 	err := c.autocomplete(vals, "Address", first+"Addresses", req.Partial+"%", true)
-	filterDupes(vals)
 	if err != nil || len(*vals) >= MAXRETURN {
 		return err
 	}
