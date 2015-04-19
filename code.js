@@ -1214,19 +1214,22 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText(client.Name);
 		layer.appendChild(makeTabs(
 			[ "Details", function() {
-				layer.appendChild(createElement("label")).setInnerText("Name");
-				layer.appendChild(createElement("div")).setInnerText(client.Name);
-				layer.appendChild(createElement("label")).setInnerText("Phone Number");
-				layer.appendChild(createElement("div")).setInnerText(client.PhoneNumber);
-				layer.appendChild(createElement("label")).setInnerText("Reference");
-				layer.appendChild(createElement("div")).setInnerText(client.Reference);
-				layer.appendChild(createElement("label")).setInnerText("Company Name");
-				layer.appendChild(createElement("div")).setInnerText(client.CompanyName);
-				layer.appendChild(createElement("label")).setInnerText("No. of Events");
-				var bookings = layer.appendChild(createElement("div")).setInnerText("-");
+				var toPrint = layer.appendChild(createElement("div"));
+				toPrint.setAttribute("class", "toPrint");
+				toPrint.appendChild(createElement("h2")).setInnerText("Client Details").setAttribute("class", "printOnly");
+				toPrint.appendChild(createElement("label")).setInnerText("Name");
+				toPrint.appendChild(createElement("div")).setInnerText(client.Name);
+				toPrint.appendChild(createElement("label")).setInnerText("Phone Number");
+				toPrint.appendChild(createElement("div")).setInnerText(client.PhoneNumber);
+				toPrint.appendChild(createElement("label")).setInnerText("Reference");
+				toPrint.appendChild(createElement("div")).setInnerText(client.Reference);
+				toPrint.appendChild(createElement("label")).setInnerText("Company Name");
+				toPrint.appendChild(createElement("div")).setInnerText(client.CompanyName);
+				toPrint.appendChild(createElement("label")).setInnerText("No. of Events");
+				var bookings = toPrint.appendChild(createElement("div")).setInnerText("-");
 				rpc.getNumEventsClient(client.ID, bookings.setInnerText.bind(bookings));
-				layer.appendChild(createElement("label")).setInnerText("Notes");
-				layer.appendChild(makeNote(rpc.getClientNote.bind(rpc, client.ID), rpc.setClientNote.bind(rpc, client.ID)));
+				toPrint.appendChild(createElement("label")).setInnerText("Notes");
+				toPrint.appendChild(makeNote(rpc.getClientNote.bind(rpc, client.ID), rpc.setClientNote.bind(rpc, client.ID)));
 			}],
 			[ "Events", function () {
 				var eventsStartDate = new Date(),
@@ -1243,9 +1246,15 @@ window.addEventListener("load", function(oldDate) {
 							eventTable.removeChild(eventTable.lastChild);
 						}
 						var startParts = startDate[0].value.split("/"),
-						    endParts = endDate[0].value.split("/");
+						    endParts = endDate[0].value.split("/"),
+						    pT = "";
 						eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
 						eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						pT = "Events for " + client.Name + " for " + eventsStartDate.toDateString();
+						if (eventsStartDate.getTime() !== eventsEndDate.getTime()) {
+							pT += " to " + eventsEndDate.toDateString();
+						}
+						printTitle.setInnerText(pT);
 						rpc.getEventsWithClient(client.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							var row,
 							    i = 0;
@@ -1267,8 +1276,12 @@ window.addEventListener("load", function(oldDate) {
 							}
 						});
 					    }),
-					    eventTable = layer.appendChild(createElement("table")),
+					    toPrint = layer.appendChild(createElement("div")),
+					    printTitle = toPrint.appendChild(createElement("h2")),
+					    eventTable = toPrint.appendChild(createElement("table")),
 					    tableTitles = eventTable.appendChild(createElement("tr"));
+					toPrint.setAttribute("class", "toPrint");
+					printTitle.setAttribute("class", "printOnly");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
@@ -1420,16 +1433,19 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText(driver.Name);
 		layer.appendChild(makeTabs(
 			[ "Details", function() {
-				layer.appendChild(createElement("label")).setInnerText("Name");
-				layer.appendChild(createElement("div")).setInnerText(driver.Name);
-				layer.appendChild(createElement("label")).setInnerText("Phone Number");
-				layer.appendChild(createElement("div")).setInnerText(driver.PhoneNumber);
-				layer.appendChild(createElement("label")).setInnerText("Registration Number");
-				layer.appendChild(createElement("div")).setInnerText(driver.RegistrationNumber);
-				layer.appendChild(createElement("label")).setInnerText("No. of Events");
-				var bookings = layer.appendChild(createElement("div")).setInnerText("-");
-				layer.appendChild(createElement("label")).setInnerText("Notes");
-				layer.appendChild(makeNote(rpc.getDriverNote.bind(rpc, driver.ID), rpc.setDriverNote.bind(rpc, driver.ID)));
+				var toPrint = layer.appendChild(createElement("div"));
+				toPrint.setAttribute("class", "toPrint");
+				toPrint.appendChild(createElement("h2")).setInnerText("Driver Details").setAttribute("class", "printOnly");
+				toPrint.appendChild(createElement("label")).setInnerText("Name");
+				toPrint.appendChild(createElement("div")).setInnerText(driver.Name);
+				toPrint.appendChild(createElement("label")).setInnerText("Phone Number");
+				toPrint.appendChild(createElement("div")).setInnerText(driver.PhoneNumber);
+				toPrint.appendChild(createElement("label")).setInnerText("Registration Number");
+				toPrint.appendChild(createElement("div")).setInnerText(driver.RegistrationNumber);
+				toPrint.appendChild(createElement("label")).setInnerText("No. of Events");
+				var bookings = toPrint.appendChild(createElement("div")).setInnerText("-");
+				toPrint.appendChild(createElement("label")).setInnerText("Notes");
+				toPrint.appendChild(makeNote(rpc.getDriverNote.bind(rpc, driver.ID), rpc.setDriverNote.bind(rpc, driver.ID)));
 				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
 			}],
 			[ "Events", function() {
@@ -1642,31 +1658,34 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText("Event Details");
 		var tabData = new Array();
 		tabData[0] = [ "Details", function () {
-			layer.appendChild(createElement("label")).setInnerText("Client Name");
-			var clientName = layer.appendChild(createElement("div")).setInnerText("-"),
+			var toPrint = layer.appendChild(createElement("div"));
+			toPrint.setAttribute("class", "toPrint");
+			toPrint.appendChild(createElement("h2")).setInnerText("Event Details").setAttribute("class", "printOnly");
+			toPrint.appendChild(createElement("label")).setInnerText("Client Name");
+			var clientName = toPrint.appendChild(createElement("div")).setInnerText("-"),
 			    clientRef = createElement("div").setInnerText("-"),
 			    companyName = createElement("div").setInnerText("-"),
 			    driverName = createElement("div").setInnerText("-"),
 			    driverReg = createElement("div").setInnerText("-");
-			layer.appendChild(createElement("label")).setInnerText("Client Reference");
-			layer.appendChild(clientRef);
-			layer.appendChild(createElement("label")).setInnerText("Company Name");
-			layer.appendChild(companyName);
-			layer.appendChild(createElement("label")).setInnerText("Driver Name");
-			layer.appendChild(driverName);
-			layer.appendChild(createElement("label")).setInnerText("Driver Registration");
-			layer.appendChild(driverReg);
-			layer.appendChild(createElement("label")).setInnerText("Start Time");
-			layer.appendChild(createElement("div")).setInnerText(new Date(e.Start).toLocaleString());
-			layer.appendChild(createElement("label")).setInnerText("End Time");
-			layer.appendChild(createElement("div")).setInnerText(new Date(e.End).toLocaleString());
-			layer.appendChild(createElement("label")).setInnerText("From");
-			layer.appendChild(createElement("div")).setInnerText(e.From);
-			layer.appendChild(createElement("label")).setInnerText("To");
-			layer.appendChild(createElement("div")).setInnerText(e.To);
+			toPrint.appendChild(createElement("label")).setInnerText("Client Reference");
+			toPrint.appendChild(clientRef);
+			toPrint.appendChild(createElement("label")).setInnerText("Company Name");
+			toPrint.appendChild(companyName);
+			toPrint.appendChild(createElement("label")).setInnerText("Driver Name");
+			toPrint.appendChild(driverName);
+			toPrint.appendChild(createElement("label")).setInnerText("Driver Registration");
+			toPrint.appendChild(driverReg);
+			toPrint.appendChild(createElement("label")).setInnerText("Start Time");
+			toPrint.appendChild(createElement("div")).setInnerText(new Date(e.Start).toLocaleString());
+			toPrint.appendChild(createElement("label")).setInnerText("End Time");
+			toPrint.appendChild(createElement("div")).setInnerText(new Date(e.End).toLocaleString());
+			toPrint.appendChild(createElement("label")).setInnerText("From");
+			toPrint.appendChild(createElement("div")).setInnerText(e.From);
+			toPrint.appendChild(createElement("label")).setInnerText("To");
+			toPrint.appendChild(createElement("div")).setInnerText(e.To);
 			if (e.Start < (new Date()).getTime()) {
-				layer.appendChild(createElement("label")).setInnerText("In Car Time");
-				var inCar = layer.appendChild(createElement("div")).setInnerText("-"),
+				toPrint.appendChild(createElement("label")).setInnerText("In Car Time");
+				var inCar = toPrint.appendChild(createElement("div")).setInnerText("-"),
 				    parking = createElement("div").setInnerText("-"),
 				    waiting = createElement("div").setInnerText("-"),
 				    dropOff = createElement("div").setInnerText("-"),
@@ -1674,20 +1693,20 @@ window.addEventListener("load", function(oldDate) {
 				    tripTime = createElement("div").setInnerText("-"),
 				    price = createElement("div").setInnerText("-"),
 				    sub = createElement("div").setInnerText("-");
-				layer.appendChild(createElement("label")).setInnerText("Waiting Time");
-				layer.appendChild(waiting);
-				layer.appendChild(createElement("label")).setInnerText("Drop Off Time");
-				layer.appendChild(dropOff);
-				layer.appendChild(createElement("label")).setInnerText("Miles Travelled");
-				layer.appendChild(miles);
-				layer.appendChild(createElement("label")).setInnerText("Trip Time");
-				layer.appendChild(tripTime);
-				layer.appendChild(createElement("label")).setInnerText("Parking Costs");
-				layer.appendChild(parking);
-				layer.appendChild(createElement("label")).setInnerText("Sub Price");
-				layer.appendChild(sub);
-				layer.appendChild(createElement("label")).setInnerText("Total Price");
-				layer.appendChild(price);
+				toPrint.appendChild(createElement("label")).setInnerText("Waiting Time");
+				toPrint.appendChild(waiting);
+				toPrint.appendChild(createElement("label")).setInnerText("Drop Off Time");
+				toPrint.appendChild(dropOff);
+				toPrint.appendChild(createElement("label")).setInnerText("Miles Travelled");
+				toPrint.appendChild(miles);
+				toPrint.appendChild(createElement("label")).setInnerText("Trip Time");
+				toPrint.appendChild(tripTime);
+				toPrint.appendChild(createElement("label")).setInnerText("Parking Costs");
+				toPrint.appendChild(parking);
+				toPrint.appendChild(createElement("label")).setInnerText("Sub Price");
+				toPrint.appendChild(sub);
+				toPrint.appendChild(createElement("label")).setInnerText("Total Price");
+				toPrint.appendChild(price);
 				rpc.getEventFinals(e.ID, function(eventFinals) {
 					if (!eventFinals.FinalsSet) {
 						return;
@@ -1702,8 +1721,8 @@ window.addEventListener("load", function(oldDate) {
 					sub.setInnerText("£" + (eventFinals.Price / 100));
 				});
 			}
-			layer.appendChild(createElement("label")).setInnerText("Notes");
-			layer.appendChild(makeNote(rpc.getEventNote.bind(rpc, e.ID), rpc.setEventNote.bind(rpc, e.ID)));
+			toPrint.appendChild(createElement("label")).setInnerText("Notes");
+			toPrint.appendChild(makeNote(rpc.getEventNote.bind(rpc, e.ID), rpc.setEventNote.bind(rpc, e.ID)));
 			rpc.getClient(e.ClientID, function(client) {
 				clientName.setInnerText(client.Name);
 				clientRef.setInnerText(client.Reference);
