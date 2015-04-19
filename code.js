@@ -933,19 +933,24 @@ window.addEventListener("load", function(oldDate) {
 		stack.addLayer("invoice");
 		layer.setAttribute("class", "toPrint");
 		stack.addFragment();
-		var table = layer.appendChild(createElement("table")),
-		    addressDate, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0, subTotal, admin, adminTotal, vat, parking, total;
-		table.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("Invoice to:").setAttribute("colspan", "3");
-		addressDate = table.appendChild(createElement("tr"));
+		var topTable = layer.appendChild(createElement("table")),
+		    table = layer.appendChild(createElement("table")),
+		    costTable = layer.appendChild(createElement("table")),
+		    addressDate, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0,
+		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, lineOne, lineTwo;
+		topTable.setAttribute("class", "invoiceTop");
+		topTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("Invoice to:").setAttribute("colspan", "3");
+		addressDate = topTable.appendChild(createElement("tr"));
 		addressDate.appendChild(createElement("td")).setPreText(company.Name + "\n" + company.Address).setAttribute("rowspan", "3");
 		addressDate.appendChild(createElement("td")).setInnerText("Date :");
-		addressDate.appendChild(createElement("td")).setInnerText((new Date()).toOrdinalDate());
-		invoiceNo = table.appendChild(createElement("tr"));
+		addressDate.appendChild(createElement("td")).appendChild(createElement("input")).value = (new Date()).toOrdinalDate();
+		invoiceNo = topTable.appendChild(createElement("tr"));
 		invoiceNo.appendChild(createElement("td")).setInnerText("Invoice No:");
 		invoiceNo.appendChild(createElement("td")).appendChild(createElement("input")).setAttribute("type", "text");
-		ref = table.appendChild(createElement("tr"));
+		ref = topTable.appendChild(createElement("tr"));
 		ref.appendChild(createElement("td")).setInnerText("Your Ref:");
 		ref.appendChild(createElement("td")).appendChild(createElement("input")).setAttribute("type", "text");
+		table.setAttribute("class", "invoice");
 		tableTitles = table.appendChild(createElement("tr"));
 		tableTitles.appendChild(createElement("th")).setInnerText("Date");
 		tableTitles.appendChild(createElement("th")).setInnerText("Name").setAttribute("colspan", 2);
@@ -966,33 +971,42 @@ window.addEventListener("load", function(oldDate) {
 			totalParking += events[i].Parking;
 			totalPrice += events[i].Price;
 		}
-		subTotal = table.appendChild(createElement("tr"));
+		costTable.setAttribute("class", "invoiceBottom");
+		subTotal = costTable.appendChild(createElement("tr"));
 		subTotal.setAttribute("class", "totals");
-		subTotal.appendChild(createElement("td")).setAttribute("colspan", "4");
+		subTotal.appendChild(createElement("td"));
 		subTotal.appendChild(createElement("td")).setInnerText("Sub Total");
 		subTotal.appendChild(createElement("td")).setInnerText((totalPrice / 100).formatMoney()).setAttribute("class", "currency");
-		var admin = table.appendChild(createElement("tr")),
-		    adminPrice = totalPrice * adminPercent / 100;
-		admin.appendChild(createElement("td")).setAttribute("colspan", "4");
+		admin = costTable.appendChild(createElement("tr"));
+		adminPrice = totalPrice * adminPercent / 100;
+		admin.appendChild(createElement("td"));
 		admin.appendChild(createElement("td")).setInnerText("Account Admin");
 		admin.appendChild(createElement("td")).setInnerText((adminPrice / 100).formatMoney()).setAttribute("class", "currency");
-		var adminTotal = table.appendChild(createElement("tr")),
-		    adminTotalPrice = totalPrice + adminPrice;
-		adminTotal.appendChild(createElement("td")).setAttribute("colspan", "4");
-		adminTotal.appendChild(createElement("td")).setInnerText("Account Admin");
+		lineOne = costTable.appendChild(createElement("tr"));
+		lineOne.setAttribute("class", "line");
+		lineOne.appendChild(createElement("td"));
+		lineOne.appendChild(createElement("td")).setAttribute("colspan", "2");
+		adminTotal = costTable.appendChild(createElement("tr"));
+		adminTotalPrice = totalPrice + adminPrice;
+		adminTotal.appendChild(createElement("td"));
+		adminTotal.appendChild(createElement("td")).setInnerText("");
 		adminTotal.appendChild(createElement("td")).setInnerText((adminTotalPrice / 100).formatMoney()).setAttribute("class", "currency");
-		var vat = table.appendChild(createElement("tr")),
-		    vatPrice = adminTotalPrice * vatPercent / 100;
-		vat.appendChild(createElement("td")).setAttribute("colspan", "4");
+		vat = costTable.appendChild(createElement("tr"));
+		vat.appendChild(createElement("td"));
+		vatPrice = adminTotalPrice * vatPercent / 100;
 		vat.appendChild(createElement("td")).setInnerText("Plus VAT @ " + vatPercent + "%");
 		vat.appendChild(createElement("td")).setInnerText((vatPrice / 100).formatMoney()).setAttribute("class", "currency");
-		var parking = table.appendChild(createElement("tr"));
-		parking.appendChild(createElement("td")).setAttribute("colspan", "4");
+		parking = costTable.appendChild(createElement("tr"));
+		parking.appendChild(createElement("td"));
 		parking.appendChild(createElement("td")).setInnerText("Parking");
 		parking.appendChild(createElement("td")).setInnerText((totalParking / 100).formatMoney()).setAttribute("class", "currency");
-		var total = table.appendChild(createElement("tr"));
-		    totalPrice = adminTotalPrice + vatPrice + totalParking;
-		total.appendChild(createElement("td")).setAttribute("colspan", "4");
+		lineTwo = costTable.appendChild(createElement("tr"));
+		lineTwo.setAttribute("class", "doubleLine");
+		lineTwo.appendChild(createElement("td"));
+		lineTwo.appendChild(createElement("td")).setAttribute("colspan", "2");
+		total = costTable.appendChild(createElement("tr"));
+		totalPrice = adminTotalPrice + vatPrice + totalParking;
+		total.appendChild(createElement("td"));
 		total.appendChild(createElement("td")).setInnerText("Total");
 		total.appendChild(createElement("td")).setInnerText((totalPrice / 100).formatMoney()).setAttribute("class", "currency");
 		stack.setFragment();
@@ -2285,10 +2299,7 @@ window.addEventListener("load", function(oldDate) {
 			toRet += "," + integer.substr(0, 3);
 			integer = integer.substr(3);
 		}
-		toRet += integer;
-		if (fract > 0) {
-			toRet += "." + fract.toFixed(2).substr(2);
-		}
+		toRet += integer + "." + fract.toFixed(2).substr(2);
 		return toRet;
 	}
 }.bind(null, Date));

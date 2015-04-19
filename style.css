@@ -508,13 +508,21 @@
 		display : none;
 	}
 
-	textarea {
+	textarea, input {
 		background-color : #fff;
 		border : 0;
 	}
+
+	input[type="text"] {
+		width : 100%;
+	}
+
+	table {
+		width : 100%;
+	}
 }
 
-table td:first-child:last-child {
+table tr:last-child td:first-child:last-child {
 	text-align : center;
 }
 
@@ -541,3 +549,79 @@ label:after {
 	margin-left : 260px;
 }
 
+
+.invoiceTop tr:first-child + tr td:first-child {
+	width : 99%;
+}
+
+.invoiceTop td:not(:first-child), .invoiceTop td:nth-last-child(2) {
+	white-space : nowrap;
+}
+
+.invoiceTop td:nth-last-child(2) {
+	text-align : right;
+	padding-right : 20px;
+}
+
+.invoice, .invoiceTop, .invoiceBottom {
+	width : 100%;
+}
+
+.invoice td:last-child, .invoice td:nth-last-child(2) {
+	text-align : right;
+}
+
+.invoice td:nth-last-child(2) {
+	padding-right : 10px;
+}
+
+.invoice td:nth-child(2) {
+	text-align : center;
+}
+
+.invoice td:nth-child(4) {
+	text-align : left;
+}
+
+.invoice td.currency:before, .invoiceBottom td.currency:before {
+	content : "£";
+	display : block;
+	float : left;
+}
+
+
+.invoice {
+	margin : 20px 0;
+}
+
+.invoiceBottom td:first-child {
+	width : 99%;
+}
+
+.invoiceBottom td:first-child + td {
+	padding-right : 20px;
+	text-align : right;
+	white-space : nowrap;
+}
+
+.invoiceBottom td:last-child {
+	white-space : nowrap;
+	text-align : right !important;
+}
+
+.invoiceBottom td:last-child:before {
+	margin-left : -10px;
+}
+
+.invoiceBottom tr.line td:last-child {
+	border-bottom : 1px solid #000;
+}
+
+.invoiceBottom tr.line + tr td {
+	border-bottom : 10px solid transparent;
+}
+
+.invoiceBottom tr.doubleLine td:last-child {
+	border-top : 10px solid transparent;
+	border-bottom : 3px double #000;
+}
