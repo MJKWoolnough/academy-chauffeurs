@@ -516,10 +516,10 @@
 	input[type="text"] {
 		width : 100%;
 	}
+}
 
-	table {
-		width : 100%;
-	}
+table {
+	width : 100%;
 }
 
 table tr:last-child td:first-child:last-child {
@@ -561,10 +561,6 @@ label:after {
 .invoiceTop td:nth-last-child(2) {
 	text-align : right;
 	padding-right : 20px;
-}
-
-.invoice, .invoiceTop, .invoiceBottom {
-	width : 100%;
 }
 
 .invoice td:last-child, .invoice td:nth-last-child(2) {
