@@ -206,13 +206,13 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
-		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [DriverID] = ? AND [Deleted] = 0 AND [Start] Between ? AND ? ORDER BY [Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] Between ? AND ? ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for client
-		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ClientID] = ? AND [Deleted] = 0 AND [Start] Between ? AND ? ORDER BY [Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] Between ? AND ? ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for company
-		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Deleted] = 0 AND [Start] Between ? AND ? ORDER BY [Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Event].[Deleted] = 0 AND [Event].[Start] Between ? AND ? ORDER BY [Event].[Start] ASC;",
 
 		// Event Overlaps
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND ([Start] <= ? AND [START] > ? OR [End] <= ?3 AND [END] > ?4);",
@@ -227,7 +227,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [CompanyID] = ? AND [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Events with unsent messages
-		"SELECT [ID], [DriverID], [ClientID], [Start], [End], [From], [To] FROM [Event] WHERE [MessageSent] = 0 AND [Start] > ? AND [Deleted] = 0;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[MessageSent] = 0 AND [Event].[Start] > ? AND [Event].[Deleted] = 0;",
 
 		// Disambiguate clients
 		"SELECT [Company].[Name], [Client].[Reference] FROM [Client] JOIN [Company] ON [Client].[CompanyID] = [Company].[ID] WHERE [Client].[ID] = ?;",
