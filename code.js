@@ -112,11 +112,11 @@ window.addEventListener("load", function(oldDate) {
 		var state = 0;
 		this.add = function(amount) {
 			amount = amount || 1;
-			this.state += amount;
+			state += amount;
 		};
 		this.done = function() {
-			this.state--;
-			if (this.state === 0) {
+			state--;
+			if (state === 0) {
 				callback();
 			}
 		};
