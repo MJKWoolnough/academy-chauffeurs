@@ -525,7 +525,7 @@ func (c *Calls) ClientsForCompany(companyID int64, clients *[]Client) error {
 
 func (c *Calls) UnsentMessages(_ struct{}, events *[]Event) error {
 	*events = make([]Event, 0)
-	return c.getList(UnsentMessages, is{time.Now()}, func() is {
+	return c.getList(UnsentMessages, is{time.Now().Unix() * 1000}, func() is {
 		var (
 			e   Event
 			pos = len(*events)
