@@ -277,7 +277,7 @@ func (c *Calls) addressID(address string, fromTo bool) (int64, error) {
 	address = strings.TrimSpace(address)
 	var id int64
 	err := c.statements[readAddress].QueryRow(address).Scan(&id)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return 0, err
 	}
 	if id == 0 {
