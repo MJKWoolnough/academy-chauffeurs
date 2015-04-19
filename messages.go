@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"text/template"
 	"time"
 
@@ -22,11 +23,27 @@ type MessageData struct {
 	Message string
 }
 
+type MessageVars struct {
+	Start, End                            time.Time
+	From, To, ClientName, DriverName, Reg string
+}
+
 func setMessageVars(username, password, messageTemplate, fromS string, fromNumberB bool) error {
 	t, err := template.New("Message").Parse(messageTemplate)
 	if err != nil {
 		return err
 	}
+	// test template
+
+	m := MessageVars{
+		time.Now(), time.Now(),
+		"", "", "", "", "",
+	}
+
+	if err := t.Execute(ioutil.Discard, &m); err != nil {
+		return err
+	}
+
 	compiledTemplate = t
 	text = textmagic.New(username, password)
 	fromNumber = fromNumberB
@@ -53,10 +70,7 @@ func (c *Calls) PrepareMessage(eventID int64, m *MessageData) error {
 		return err
 	}
 	var buf []byte
-	data := struct {
-		Start, End                            time.Time
-		From, To, ClientName, DriverName, Reg string
-	}{
+	data := MessageVars{
 		time.Unix(event.Start/1000, 0), time.Unix(event.End/1000, 0),
 		event.From, event.To,
 		client.Name,

@@ -121,6 +121,8 @@ window.addEventListener("load", function(oldDate) {
 			}
 		};
 	},
+	vatPercent = 20,
+	adminPercent = 10,
 	createElement = (function(){
 		var ns = document.getElementsByTagName("html")[0].namespaceURI;
 		return function(elementName) {
@@ -222,6 +224,53 @@ window.addEventListener("load", function(oldDate) {
 	dateTimeFormat = function(date) {
 		return (new Date(date)).toLocaleString('en-GB');
 	},
+	settings = function() {
+		layer.appendChild(createElement("h1")).setInnerText("Settings");
+		rpc.getSettings(function(s) {
+			var username = addFormElement("Text Magic Username", "text", "tmusername", s.TMUsername, regexpCheck(/.+/, "Please enter your Text Magic username")),
+			    password = addFormElement("Text Magic Password", "text", "tmpassword", s.TMPassword, regexpCheck(/.+/, "Please enter your Text Magic password")),
+			    template = addFormElement("Message Template", "textarea", "template", s.TMTemplate, regexpCheck(/.*/, "Please enter a valid message template")),
+			    senderID = addFormElement("Sender ID", "text", "senderID", s.TMFrom, regexpCheck(/.+/, "Please enter a sender ID")),
+			    useNumber = addFormElement("Driver # as Sender", "checkbox", "useNumber", s.TMUseNumber),
+			    vat = addFormElement("VAT (%)", "text", "vat", s.VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
+			    admin = addFormElement("Admin Cost (%)", "text", "admin", s.AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
+			useNumber[0].addEventListener("change", function() {
+				if (useNumber[0].checked) {
+					senderID[0].value = s.TMFrom;
+					senderID[0].setAttribute("readonly", "readonly");
+				} else {
+					senderID[0].removeAttribute("readonly");
+				}
+			});
+			useNumber[0].dispatchEvent(new MouseEvent("change", {"view": window, "bubble": false, "cancelable": true}));
+			addFormSubmit("Set Settings", function() {
+				var error = false;
+				[username, password, template, vat, admin].map(function(i) {
+					if (i[1].hasChildNodes()) {
+						error = true;
+					}
+				});
+				if (error) {
+					return;
+				}
+				s.TMUsername = username[0].value;
+				s.TMPassword = password[0].value;
+				s.TMTemplate = template[0].value;
+				s.TMFrom = senderID[0].value;
+				s.TMUseNumber = useNumber[0].checked;
+				s.VATPercent = parseFloat(vat[0].value);
+				s.AdminPercent = parseFloat(admin[0].value);
+				rpc.setSettings(s, function(templateError) {
+					if (templateError === "") {
+						window.location.search = '';
+					} else {
+						template[1].setInnerText(templateError);
+					}
+				});
+			});
+			stack.setFragment();
+		});
+	},
 	events = new (function() {
 		var dateTime,
 		    dateShift,
@@ -233,11 +282,8 @@ window.addEventListener("load", function(oldDate) {
 		    startEnd = [dateShift, dateShift],
 		    plusDriver = driverEvents.appendChild(createElement("div")),
 		    nextDriverPos = 0,
-		    eventClicked = function(driver, time) {
-			    
-		    },
 		    timeToPos = function(date) {
-			return ((date.getTime() - dateShift) / 60000) + "px"
+			return ((date.getTime() - dateShift) / 60000) + "px";
 		    },
 		    update = function(date) {
 			if (typeof date === "undefined") {
@@ -433,7 +479,10 @@ window.addEventListener("load", function(oldDate) {
 			    params = window.location.search.substring(1).split("&"), i = 0, paramParts, toLoad = [];
 			for (; i < params.length; i++) {
 				paramParts = params[i].split("=");
-				if (paramParts.length === 2) {
+				if (params[0] === "settings") {
+					settings();
+					return;
+				} else if (paramParts.length === 2) {
 					var id = parseInt(paramParts[1]);
 					switch (paramParts[0]){
 					case "date":
@@ -496,51 +545,55 @@ window.addEventListener("load", function(oldDate) {
 					}
 				}
 			}
-			addToBar("Companies", function() {
-				stack.addLayer("companyList");
-				companyList();
-			});
-			addToBar("Clients", function() {
-				stack.addLayer("clientList");
-				clientList();
-			});
-			addToBar("Messages", messageList);
-			dateShift = now.getTime();
-			rpc.drivers(function(ds) {
-				plusDriver.appendChild(createElement("div")).setInnerText("Add Driver");
-				plusDriver.setAttribute("id", "plusDriver");
-				plusDriver.setAttribute("class", "simpleButton");
-				plusDriver.addEventListener("click", function() {
-					stack.addLayer("addDriver", this.addDriver.bind(this));
-					addDriver();
-				}.bind(this));
-				for (var i = 0; i < ds.length; i++) {
-					this.addDriver(ds[i]);
-				}
-				var eventsDiv = layer.appendChild(createElement("div"));
-				eventsDiv.setAttribute("class", "dates");
-				driverEvents.setAttribute("class", "driverEvents");
-				eventCells.setAttribute("class", "events slider");
-				layer.appendChild(dates).setAttribute("class", "dates slider");
-				layer.appendChild(driverEvents);
-				for (i = 0; i < 10; i++) {
-					var div = layer.appendChild(createElement("div"));
-					if (i % 2 === 0) {
-						div.appendChild(createElement("div")).setInnerText("<");
-						div.setAttribute("class", "moveLeft simpleButton");
-					} else {
-						div.appendChild(createElement("div")).setInnerText(">");
-						div.setAttribute("class", "moveRight simpleButton");
+			rpc.getSettings(function (s) {
+				vatPercent = s.VATPercent;
+				adminPercent = s.AdminPercent;
+				addToBar("Companies", function() {
+					stack.addLayer("companyList");
+					companyList();
+				});
+				addToBar("Clients", function() {
+					stack.addLayer("clientList");
+					clientList();
+				});
+				addToBar("Messages", messageList);
+				dateShift = now.getTime();
+				rpc.drivers(function(ds) {
+					plusDriver.appendChild(createElement("div")).setInnerText("Add Driver");
+					plusDriver.setAttribute("id", "plusDriver");
+					plusDriver.setAttribute("class", "simpleButton");
+					plusDriver.addEventListener("click", function() {
+						stack.addLayer("addDriver", this.addDriver.bind(this));
+						addDriver();
+					}.bind(this));
+					for (var i = 0; i < ds.length; i++) {
+						this.addDriver(ds[i]);
 					}
-					div.style.top = 20 + Math.floor(i / 2) * 20 + "px";
-					div.addEventListener("click", moveHandler(i));
-				}
-				stack.setFragment();
-				update(now);
-				for (i = 0; i < toLoad.length; i++) {
-					toLoad[i]();
-				}
-				window.addEventListener("resize", update.bind(this, undefined));
+					var eventsDiv = layer.appendChild(createElement("div"));
+					eventsDiv.setAttribute("class", "dates");
+					driverEvents.setAttribute("class", "driverEvents");
+					eventCells.setAttribute("class", "events slider");
+					layer.appendChild(dates).setAttribute("class", "dates slider");
+					layer.appendChild(driverEvents);
+					for (i = 0; i < 10; i++) {
+						var div = layer.appendChild(createElement("div"));
+						if (i % 2 === 0) {
+							div.appendChild(createElement("div")).setInnerText("<");
+							div.setAttribute("class", "moveLeft simpleButton");
+						} else {
+							div.appendChild(createElement("div")).setInnerText(">");
+							div.setAttribute("class", "moveRight simpleButton");
+						}
+						div.style.top = 20 + Math.floor(i / 2) * 20 + "px";
+						div.addEventListener("click", moveHandler(i));
+					}
+					stack.setFragment();
+					update(now);
+					for (i = 0; i < toLoad.length; i++) {
+						toLoad[i]();
+					}
+					window.addEventListener("resize", update.bind(this, undefined));
+				}.bind(this));
 			}.bind(this));
 		    },
 		    moveHandler = function(buttNum) {
@@ -1319,7 +1372,13 @@ window.addEventListener("load", function(oldDate) {
 		} else {
 			input = createElement("input");
 			input.setAttribute("type", type);
-			input.setAttribute("value", contents);
+			if (type === "checkbox") {
+				if (contents === true) {
+					input.checked = true;
+				}
+			} else {
+				input.setAttribute("value", contents);
+			}
 		}
 		input.setAttribute("id", id);
 		if (type === "hidden") {
