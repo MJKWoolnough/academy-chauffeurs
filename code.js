@@ -76,6 +76,8 @@ window.addEventListener("load", function(oldDate) {
 		this.companies     = request.bind(this, "Companies", null);        // callback
 		this.clients       = request.bind(this, "Clients", null);          // callback
 		this.unsentMessages = request.bind(this, "UnsentMessages", null);  // callback
+		this.prepareMessage = request.bind(this, "PrepareMessage"); // id,    callback
+		this.sendMessage = request.bind(this, "SendMessage"); // messageData, callback
 		this.clientsForCompany = request.bind(this, "ClientsForCompany"); // id, callback
 		this.getSettings   = request.bind(this, "GetSettings", null); //      callback
 		this.setSettings   = request.bind(this, "SetSettings"); // settings , callback
@@ -1390,7 +1392,64 @@ window.addEventListener("load", function(oldDate) {
 	},
 	messageList = function() {
 		stack.addLayer("messages");
+		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText("Messages");
+		var table = layer.appendChild(createElement("table")),
+		    titleRow = table.appendChild(createElement("tr"));
+		titleRow.appendChild(createElement("th")).setInnerText("Event Start");
+		titleRow.appendChild(createElement("th")).setInnerText("Client Name");
+		titleRow.appendChild(createElement("th")).setInnerText("Driver Name");
+		rpc.unsentMessages(function(events) {
+			if (events.length === 0) {
+				table.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "3");
+				stack.setFragment();
+				return;
+			}
+			for (var i = 0; i < events.length; i++) {
+				var row = table.appendChild(createElement("tr")),
+				    clientName, driverName;
+				row.setAttribute("class", "simpleButton");
+				row.appendChild(createElement("td")).setInnerText((new Date(events[i].Start)).toLocaleString());
+				clientName = row.appendChild(createElement("td")).setInnerText("-");
+				rpc.getClient(events[i].ClientID, function(clientName, eventID, row, client) {
+					clientName.setInnerText(client.Name);
+					row.addEventListener("click", rpc.prepareMessage.bind(null, eventID, makeMessage.bind(null, client)));
+				}.bind(null, clientName, events[i].ID, row));
+				driverName = row.appendChild(createElement("td")).setInnerText("-");
+				rpc.getDriver(events[i].DriverID, function(driverName, driver) {
+					driverName.setInnerText(driver.Name);
+				}.bind(null, driverName));
+			}
+			stack.setFragment();
+		});
+	},
+	makeMessage = function(client, messageData) {
+		stack.addLayer("makeMessage", function() {
+			stack.removeLayer();
+			messageList();
+		});
+		stack.addFragment();
+		layer.appendChild(createElement("h1")).setInnerText("Send Message");
+		addFormElement("Client Name", "text", "", client.Name);
+		addFormElement("Client Number", "text", "", client.PhoneNumber);
+		var message = addFormElement("Message", "textarea", "message", messageData.Message, regexpCheck(/.+/, "Please enter a message")),
+		    submit = addFormSubmit("Send Message", function() {
+			messageData.Message = message[0].value;
+			if (messageData.Message === "") {
+				return;
+			}
+			var elements = [message[0], submit];
+			elements.map(disableElement);
+			rpc.sendMessage(messageData, function(error) {
+				if (typeof error === "string" && error.length > 0) {
+					elements.map(enableElement);
+					message[1].setInnerText(error);
+				} else {
+					stack.removeLayer();
+				}
+			});
+		});
+		stack.setFragment();
 	},
 	addFormElement = function(name, type, id, contents, onBlur) {
 		var label = createElement("label").setInnerText(name),

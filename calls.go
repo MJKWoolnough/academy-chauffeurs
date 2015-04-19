@@ -90,6 +90,7 @@ const (
 	ClientList
 	ClientForCompanyList
 	UnsentMessages
+	MessageSent
 	DisambiguateClients
 
 	NumClientsForCompany
@@ -228,6 +229,9 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Events with unsent messages
 		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[MessageSent] = 0 AND [Event].[Start] > ? AND [Event].[Deleted] = 0 ORDER BY [Event].Start ASC;",
+
+		// Mark message as sent
+		"UPDATE [Event] SET [MessageSent] = 1 WHERE [ID] = ?;",
 
 		// Disambiguate clients
 		"SELECT [Company].[Name], [Client].[Reference] FROM [Client] JOIN [Company] ON [Client].[CompanyID] = [Company].[ID] WHERE [Client].[ID] = ?;",

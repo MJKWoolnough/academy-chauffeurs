@@ -87,7 +87,7 @@ func (c *Calls) PrepareMessage(eventID int64, m *MessageData) error {
 	return nil
 }
 
-func (c *Calls) SendMessage(md MessageData, _ *struct{}) error {
+func (c *Calls) SendMessage(md MessageData, e *string) error {
 	var (
 		event  Event
 		client Client
@@ -111,6 +111,14 @@ func (c *Calls) SendMessage(md MessageData, _ *struct{}) error {
 	} else {
 		fromS = from
 	}
-	text.Send(md.Message, []string{client.PhoneNumber}, textmagic.From(fromS))
+	_, _, _, err = text.Send(md.Message, []string{client.PhoneNumber}, textmagic.From(fromS))
+	if err != nil {
+		*e = err.Error()
+	} else {
+		_, err = c.statements[MessageSent].Exec(md.ID)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
