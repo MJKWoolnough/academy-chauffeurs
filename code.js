@@ -1305,14 +1305,31 @@ window.addEventListener("load", function(oldDate) {
 							}
 							for (; i < events.length; i++) {
 								row = createElement("tr");
-								var driverCell = row.appendChild(createElement("td"));
+								var driverCell = row.appendChild(createElement("td")),
+								    inCar = createElement("td").setInnerText("-"),
+								    waiting = createElement("td").setInnerText("-"),
+								    dropOff = createElement("td").setInnerText("-"),
+								    tripTime = createElement("td").setInnerText("-");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
+								row.appendChild(inCar);
+								row.appendChild(waiting);
+								row.appendChild(dropOff);
+								row.appendChild(tripTime);
 								rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
 									driverCell.setInnerText(driver.Name);
 								}.bind(null, driverCell));
+								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, eventFinals) {
+									if (!eventFinals.FinalsSet) {
+										return;
+									}
+									inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
+									waiting.setInnerText(eventFinals.Waiting + " mins");
+									dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
+									tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
+								}.bind(null, inCar, waiting, dropOff, tripTime));
 								eventTable.appendChild(row);
 							}
 						});
@@ -1328,6 +1345,10 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Start");
 					tableTitles.appendChild(createElement("th")).setInnerText("End");
+					tableTitles.appendChild(createElement("th")).setInnerText("In Car");
+					tableTitles.appendChild(createElement("th")).setInnerText("Waiting");
+					tableTitles.appendChild(createElement("th")).setInnerText("Drop Off");
+					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
 			}()],
