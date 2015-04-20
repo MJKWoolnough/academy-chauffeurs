@@ -2006,7 +2006,7 @@ window.addEventListener("load", function(oldDate) {
 				li.appendChild(document.createTextNode(value.slice(startPos+valUp.length)));
 				li.addEventListener("mousedown", function(value, e) {
 					e = e || event;
-					if (e.buttons === 1) {
+					if (e.button === 0) {
 						clicker(value);
 					}
 				}.bind(null, values[i]));
