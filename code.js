@@ -2425,15 +2425,15 @@ window.addEventListener("load", function(oldDate) {
 		};
 	}());
 	Number.prototype.formatMoney = function(amount) {
-		amount = amount | this;
+		amount = amount || this;
 		var toRet = "",
-		    integer = +amount || 0 + "",
+		    integer = +amount | 0 + "",
 		    fract = 0;
 		if (amount < 0) {
 			toRet = "-";
 			amount = -amount;
 		}
-		fract = amount - (amount || 0);
+		fract = amount - (amount | 0);
 		while (integer.length > 3) {
 			toRet += "," + integer.substr(0, 3);
 			integer = integer.substr(3);
