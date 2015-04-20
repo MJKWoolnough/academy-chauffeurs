@@ -1367,7 +1367,7 @@ window.addEventListener("load", function(oldDate) {
 				edit.addEventListener("click", function() {
 					stack.addLayer("editClient", function(c) {
 						if (typeof c !== "undefined") {
-							events.reload("client", c.id);
+							events.reload("client", c.ID);
 						}
 					});
 					setClient(client);
@@ -2440,5 +2440,5 @@ window.addEventListener("load", function(oldDate) {
 		}
 		toRet += integer + "." + fract.toFixed(2).substr(2);
 		return toRet;
-	}
+	};
 }.bind(null, Date));
