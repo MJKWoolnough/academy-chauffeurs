@@ -1057,6 +1057,7 @@ window.addEventListener("load", function(oldDate) {
 				headerRow.appendChild(createElement("th")).setInnerText("Name");
 				headerRow.appendChild(createElement("th")).setInnerText("Phone Number");
 				headerRow.appendChild(createElement("th")).setInnerText("Reference");
+				headerRow.appendChild(createElement("th")).setInnerText("# Events");
 				rpc.clientsForCompany(company.ID, function(clients) {
 					if (clients.length === 0) {
 						clientsTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Clients").setAttribute("colspan", 4);
@@ -1064,9 +1065,12 @@ window.addEventListener("load", function(oldDate) {
 					}
 					for (; i < clients.length; i++) {
 						var row = clientsTable.appendChild(createElement("tr")),
-						    name = row.appendChild(createElement("td")).setInnerText(clients[i].Name);
+						    name = row.appendChild(createElement("td")).setInnerText(clients[i].Name),
+						    numEvents;
 						row.appendChild(createElement("td")).setInnerText(clients[i].PhoneNumber);
 						row.appendChild(createElement("td")).setInnerText(clients[i].Reference);
+						numEvents = row.appendChild(createElement("td")).setInnerText("-");
+						rpc.getNumEventsClient(clients[i].ID, numEvents.setInnerText.bind(numEvents));
 					}
 				});
 			}],
