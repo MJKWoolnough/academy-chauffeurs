@@ -45,6 +45,12 @@
 		width : 200px;
 	}
 
+	input[readonly=readonly] {
+		background-color : #eee;
+		border-color : #fff;
+		border-style : solid;
+	}
+
 	div.adder {
 		float : left;
 		font-weight : bold;
