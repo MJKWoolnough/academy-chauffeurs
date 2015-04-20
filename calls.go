@@ -60,13 +60,13 @@ const (
 	DeleteCompany
 	DeleteClient
 	DeleteEvent
-	DeleteFromAddress
-	DeleteToAddress
 
 	DeleteDriverEvents
 	DeleteClientEvents
 	DeleteCompanyClients
 	DeleteCompanyEvents
+	DeleteFromAddress
+	DeleteToAddress
 
 	GetDriverNote
 	GetCompanyNote
