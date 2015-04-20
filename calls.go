@@ -53,8 +53,6 @@ const (
 	UpdateClient
 	UpdateEvent
 	UpdateEventFinals
-	UpdateFromAddress
-	UpdateToAddress
 
 	DeleteDriver
 	DeleteCompany
@@ -65,8 +63,6 @@ const (
 	DeleteClientEvents
 	DeleteCompanyClients
 	DeleteCompanyEvents
-	DeleteFromAddress
-	DeleteToAddress
 
 	GetDriverNote
 	GetCompanyNote
@@ -126,8 +122,8 @@ func newCalls(dbFName string) (*Calls, error) {
 		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] INTEGER, [To] INTEGER, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Trip] INTEGER DEFAULT 0, [Price] INTEGER DEFAULT 0, [Sub] INTEGER DEFAULT 0, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT NOT NULL DEFAULT '', [FinalsSet] BOOLEAN DEFAULT 0 NOT NULL, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL);",
-		"[FromAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT, [Count] INTEGER);",
-		"[ToAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT, [Count] INTEGER);",
+		"[FromAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT);",
+		"[ToAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT);",
 	} {
 		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
 			return nil, err
@@ -146,7 +142,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"INSERT INTO [Client]([CompanyID], [Name], [PhoneNumber], [Reference]) VALUES (?, ?, ?, ?);",
 		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To]) VALUES (?, ?, ?, ?, ?, ?);",
 		"INSERT INTO [FromAddresses]([Address]) VALUES (?);",
-		"INSERT INTO [ToAddresses]([Address], [Count]) VALUES (?, 1);",
+		"INSERT INTO [ToAddresses]([Address]) VALUES (?);",
 
 		// Read
 
@@ -165,8 +161,6 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [FinalsSet] = 1, [InCar] = ?, [Parking] = ?, [Waiting] = ?, [Drop] = ?, [Miles] = ?, [Trip] = ?, [Price] = ?, [Sub] = ? WHERE [ID] = ?;",
-		"UPDATE [FromAddresses] SET [Count] = [Count] + 1 WHERE [ID] = ?;",
-		"UPDATE [ToAddresses] SET [Count] = [Count] + 1 WHERE [ID] = ?;",
 
 		// Delete (set deleted)
 
@@ -179,8 +173,6 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] = ?;",
 		"UPDATE [Client] SET [Deleted] = 1 WHERE [CompanyID] = ?;",
 		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?);",
-		"UPDATE [FromAddresses] SET [Count] = [Count] - 1 WHERE [ID] = (SELECT [From] FROM [Event] WHERE [ID] = ?);",
-		"UPDATE [ToAddresses] SET [Count] = [Count] - 1 WHERE [ID] = (SELECT [To] FROM [Event] WHERE [ID] = ?);",
 
 		// Get Notes
 
@@ -275,14 +267,6 @@ func newCalls(dbFName string) (*Calls, error) {
 			return nil, err
 		}
 		setMessageVars(username, password, text, from, useNumber)
-		_, err = db.Exec("DELETE FROM [FromAddresses] WHERE [Count] = 0;")
-		if err != nil {
-			return nil, err
-		}
-		_, err = db.Exec("DELETE FROM [ToAddresses] WHERE [Count] = 0;")
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	err = rpc.Register(c)

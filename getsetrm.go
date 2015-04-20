@@ -245,14 +245,6 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 			}
 			err = er
 		} else {
-			_, err = c.statements[DeleteFromAddress].Exec(e.ID)
-			if err != nil {
-				return err
-			}
-			_, err = c.statements[DeleteToAddress].Exec(e.ID)
-			if err != nil {
-				return err
-			}
 			resp.ID = e.ID
 			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, e.ID)
 		}
@@ -264,15 +256,13 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 }
 
 func (c *Calls) addressID(address string, fromTo bool) (int64, error) {
-	var readAddress, createAddress, updateAddress int
+	var readAddress, createAddress int
 	if fromTo {
 		readAddress = ReadToAddress
 		createAddress = CreateToAddress
-		updateAddress = UpdateToAddress
 	} else {
 		readAddress = ReadFromAddress
 		createAddress = CreateFromAddress
-		updateAddress = UpdateFromAddress
 	}
 	address = strings.TrimSpace(address)
 	var id int64
@@ -286,10 +276,6 @@ func (c *Calls) addressID(address string, fromTo bool) (int64, error) {
 			return 0, err
 		}
 		return r.LastInsertId()
-	}
-	_, err = c.statements[updateAddress].Exec(id)
-	if err != nil {
-		return 0, err
 	}
 	return id, nil
 }
@@ -332,14 +318,6 @@ func (c *Calls) RemoveCompany(id int64, _ *struct{}) error {
 }
 
 func (c *Calls) RemoveEvent(id int64, _ *struct{}) error {
-	_, err := c.statements[DeleteFromAddress].Exec(id)
-	if err != nil {
-		return err
-	}
-	_, err = c.statements[DeleteToAddress].Exec(id)
-	if err != nil {
-		return err
-	}
-	_, err = c.statements[DeleteEvent].Exec(id)
+	_, err := c.statements[DeleteEvent].Exec(id)
 	return err
 }
