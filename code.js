@@ -1602,16 +1602,33 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
 								var clientCell = row.appendChild(createElement("td")),
-								    companyCell = createElement("td");
+								    companyCell = createElement("td"),
+								    milesCell = createElement("td").setInnerText("-"),
+								    tripCell = createElement("td").setInnerText("-"),
+								    parkingCell = createElement("td").setInnerText("-"),
+								    subCell = createElement("td").setInnerText("-");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(companyCell);
+								row.appendChild(milesCell);
+								row.appendChild(tripCell);
+								row.appendChild(parkingCell);
+								row.appendChild(subCell);
 								rpc.getClient(events[i].ClientID, function(clientCell, companyCell, client) {
 									clientCell.setInnerText(client.Name);
 									rpc.getCompany(client.CompanyID, function(company) {
 										companyCell.setInnerText(company.Name);
 									});
 								}.bind(null, clientCell, companyCell));
+								rpc.getEventFinals(events[i].ID, function(milesCell, tripCell, parkingCell, subCell, i, eventFinals) {
+									if (!eventFinals.FinalsSet) {
+										return;
+									}
+									milesCell.setInnerText(eventFinals.Miles);
+									tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString());
+									parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
+									subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney());
+								}.bind(null, milesCell, tripCell, parkingCell, subCell, i));
 								eventTable.appendChild(row);
 							}
 						});
@@ -1628,6 +1645,10 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Company");
+					tableTitles.appendChild(createElement("th")).setInnerText("Miles");
+					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
+					tableTitles.appendChild(createElement("th")).setInnerText("Parking");
+					tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
 			}()],
