@@ -1610,10 +1610,10 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(companyCell);
-								row.appendChild(milesCell);
-								row.appendChild(tripCell);
-								row.appendChild(parkingCell);
-								row.appendChild(subCell);
+								row.appendChild(milesCell).setAttribute("class", "noPrint");
+								row.appendChild(tripCell).setAttribute("class", "noPrint");
+								row.appendChild(parkingCell).setAttribute("class", "noPrint");
+								row.appendChild(subCell).setAttribute("class", "noPrint");
 								rpc.getClient(events[i].ClientID, function(clientCell, companyCell, client) {
 									clientCell.setInnerText(client.Name);
 									rpc.getCompany(client.CompanyID, function(company) {
@@ -1624,10 +1624,14 @@ window.addEventListener("load", function(oldDate) {
 									if (!eventFinals.FinalsSet) {
 										return;
 									}
-									milesCell.setInnerText(eventFinals.Miles);
-									tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString());
-									parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
-									subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney());
+									milesTitle.removeAttribute("class");
+									tripTitle.removeAttribute("class");
+									parkingTitle.removeAttribute("class");
+									subTitle.removeAttribute("class");
+									milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
+									tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
+									parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney()).removeAttribute("class");
+									subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney()).removeAttribute("class");
 								}.bind(null, milesCell, tripCell, parkingCell, subCell, i));
 								eventTable.appendChild(row);
 							}
@@ -1645,10 +1649,14 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Company");
-					tableTitles.appendChild(createElement("th")).setInnerText("Miles");
-					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
-					tableTitles.appendChild(createElement("th")).setInnerText("Parking");
-					tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
+					var milesTitle = tableTitles.appendChild(createElement("th")).setInnerText("Miles"),
+					    tripTitle = tableTitles.appendChild(createElement("th")).setInnerText("Trip Time"),
+					    parkingTitle = tableTitles.appendChild(createElement("th")).setInnerText("Parking"),
+					    subTitle = tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
+					milesTitle.setAttribute("class", "noPrint");
+					tripTitle.setAttribute("class", "noPrint");
+					parkingTitle.setAttribute("class", "noPrint");
+					subTitle.setAttribute("class", "noPrint");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
 			}()],
