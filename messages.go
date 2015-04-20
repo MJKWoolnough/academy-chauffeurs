@@ -9,7 +9,8 @@ import (
 	"github.com/MJKWoolnough/textmagic"
 )
 
-const DefaultTemplate = ``
+const DefaultTemplate = `Hello {{.ClientName}},
+I'm your Acadamy Chauffeurs driver, {{.DriverName}}, for your appointment at {{.StartTime}}.`
 
 var (
 	compiledTemplate *template.Template
@@ -24,8 +25,7 @@ type MessageData struct {
 }
 
 type MessageVars struct {
-	Start, End                                                     time.Time
-	From, To, ClientName, DriverName, DriverPhoneNumber, DriverReg string
+	StartDate, StartTime, EndDate, EndTime, From, To, ClientName, DriverName, DriverPhoneNumber, DriverReg string
 }
 
 func setMessageVars(username, password, messageTemplate, fromS string, fromNumberB bool) error {
@@ -35,12 +35,7 @@ func setMessageVars(username, password, messageTemplate, fromS string, fromNumbe
 	}
 	// test template
 
-	m := MessageVars{
-		time.Now(), time.Now(),
-		"", "", "", "", "", "",
-	}
-
-	if err := t.Execute(ioutil.Discard, &m); err != nil {
+	if err := t.Execute(ioutil.Discard, &MessageVars{}); err != nil {
 		return err
 	}
 
@@ -70,8 +65,14 @@ func (c *Calls) PrepareMessage(eventID int64, m *MessageData) error {
 		return err
 	}
 	var buf []byte
+	start := time.Unix(event.Start/1000, 0)
+	end := time.Unix(event.End/1000, 0)
+
 	data := MessageVars{
-		time.Unix(event.Start/1000, 0), time.Unix(event.End/1000, 0),
+		start.Format("02/01/06"),
+		start.Format("15:04"),
+		end.Format("02/01/06"),
+		end.Format("15:04"),
 		event.From, event.To,
 		client.Name,
 		driver.Name,
