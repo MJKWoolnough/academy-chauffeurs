@@ -585,12 +585,6 @@ label:after {
 	text-align : left;
 }
 
-.invoice td.currency:before, .invoiceBottom td.currency:before {
-	content : "£";
-	display : block;
-	float : left;
-}
-
 .invoice {
 	margin : 20px 0;
 }

@@ -967,8 +967,8 @@ window.addEventListener("load", function(oldDate) {
 		tableTitles.appendChild(createElement("th")).setInnerText("Date");
 		tableTitles.appendChild(createElement("th")).setInnerText("Name").setAttribute("colspan", 2);
 		tableTitles.appendChild(createElement("th")).setInnerText("Details");
-		tableTitles.appendChild(createElement("th")).setInnerText("Parking");
-		tableTitles.appendChild(createElement("th")).setInnerText("");
+		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
+		tableTitles.appendChild(createElement("th")).setInnerText("").setAttribute("colspan", "2");
 		for (; i < events.length; i++) {
 			var row = table.appendChild(createElement("tr")), details;
 			row.appendChild(createElement("td")).setInnerText((new Date(events[i].Start)).toDateString());
@@ -978,8 +978,10 @@ window.addEventListener("load", function(oldDate) {
 			details.appendChild(document.createTextNode("From: " + events[i].From));
 			details.appendChild(createElement("br"));
 			details.appendChild(document.createTextNode("To: " + events[i].To));
-			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney()).setAttribute("class", "currency");
-			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Price).formatMoney()).setAttribute("class", "currency");
+			row.appendChild(createElement("td")).setInnerText("£");
+			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney());
+			row.appendChild(createElement("td")).setInnerText("£");
+			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Price).formatMoney());
 			totalParking += events[i].Parking;
 			totalPrice += events[i].Price;
 		}
@@ -988,39 +990,45 @@ window.addEventListener("load", function(oldDate) {
 		subTotal.setAttribute("class", "totals");
 		subTotal.appendChild(createElement("td"));
 		subTotal.appendChild(createElement("td")).setInnerText("Sub Total");
-		subTotal.appendChild(createElement("td")).setInnerText((totalPrice / 100).formatMoney()).setAttribute("class", "currency");
+		subTotal.appendChild(createElement("td")).setInnerText("£");
+		subTotal.appendChild(createElement("td")).setInnerText((totalPrice / 100).formatMoney());
 		admin = costTable.appendChild(createElement("tr"));
 		adminPrice = totalPrice * adminPercent / 100;
 		admin.appendChild(createElement("td"));
 		admin.appendChild(createElement("td")).setInnerText("Account Admin");
-		admin.appendChild(createElement("td")).setInnerText((adminPrice / 100).formatMoney()).setAttribute("class", "currency");
+		admin.appendChild(createElement("td")).setInnerText("£");
+		admin.appendChild(createElement("td")).setInnerText((adminPrice / 100).formatMoney());
 		lineOne = costTable.appendChild(createElement("tr"));
 		lineOne.setAttribute("class", "line");
 		lineOne.appendChild(createElement("td"));
-		lineOne.appendChild(createElement("td")).setAttribute("colspan", "2");
+		lineOne.appendChild(createElement("td")).setAttribute("colspan", "3");
 		adminTotal = costTable.appendChild(createElement("tr"));
 		adminTotalPrice = totalPrice + adminPrice;
 		adminTotal.appendChild(createElement("td"));
 		adminTotal.appendChild(createElement("td")).setInnerText("");
-		adminTotal.appendChild(createElement("td")).setInnerText((adminTotalPrice / 100).formatMoney()).setAttribute("class", "currency");
+		adminTotal.appendChild(createElement("td")).setInnerText("£");
+		adminTotal.appendChild(createElement("td")).setInnerText((adminTotalPrice / 100).formatMoney());
 		vat = costTable.appendChild(createElement("tr"));
 		vat.appendChild(createElement("td"));
 		vatPrice = adminTotalPrice * vatPercent / 100;
 		vat.appendChild(createElement("td")).setInnerText("Plus VAT @ " + vatPercent + "%");
-		vat.appendChild(createElement("td")).setInnerText((vatPrice / 100).formatMoney()).setAttribute("class", "currency");
+		vat.appendChild(createElement("td")).setInnerText("£");
+		vat.appendChild(createElement("td")).setInnerText((vatPrice / 100).formatMoney());
 		parking = costTable.appendChild(createElement("tr"));
 		parking.appendChild(createElement("td"));
 		parking.appendChild(createElement("td")).setInnerText("Parking");
-		parking.appendChild(createElement("td")).setInnerText((totalParking / 100).formatMoney()).setAttribute("class", "currency");
+		parking.appendChild(createElement("td")).setInnerText("£");
+		parking.appendChild(createElement("td")).setInnerText((totalParking / 100).formatMoney());
 		lineTwo = costTable.appendChild(createElement("tr"));
 		lineTwo.setAttribute("class", "doubleLine");
 		lineTwo.appendChild(createElement("td"));
-		lineTwo.appendChild(createElement("td")).setAttribute("colspan", "2");
+		lineTwo.appendChild(createElement("td")).setAttribute("colspan", "3");
 		total = costTable.appendChild(createElement("tr"));
 		totalPrice = adminTotalPrice + vatPrice + totalParking;
 		total.appendChild(createElement("td"));
 		total.appendChild(createElement("td")).setInnerText("Total");
-		total.appendChild(createElement("td")).setInnerText((totalPrice / 100).formatMoney()).setAttribute("class", "currency");
+		total.appendChild(createElement("td")).setInnerText("£");
+		total.appendChild(createElement("td")).setInnerText((totalPrice / 100).formatMoney());
 		stack.setFragment();
 	},
 	showCompany = function(company) {
