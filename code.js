@@ -496,7 +496,12 @@ window.addEventListener("load", function(oldDate) {
 								var driver = drivers[id];
 								if (typeof driver !== "undefined") {
 									stack.addLayer("showDriver");
-									showDriver(driver);
+									showDriver({
+										"ID": driver.ID,
+										"Name": driver.Name,
+										"PhoneNumber": driver.PhoneNumber,
+										"RegistrationNumber": driver.RegistrationNumber
+									});
 								}
 							}.bind(null, id)]
 						}
@@ -828,7 +833,12 @@ window.addEventListener("load", function(oldDate) {
 			dDiv.setAttribute("class", "driverName simpleButton");
 			dDiv.setAttribute("id", "driver_" + d.ID);
 			dDiv.addEventListener("click", function() {
-				showDriver(drivers[d.ID]);
+				showDriver({
+					"ID": d.ID,
+					"Name": d.Name,
+					"PhoneNumber": d.PhoneNumber,
+					"RegistrationNumber": d.RegistrationNumber,
+				});
 			});
 			dDiv.style.top = nextDriverPos + "px";
 			nextDriverPos += 100;
