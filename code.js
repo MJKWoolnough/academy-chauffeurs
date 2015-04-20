@@ -1127,10 +1127,14 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
 								var clientCell = row.appendChild(createElement("td")),
-								    driverCell = createElement("td");
+								    driverCell = createElement("td").setInnerText("-"),
+								    parkingCell = createElement("td").setInnerText("-"),
+								    priceCell = createElement("td").setInnerText("-");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(driverCell);
+								row.appendChild(parkingCell);
+								row.appendChild(priceCell);
 								loading.add();
 								rpc.getClient(events[i].ClientID, function(clientCell, i, client) {
 									loading.done();
@@ -1145,14 +1149,16 @@ window.addEventListener("load", function(oldDate) {
 									driverCell.setInnerText(driver.Name);
 								}.bind(null, driverCell, i));
 								loading.add();
-								rpc.getEventFinals(events[i].ID, function(i, eventFinals) {
+								rpc.getEventFinals(events[i].ID, function(parkingCell, priceCell, i, eventFinals) {
 									if (!eventFinals.FinalsSet) {
 										return;
 									}
 									loading.done();
+									parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
+									priceCell.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
 									events[i].Parking = eventFinals.Parking;
 									events[i].Price = eventFinals.Price;
-								}.bind(null, i));
+								}.bind(null, parkingCell, priceCell, i));
 								eventTable.appendChild(row);
 							}
 						});
@@ -1171,6 +1177,8 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
+					tableTitles.appendChild(createElement("th")).setInnerText("Parking Cost");
+					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
 			}()],
@@ -1808,7 +1816,7 @@ window.addEventListener("load", function(oldDate) {
 					miles.setInnerText(eventFinals.Miles);
 					tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
 					price.setInnerText("£" + (eventFinals.Price / 100));
-					sub.setInnerText("£" + (eventFinals.Price / 100));
+					sub.setInnerText("£" + (eventFinals.Sub / 100));
 				});
 			}
 			toPrint.appendChild(createElement("label")).setInnerText("Notes");
