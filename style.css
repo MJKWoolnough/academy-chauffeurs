@@ -468,6 +468,10 @@
 	.printOnly {
 		display : none;
 	}
+
+	.invoiceTop td[contenteditable=true], .invoice td[contenteditable=true], .invoiceBottom td[contenteditable=true] {
+		background-color : #f7f8f8;
+	}
 }
 
 @media print {

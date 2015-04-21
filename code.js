@@ -949,19 +949,19 @@ window.addEventListener("load", function(oldDate) {
 		    table = layer.appendChild(createElement("table")),
 		    costTable = layer.appendChild(createElement("table")),
 		    addressDate, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0,
-		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, lineOne, lineTwo;
+		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput;
 		topTable.setAttribute("class", "invoiceTop");
 		topTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("Invoice to:").setAttribute("colspan", "3");
 		addressDate = topTable.appendChild(createElement("tr"));
 		addressDate.appendChild(createElement("td")).setPreText(company.Name + "\n" + company.Address).setAttribute("rowspan", "3");
 		addressDate.appendChild(createElement("td")).setInnerText("Date :");
-		addressDate.appendChild(createElement("td")).appendChild(createElement("input")).value = (new Date()).toOrdinalDate();
+		addressDate.appendChild(createElement("td")).setInnerText((new Date()).toOrdinalDate()).setAttribute("contenteditable", "true");
 		invoiceNo = topTable.appendChild(createElement("tr"));
 		invoiceNo.appendChild(createElement("td")).setInnerText("Invoice No:");
-		invoiceNo.appendChild(createElement("td")).appendChild(createElement("input")).setAttribute("type", "text");
+		invoiceNo.appendChild(createElement("td")).setAttribute("contenteditable", "true");
 		ref = topTable.appendChild(createElement("tr"));
 		ref.appendChild(createElement("td")).setInnerText("Your Ref:");
-		ref.appendChild(createElement("td")).appendChild(createElement("input")).setAttribute("type", "text");
+		ref.appendChild(createElement("td")).setAttribute("contenteditable", "true");
 		table.setAttribute("class", "invoice");
 		tableTitles = table.appendChild(createElement("tr"));
 		tableTitles.appendChild(createElement("th")).setInnerText("Date");
@@ -972,12 +972,13 @@ window.addEventListener("load", function(oldDate) {
 		for (; i < events.length; i++) {
 			var row = table.appendChild(createElement("tr")), details;
 			row.appendChild(createElement("td")).setInnerText((new Date(events[i].Start)).toDateString());
-			row.appendChild(createElement("td")).setInnerText(events[i].ClientReference);
-			row.appendChild(createElement("td")).setInnerText(events[i].ClientName);
+			row.appendChild(createElement("td")).setInnerText(events[i].ClientReference).setAttribute("contenteditable", "true");
+			row.appendChild(createElement("td")).setInnerText(events[i].ClientName).setAttribute("contenteditable", "true");
 			details = row.appendChild(createElement("td"));
 			details.appendChild(document.createTextNode("From: " + events[i].From));
 			details.appendChild(createElement("br"));
 			details.appendChild(document.createTextNode("To: " + events[i].To));
+			details.setAttribute("contenteditable", "true");
 			row.appendChild(createElement("td")).setInnerText("£");
 			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney());
 			row.appendChild(createElement("td")).setInnerText("£");
@@ -997,7 +998,20 @@ window.addEventListener("load", function(oldDate) {
 		admin.appendChild(createElement("td"));
 		admin.appendChild(createElement("td")).setInnerText("Account Admin");
 		admin.appendChild(createElement("td")).setInnerText("£");
-		admin.appendChild(createElement("td")).setInnerText((adminPrice / 100).formatMoney());
+		adminInput = admin.appendChild(createElement("td")).setInnerText((adminPrice / 100).formatMoney());
+		adminInput.setAttribute("contenteditable", "true");
+		adminInput.addEventListener("blur", function(e) {
+			e = e || event;
+			var value = parseFloat(adminInput.textContent);
+			adminInput.setInnerText(value.formatMoney());
+			value *= 100;
+			adminTotalPrice = totalPrice + value;
+			vatPrice = adminTotalPrice * vatPercent / 100;
+			finalTotal = adminTotalPrice + vatPrice + totalParking;
+			adminTotal.lastChild.setInnerText((adminTotalPrice / 100).formatMoney());
+			vat.lastChild.setInnerText((vatPrice / 100).formatMoney());
+			total.lastChild.setInnerText((finalTotal / 100).formatMoney());
+		});
 		lineOne = costTable.appendChild(createElement("tr"));
 		lineOne.setAttribute("class", "line");
 		lineOne.appendChild(createElement("td"));
@@ -1024,11 +1038,11 @@ window.addEventListener("load", function(oldDate) {
 		lineTwo.appendChild(createElement("td"));
 		lineTwo.appendChild(createElement("td")).setAttribute("colspan", "3");
 		total = costTable.appendChild(createElement("tr"));
-		totalPrice = adminTotalPrice + vatPrice + totalParking;
+		finalTotal = adminTotalPrice + vatPrice + totalParking;
 		total.appendChild(createElement("td"));
 		total.appendChild(createElement("td")).setInnerText("Total");
 		total.appendChild(createElement("td")).setInnerText("£");
-		total.appendChild(createElement("td")).setInnerText((totalPrice / 100).formatMoney());
+		total.appendChild(createElement("td")).setInnerText((finalTotal / 100).formatMoney());
 		stack.setFragment();
 	},
 	showCompany = function(company) {
