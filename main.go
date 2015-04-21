@@ -14,12 +14,13 @@ import (
 )
 
 type file struct {
-	filename, header string
+	data   []byte
+	header string
 }
 
 func (f file) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", f.header)
-	http.ServeFile(w, r, f.filename)
+	w.Write(f.data)
 }
 
 var (
@@ -64,9 +65,9 @@ func main() {
 		return
 	}
 
-	http.Handle("/", file{"page.html", "application/xhtml+xml; charset=utf-8"})
-	http.Handle("/code.js", file{"code.js", "text/javascript; charset=utf-8"})
-	http.Handle("/style.css", file{"style.css", "text/css; charset=utf-8"})
+	http.Handle("/", file{pageHTML, "application/xhtml+xml; charset=utf-8"})
+	http.Handle("/code.js", file{codeJS, "text/javascript; charset=utf-8"})
+	http.Handle("/style.css", file{styleCSS, "text/css; charset=utf-8"})
 	http.Handle("/rpc", websocket.Handler(rpcHandler))
 
 	l, err := net.Listen("tcp", address)

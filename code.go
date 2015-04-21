@@ -1,4 +1,6 @@
-"use strict";
+package main
+
+var codeJS = []byte(`"use strict";
 window.addEventListener("load", function(oldDate) {
 	var rpc = new (function(onload){
 		var ws = new WebSocket("ws://127.0.0.1:8080/rpc"),
@@ -2455,4 +2457,4 @@ window.addEventListener("load", function(oldDate) {
 		toRet += integer + "." + fract.toFixed(2).substr(2);
 		return toRet;
 	};
-}.bind(null, Date));
+}.bind(null, Date));`)

@@ -1,4 +1,6 @@
-@media screen {
+package main
+
+var styleCSS = []byte(`@media screen {
 	html, body {
 		color : #000;
 		background-color : #fff;
@@ -623,4 +625,4 @@ label:after {
 .invoiceBottom tr.doubleLine td:last-child {
 	border-top : 10px solid transparent;
 	border-bottom : 3px double #000;
-}
+}`)
