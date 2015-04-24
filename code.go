@@ -1798,12 +1798,14 @@ window.addEventListener("load", function(oldDate) {
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText((company.ID == 0) ? "Add Company" : "Edit Company");
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
-		    address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address"));
+		    address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address")),
+		    color = addFormElement("Company Colour", "color", "company_color", company.Colour);
 		addFormSubmit((company.ID == 0) ? "Add Company" : "Edit Company", function() {
 			var parts = [this, companyName[0], address[0]];
 			parts.map(disableElement);
 			company.Name = companyName[0].value;
 			company.Address = address[0].value;
+			company.Colour = color[0].value;
 			rpc.setCompany(company, function(resp) {
 				if (resp.Errors) {
 					companyName[1].setInnerText(resp.NameError);
@@ -1822,6 +1824,7 @@ window.addEventListener("load", function(oldDate) {
 			"ID": 0,
 			"Name": "",
 			"Address": "",
+			"Colour": "#ffffff",
 		});
 	},
 	showEvent = function(e) {
