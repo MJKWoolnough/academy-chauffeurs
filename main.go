@@ -69,6 +69,7 @@ func main() {
 	http.Handle("/code.js", file{codeJS, "text/javascript; charset=utf-8"})
 	http.Handle("/style.css", file{styleCSS, "text/css; charset=utf-8"})
 	http.Handle("/rpc", websocket.Handler(rpcHandler))
+	http.Handle("/export", nc)
 
 	l, err := net.Listen("tcp", address)
 	if err != nil {
