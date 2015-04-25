@@ -1663,19 +1663,18 @@ window.addEventListener("load", function(oldDate) {
 								}.bind(null, clientCell, companyCell));
 								wg.add();
 								rpc.getEventFinals(events[i].ID, function(milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
-									if (!eventFinals.FinalsSet) {
-										return;
+									if (eventFinals.FinalsSet) {
+										milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
+										tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
+										driverHoursCell.setInnerText((new Date(eventFinals.DriverHours)).toTimeString()).removeAttribute("class");
+										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney()).removeAttribute("class");
+										subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney()).removeAttribute("class");
+										totalMiles += eventFinals.Miles;
+										totalTrip += eventFinals.Trip;
+										totalDriverHours += eventFinals.DriverHours;
+										totalParking += eventFinals.Parking;
+										totalSub += eventFinals.Sub;
 									}
-									milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
-									tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
-									driverHoursCell.setInnerText((new Date(eventFinals.DriverHours)).toTimeString()).removeAttribute("class");
-									parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney()).removeAttribute("class");
-									subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney()).removeAttribute("class");
-									totalMiles += eventFinals.Miles;
-									totalTrip += eventFinals.Trip;
-									totalDriverHours += eventFinals.DriverHours;
-									totalParking += eventFinals.Parking;
-									totalSub += eventFinals.Sub;
 									wg.done();
 								}.bind(null, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i));
 								eventTable.appendChild(row);
