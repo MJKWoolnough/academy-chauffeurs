@@ -1326,7 +1326,16 @@ window.addEventListener("load", function(oldDate) {
 						printTitle.setInnerText(pT);
 						rpc.getEventsWithClient(client.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							var row,
-							    i = 0;
+							    i = 0,
+							    totalWaiting = 0, totalTripTime = 0,
+							    wg = new waitGroup(function() {
+								var row = createElement("tr");
+								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "6");
+								row.appendChild(createElement("td")).setInnerText(totalWaiting + " mins");
+								row.appendChild(createElement("td")).setInnerText("");
+								row.appendChild(createElement("td")).setInnerText((new Date(totalTripTime)).toTimeString());
+								eventTable.appendChild(row).setAttribute("class", "overline");
+							    });
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
 								return;
@@ -1349,14 +1358,17 @@ window.addEventListener("load", function(oldDate) {
 								rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
 									driverCell.setInnerText(driver.Name);
 								}.bind(null, driverCell));
+								wg.add();
 								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, eventFinals) {
-									if (!eventFinals.FinalsSet) {
-										return;
+									if (eventFinals.FinalsSet) {
+										inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
+										waiting.setInnerText(eventFinals.Waiting + " mins");
+										dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
+										tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
+										totalWaiting += eventFinals.Waiting;
+										totalTripTime += eventFinals.Trip;
 									}
-									inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
-									waiting.setInnerText(eventFinals.Waiting + " mins");
-									dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
-									tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
+									wg.done();
 								}.bind(null, inCar, waiting, dropOff, tripTime));
 								eventTable.appendChild(row);
 							}
