@@ -107,8 +107,9 @@ window.addEventListener("load", function(oldDate) {
 		this.autocompleteAddress = function(priority, partial, callback) {
 			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
 		};
-		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName"); // partial, callback
-		this.autocompleteClientName = request.bind(this, "AutocompleteClientName");   // partial, callback
+		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName"); // partial,  callback
+		this.autocompleteClientName = request.bind(this, "AutocompleteClientName");   // partial,  callback
+		this.getCompanyColourFromClient = request.bind(this, "CompanyColour");        // clientID, callback
 	})(function() {
 		events.init();	
 	}),
@@ -766,6 +767,9 @@ window.addEventListener("load", function(oldDate) {
 			eventDiv.style.top = eventCell.style.top;
 			eventDiv.style.width = width;
 			eventDiv.setAttribute("id", "event_" + blockStr);
+			rpc.getCompanyColourFromClient(e.ClientID, function(colour) {
+				eventDiv.style.backgroundColor = "#" + colour.toString(16);
+			});
 			rpc.getClient(e.ClientID, function(c) {
 				var name = eventDiv.appendChild(createElement("div")).setInnerText(c.Name),
 				    from = eventDiv.appendChild(createElement("div")).setInnerText(e.From),
@@ -1799,13 +1803,13 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText((company.ID == 0) ? "Add Company" : "Edit Company");
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address")),
-		    color = addFormElement("Company Colour", "color", "company_color", company.Colour);
+		    color = addFormElement("Company Colour", "color", "company_color", "#" + company.Colour.toString(16));
 		addFormSubmit((company.ID == 0) ? "Add Company" : "Edit Company", function() {
 			var parts = [this, companyName[0], address[0]];
 			parts.map(disableElement);
 			company.Name = companyName[0].value;
 			company.Address = address[0].value;
-			company.Colour = color[0].value;
+			company.Colour = parseInt(color[0].value.substring(1), 16);
 			rpc.setCompany(company, function(resp) {
 				if (resp.Errors) {
 					companyName[1].setInnerText(resp.NameError);
@@ -1824,7 +1828,7 @@ window.addEventListener("load", function(oldDate) {
 			"ID": 0,
 			"Name": "",
 			"Address": "",
-			"Colour": "#ffffff",
+			"Colour": 16777215,
 		});
 	},
 	showEvent = function(e) {

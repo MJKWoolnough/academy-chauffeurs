@@ -18,7 +18,7 @@ type Driver struct {
 type Company struct {
 	ID            int64
 	Name, Address string
-	Colour        int32
+	Colour        uint32
 }
 
 type Client struct {
@@ -214,7 +214,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND ([Start] <= ? AND [START] > ? OR [End] <= ?3 AND [END] > ?4);",
 
 		// Company List
-		"SELECT [ID], [Name], [Address] FROM [Company] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
+		"SELECT [ID], [Name], [Address], [Colour] FROM [Company] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Client List
 		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
@@ -477,6 +477,7 @@ func (c *Calls) Companies(_ struct{}, companies *[]Company) error {
 			&(*companies)[pos].ID,
 			&(*companies)[pos].Name,
 			&(*companies)[pos].Address,
+			&(*companies)[pos].Colour,
 		}
 	})
 }
@@ -726,4 +727,8 @@ func (c *Calls) SetSettings(s Settings, errStr *string) error {
 	}
 	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.VATPercent, s.AdminPercent)
 	return err
+}
+
+func (c *Calls) CompanyColour(clientID int64, colour *uint32) error {
+	return c.statements[CompanyColourFromClient].QueryRow(clientID).Scan(colour)
 }
