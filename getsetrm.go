@@ -30,7 +30,7 @@ func (c *Calls) GetClient(id int64, cl *Client) error {
 func (c *Calls) GetCompany(id int64, cy *Company) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadCompany].QueryRow(id).Scan(&(*cy).Name, &(*cy).Address)
+	err := c.statements[ReadCompany].QueryRow(id).Scan(&(*cy).Name, &(*cy).Address, &(*cy).Colour)
 	if err == sql.ErrNoRows {
 		return nil
 	}
@@ -156,7 +156,7 @@ func (c *Calls) SetCompany(cy Company, resp *SetCompanyResponse) error {
 		c.mu.Lock()
 		defer c.mu.Unlock()
 		if cy.ID == 0 {
-			r, e := c.statements[CreateCompany].Exec(cy.Name, cy.Address)
+			r, e := c.statements[CreateCompany].Exec(cy.Name, cy.Address, cy.Colour)
 			if e == nil {
 				resp.ID, e = r.LastInsertId()
 			}
