@@ -336,7 +336,7 @@ var styleCSS = []byte(`@media screen {
 		width : 100%;
 		text-align : center;
 		transition : color 1s;
-		color : #eee;
+		color : transparent;
 	}
 
 	.event:hover > div.time {

@@ -1633,6 +1633,7 @@ window.addEventListener("load", function(oldDate) {
 								    companyCell = createElement("td"),
 								    milesCell = createElement("td").setInnerText("-"),
 								    tripCell = createElement("td").setInnerText("-"),
+								    driverHoursCell = createElement("td").setInnerText("-"),
 								    parkingCell = createElement("td").setInnerText("-"),
 								    subCell = createElement("td").setInnerText("-");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
@@ -1640,6 +1641,7 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(companyCell);
 								row.appendChild(milesCell).setAttribute("class", "noPrint");
 								row.appendChild(tripCell).setAttribute("class", "noPrint");
+								row.appendChild(driverHoursCell).setAttribute("class", "noPrint");
 								row.appendChild(parkingCell).setAttribute("class", "noPrint");
 								row.appendChild(subCell).setAttribute("class", "noPrint");
 								rpc.getClient(events[i].ClientID, function(clientCell, companyCell, client) {
@@ -1658,6 +1660,7 @@ window.addEventListener("load", function(oldDate) {
 									subTitle.removeAttribute("class");
 									milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
 									tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
+									driverHoursCell.setInnerText((new Date(eventFinals.DriverHours)).toTimeString()).removeAttribute("class");
 									parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney()).removeAttribute("class");
 									subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney()).removeAttribute("class");
 								}.bind(null, milesCell, tripCell, parkingCell, subCell, i));
@@ -1679,12 +1682,9 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Company");
 					var milesTitle = tableTitles.appendChild(createElement("th")).setInnerText("Miles"),
 					    tripTitle = tableTitles.appendChild(createElement("th")).setInnerText("Trip Time"),
+					    driverHoursTitle = tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours"),
 					    parkingTitle = tableTitles.appendChild(createElement("th")).setInnerText("Parking"),
 					    subTitle = tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
-					milesTitle.setAttribute("class", "noPrint");
-					tripTitle.setAttribute("class", "noPrint");
-					parkingTitle.setAttribute("class", "noPrint");
-					subTitle.setAttribute("class", "noPrint");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
 			}()],
@@ -1870,6 +1870,7 @@ window.addEventListener("load", function(oldDate) {
 				    dropOff = createElement("div").setInnerText("-"),
 				    miles = createElement("div").setInnerText("-"),
 				    tripTime = createElement("div").setInnerText("-"),
+				    driverHours = createElement("div").setInnerText("-"),
 				    price = createElement("div").setInnerText("-"),
 				    sub = createElement("div").setInnerText("-");
 				toPrint.appendChild(createElement("label")).setInnerText("Waiting Time");
@@ -1880,6 +1881,8 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(miles);
 				toPrint.appendChild(createElement("label")).setInnerText("Trip Time");
 				toPrint.appendChild(tripTime);
+				toPrint.appendChild(createElement("label")).setInnerText("Driver Time");
+				toPrint.appendChild(driverHours);
 				toPrint.appendChild(createElement("label")).setInnerText("Parking Costs");
 				toPrint.appendChild(parking);
 				toPrint.appendChild(createElement("label")).setInnerText("Sub Price");
@@ -1896,6 +1899,7 @@ window.addEventListener("load", function(oldDate) {
 					dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
 					miles.setInnerText(eventFinals.Miles);
 					tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
+					driverHours.setInnerText((new Date(eventFinals.DriverHours)).toTimeString());
 					price.setInnerText("£" + (eventFinals.Price / 100));
 					sub.setInnerText("£" + (eventFinals.Sub / 100));
 				});
@@ -1921,6 +1925,7 @@ window.addEventListener("load", function(oldDate) {
 				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
 				    tripTime = addFormElement("Trip Time", "text", "trip", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
+				    driverHours = addFormElement("Driver Time", "text", "driverHours", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    parking = addFormElement("Parking Costs (£)", "text", "parking", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
 				    sub = addFormElement("Sub Price (£)", "text", "sub", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
 				    price = addFormElement("Total Price To Client (£)", "text", "price", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount"));
@@ -1944,6 +1949,8 @@ window.addEventListener("load", function(oldDate) {
 					eventFinals.Miles = parseInt(miles[0].value);
 					parts = tripTime[0].value.split(":");
 					eventFinals.Trip = (new Date(1970, 0, 1, parseInt(parts[0]), parseInt(parts[1]))).getTime();
+					parts = driverHours[0].value.split(":");
+					eventFinals.DriverHours = (new Date(1970, 0, 1, parseInt(parts[0]), parseInt(parts[1]))).getTime();
 					eventFinals.Parking = Math.floor(parseFloat(parking[0].value) * 100);
 					eventFinals.Sub = Math.floor(parseFloat(sub[0].value) * 100);
 					eventFinals.Price = Math.floor(parseFloat(price[0].value) * 100);
@@ -1959,6 +1966,7 @@ window.addEventListener("load", function(oldDate) {
 					dropOff[0].value = (new Date(eventFinals.Drop)).toTimeString();
 					miles[0].value = eventFinals.Miles;
 					tripTime[0].value = (new Date(eventFinals.Trip)).toTimeString();
+					driverHours[0].value = (new Date(eventFinals.DriverHours)).toTimeString();
 					parking[0].value = eventFinals.Parking / 100;
 					sub[0].value = eventFinals.Sub / 100;
 					price[0].value = eventFinals.Price / 100;
