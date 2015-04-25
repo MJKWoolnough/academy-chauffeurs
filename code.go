@@ -1149,7 +1149,15 @@ window.addEventListener("load", function(oldDate) {
 								});
 								eventTable.parentNode.appendChild(invoiceButton);
 							    }),
-							    row, i = 0;
+							    row, i = 0,
+							    totalParking = 0, totalCost = 0,
+							    wg = new waitGroup(function() {
+								var row = createElement("tr");
+								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "6");
+								row.appendChild(createElement("td")).setInnerText("£" + (totalParking / 100).formatMoney());
+								row.appendChild(createElement("td")).setInnerText("£" + (totalCost / 100).formatMoney());
+								eventTable.appendChild(row).setAttribute("class", "overline");
+							    });
 							for (; i < events.length; i++) {
 								row = createElement("tr");
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
@@ -1177,15 +1185,18 @@ window.addEventListener("load", function(oldDate) {
 									driverCell.setInnerText(driver.Name);
 								}.bind(null, driverCell, i));
 								loading.add();
+								wg.add();
 								rpc.getEventFinals(events[i].ID, function(parkingCell, priceCell, i, eventFinals) {
-									if (!eventFinals.FinalsSet) {
-										return;
+									if (eventFinals.FinalsSet) {
+										loading.done();
+										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
+										priceCell.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
+										events[i].Parking = eventFinals.Parking;
+										events[i].Price = eventFinals.Price;
+										totalParking += eventFinals.Parking;
+										totalCost += eventFinals.Price;
 									}
-									loading.done();
-									parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
-									priceCell.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
-									events[i].Parking = eventFinals.Parking;
-									events[i].Price = eventFinals.Price;
+									wg.done();
 								}.bind(null, parkingCell, priceCell, i));
 								eventTable.appendChild(row);
 							}
