@@ -532,6 +532,11 @@ var styleCSS = []byte(`@media screen {
 
 table {
 	width : 100%;
+	border-collapse : collapse;
+}
+
+table td, table tr {
+	padding : 0 5px;
 }
 
 table tr:last-child td:first-child:last-child {
@@ -625,4 +630,9 @@ label:after {
 .invoiceBottom tr.doubleLine td:last-child {
 	border-top : 10px solid transparent;
 	border-bottom : 3px double #000;
+}
+
+tr.overline td {
+	border-top : 2px solid #000;
+	cell
 }`)

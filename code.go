@@ -1616,7 +1616,18 @@ window.addEventListener("load", function(oldDate) {
 						rpc.getEventsWithDriver(driver.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							var row,
 							    i = 0,
-							    pT = "Driver Sheet for " + driver.Name + " for " + eventsStartDate.toDateString();
+							    pT = "Driver Sheet for " + driver.Name + " for " + eventsStartDate.toDateString(),
+							    totalMiles = 0, totalTrip = 0, totalDriverHours = 0, totalParking = 0, totalSub = 0,
+							    wg = new waitGroup(function() {
+								var row = createElement("tr");
+								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "6");
+								row.appendChild(createElement("td")).setInnerText(totalMiles);
+								row.appendChild(createElement("td")).setInnerText((new Date(totalTrip)).toTimeString());
+								row.appendChild(createElement("td")).setInnerText((new Date(totalDriverHours)).toTimeString());
+								row.appendChild(createElement("td")).setInnerText("£" + (totalParking / 100).formatMoney());
+								row.appendChild(createElement("td")).setInnerText("£" + (totalSub / 100).formatMoney());
+								eventTable.appendChild(row).setAttribute("class", "overline");
+							    });
 							if (eventsStartDate.getTime() !== eventsEndDate.getTime()) {
 								pT += " to " + eventsEndDate.toDateString();
 							}
@@ -1650,20 +1661,23 @@ window.addEventListener("load", function(oldDate) {
 										companyCell.setInnerText(company.Name);
 									});
 								}.bind(null, clientCell, companyCell));
-								rpc.getEventFinals(events[i].ID, function(milesCell, tripCell, parkingCell, subCell, i, eventFinals) {
+								wg.add();
+								rpc.getEventFinals(events[i].ID, function(milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
 									if (!eventFinals.FinalsSet) {
 										return;
 									}
-									milesTitle.removeAttribute("class");
-									tripTitle.removeAttribute("class");
-									parkingTitle.removeAttribute("class");
-									subTitle.removeAttribute("class");
 									milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
 									tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
 									driverHoursCell.setInnerText((new Date(eventFinals.DriverHours)).toTimeString()).removeAttribute("class");
 									parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney()).removeAttribute("class");
 									subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney()).removeAttribute("class");
-								}.bind(null, milesCell, tripCell, parkingCell, subCell, i));
+									totalMiles += eventFinals.Miles;
+									totalTrip += eventFinals.Trip;
+									totalDriverHours += eventFinals.DriverHours;
+									totalParking += eventFinals.Parking;
+									totalSub += eventFinals.Sub;
+									wg.done();
+								}.bind(null, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i));
 								eventTable.appendChild(row);
 							}
 						});
@@ -1680,11 +1694,11 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Company");
-					var milesTitle = tableTitles.appendChild(createElement("th")).setInnerText("Miles"),
-					    tripTitle = tableTitles.appendChild(createElement("th")).setInnerText("Trip Time"),
-					    driverHoursTitle = tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours"),
-					    parkingTitle = tableTitles.appendChild(createElement("th")).setInnerText("Parking"),
-					    subTitle = tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
+					tableTitles.appendChild(createElement("th")).setInnerText("Miles");
+					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
+					tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours");
+					tableTitles.appendChild(createElement("th")).setInnerText("Parking");
+					tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
 			}()],
