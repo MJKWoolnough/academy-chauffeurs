@@ -104,8 +104,8 @@ window.addEventListener("load", function(oldDate) {
 		this.setEventNote = function(id, note) {
 			request("SetEventNote", {ID: id, Note: note});
 		};
-		this.autocompleteAddress = function(priority, partial, callback) {
-			request("AutocompleteAddress", {"Priority": priority, "Partial": partial}, callback);
+		this.autocompleteAddress = function(priority, clientID, partial, callback) {
+			request("AutocompleteAddress", {"ClientID": clientID, "Priority": priority, "Partial": partial}, callback);
 		};
 		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName"); // partial,  callback
 		this.autocompleteClientName = request.bind(this, "AutocompleteClientName");   // partial,  callback
@@ -2038,56 +2038,56 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(makeTabs.apply(null, tabData));
 		stack.setFragment();
 	},
-	setEvent = (function() {
-		var fromAddressRPC = rpc.autocompleteAddress.bind(rpc, 0),
-		    toAddressRPC = rpc.autocompleteAddress.bind(rpc, 1);
-		return function(event) {
-			stack.addFragment();
-			layer.appendChild(createElement("h1")).setInnerText((event.ID == 0) ? "Add Event" : "Edit Event");
-			addFormElement("Driver", "text", "", event.DriverName);
-			addFormElement("Start", "text", "", dateTimeFormat(event.Start));
-			var driverTime = addFormElement("End", "text", "", dateTimeFormat(event.End)),
-			    from = addFormElement("From", "textarea", "from", event.From, regexpCheck(/.+/, "From Address Required")),
-			    to = addFormElement("To", "textarea", "to", event.To, regexpCheck(/.+/, "To Address Required")),
-			    clientID = addFormElement("", "hidden", "", event.ClientID),
-			    clientName = addFormElement("Client Name", "text", "client_name", event.ClientName, regexpCheck(/.+/, "Client Name Required"));
-			addLister(clientName[1], function() {
+	setEvent = function(event) {
+		stack.addFragment();
+		layer.appendChild(createElement("h1")).setInnerText((event.ID == 0) ? "Add Event" : "Edit Event");
+		addFormElement("Driver", "text", "", event.DriverName);
+		addFormElement("Start", "text", "", dateTimeFormat(event.Start));
+		var driverTime = addFormElement("End", "text", "", dateTimeFormat(event.End)),
+		    clientID = addFormElement("", "hidden", "", event.ClientID),
+		    clientName = addFormElement("Client Name", "text", "client_name", event.ClientName, regexpCheck(/.+/, "Client Name Required")),
+		    from = addFormElement("From", "textarea", "from", event.From, regexpCheck(/.+/, "From Address Required")),
+		    to = addFormElement("To", "textarea", "to", event.To, regexpCheck(/.+/, "To Address Required"));
+		addLister(clientName[1], function() {
+			clientName[1].setInnerText("");
+			stack.addLayer("clientList", function(client) {
+				if (typeof client === "undefined") {
+					return;
+				}
+				clientID.value = client.ID;
+				clientName[0].value = client.Name;
 				clientName[1].setInnerText("");
-				stack.addLayer("clientList", function(client) {
-					if (typeof client === "undefined") {
-						return;
-					}
-					clientID.value = client.ID;
-					clientName[0].value = client.Name;
-					clientName[1].setInnerText("");
-				});
-				clientList(true);
 			});
-			autocomplete(fromAddressRPC, from[0]);
-			autocomplete(toAddressRPC, to[0]);
-			autocomplete(rpc.autocompleteClientName, clientName[0], clientID);
-			addFormSubmit((event.ID == 0) ? "Add Event" : "Edit Event", function() {
-				var parts = [this, clientName[0], to[0], from[0]];
-				parts.map(disableElement);
-				event.ClientID = parseInt(clientID.value);
-				event.From = from[0].value;
-				event.To = to[0].value;
-				rpc.setEvent(event, function(resp) {
-					if (resp.Errors) {
-						clientName[1].setInnerText(resp.ClientError);
-						from[1].setInnerText(resp.FromError);
-						to[1].setInnerText(resp.ToError);
-						driverTime[1].setInnerText(resp.TimeError);
-						parts.map(enableElement);
-					} else {
-						event.ID = resp.ID;
-						stack.removeLayer(event);
-					}
-				});
+			clientList(true);
+		});
+		autocomplete(rpc.autocompleteClientName, clientName[0], clientID);
+		autocomplete(function(partial, callback) {
+			rpc.autocompleteAddress(0, parseInt(clientID.value), partial, callback);
+		}, from[0]);
+		autocomplete(function(partial, callback) {
+			rpc.autocompleteAddress(1, parseInt(clientID.value), partial, callback);
+		}, to[0]);
+		addFormSubmit((event.ID == 0) ? "Add Event" : "Edit Event", function() {
+			var parts = [this, clientName[0], to[0], from[0]];
+			parts.map(disableElement);
+			event.ClientID = parseInt(clientID.value);
+			event.From = from[0].value;
+			event.To = to[0].value;
+			rpc.setEvent(event, function(resp) {
+				if (resp.Errors) {
+					clientName[1].setInnerText(resp.ClientError);
+					from[1].setInnerText(resp.FromError);
+					to[1].setInnerText(resp.ToError);
+					driverTime[1].setInnerText(resp.TimeError);
+					parts.map(enableElement);
+				} else {
+					event.ID = resp.ID;
+					stack.removeLayer(event);
+				}
 			});
-			stack.setFragment();
-		}
-	}()),
+		});
+		stack.setFragment();
+	},
 	addEvent = function(driver, startTime, endTime) {
 		setEvent({
 			"ID": 0,
@@ -2117,6 +2117,7 @@ window.addEventListener("load", function(oldDate) {
 		var autocompleteDiv = createElement("ul"),
 		    cache = {},
 		    clicker,
+		    activator,
 		    func = function(valUp, values){
 			while (autocompleteDiv.hasChildNodes()) {
 				autocompleteDiv.removeChild(autocompleteDiv.lastChild);
@@ -2125,6 +2126,9 @@ window.addEventListener("load", function(oldDate) {
 			autocompleteDiv.style.left = Math.round(bounds.left + (window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft) - (document.documentElement.clientLeft || document.body.clientLeft || 0)) + "px";
 			autocompleteDiv.style.top = Math.round(bounds.bottom + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop) - (document.documentElement.clientTop || document.body.clientTop || 0)) + "px";
 			autocompleteDiv.style.width = (bounds.right - bounds.left) + "px";
+			if (typeof idDiv !== "undefined") {
+				idDiv.value = 0;
+			}
 			for (var i = 0; i < values.length; i++) {
 				var li = autocompleteDiv.appendChild(createElement("li")),
 				    value = values[i].Value,
@@ -2133,8 +2137,6 @@ window.addEventListener("load", function(oldDate) {
 				if (typeof idDiv !== "undefined") {
 					if (value.toUpperCase() === valUp) {
 						idDiv.value = values[i].ID;
-					} else {
-						idDiv.value = 0;
 					}
 				}
 				li.appendChild(document.createTextNode(value.slice(0, startPos)));
@@ -2179,7 +2181,7 @@ window.addEventListener("load", function(oldDate) {
 				autocompleteDiv.parentNode.removeChild(autocompleteDiv);
 			}
 		}, 100), false);
-		nameDiv.addEventListener("keyup", function() {
+		activator = function() {
 			var valUp = nameDiv.value.toUpperCase();
 			if (autocompleteDiv.parentNode !== null) {
 				autocompleteDiv.parentNode.removeChild(autocompleteDiv);
@@ -2195,7 +2197,9 @@ window.addEventListener("load", function(oldDate) {
 			} else {
 				func(valUp, cache[valUp]);
 			}
-		}, true);
+		};
+		nameDiv.addEventListener("keyup", activator, true);
+		nameDiv.addEventListener("focus", activator, true);
 	},
 	Date;
 	(function() {
