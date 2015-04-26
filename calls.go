@@ -97,6 +97,9 @@ const (
 
 	CompanyColourFromClient
 
+	AutocompleteFromAddress
+	AutocompleteToAddress
+
 	TotalStmts
 )
 
@@ -245,6 +248,12 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Company Colour from ClientID
 		"SELECT [Company].[Colour] FROM [Company] LEFT JOIN [Client] ON ([Client].[CompanyID] = [Company].[ID]) WHERE [Client].[ID] = ?;",
+
+		// Autocomplete From Address
+		"SELECT [FromAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) WHERE [Event].[ClientID] = ? GROUP BY [Event].[From] ORDER BY COUNT(1) DESC LIMIT ?;",
+
+		// Autocomplete To Address
+		"SELECT [ToAddresses].[Address] FROM [Event] LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? GROUP BY [Event].[From] ORDER BY COUNT(1) DESC LIMIT ?;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
@@ -538,11 +547,6 @@ func (c *Calls) UnsentMessages(_ struct{}, events *[]Event) error {
 	})
 }
 
-type AutocompleteAddressRequest struct {
-	Priority int
-	Partial  string
-}
-
 type AutocompleteValue struct {
 	ID                    int64
 	Value, Disambiguation string
@@ -655,6 +659,12 @@ Loop:
 	*vals = filtered
 }
 
+type AutocompleteAddressRequest struct {
+	ClientID int64
+	Priority int
+	Partial  string
+}
+
 func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]AutocompleteValue) error {
 	*vals = make([]AutocompleteValue, 0, MAXRETURN)
 	var first, second string
@@ -664,6 +674,29 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 	} else {
 		first = "To"
 		second = "From"
+	}
+	if req.Partial == "" {
+		if req.ClientID > 0 {
+			var stmt int
+			if req.Priority == 0 {
+				stmt = AutocompleteFromAddress
+			} else {
+				stmt = AutocompleteToAddress
+			}
+			rows, err := c.statements[stmt].Query(req.ClientID)
+			if err != nil {
+				return err
+			}
+			for rows.Next() {
+				var address string
+				err = rows.Scan(&address)
+				if err != nil {
+					return err
+				}
+				*vals = append(*vals, AutocompleteValue{Value: address})
+			}
+		}
+		return nil
 	}
 	err := c.autocomplete(vals, "Address", first+"Addresses", req.Partial+"%", true)
 	if err != nil || len(*vals) >= MAXRETURN {
