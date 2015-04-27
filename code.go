@@ -1122,8 +1122,8 @@ window.addEventListener("load", function(oldDate) {
 						var startParts = startDate[0].value.split("/"),
 						    endParts = endDate[0].value.split("/"),
 						    pT = "";
-						eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
-						eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						eventsStartDate = new Date(startParts[2], startParts[1]-1, startParts[0]);
+						eventsEndDate = new Date(endParts[2], endParts[1]-1, endParts[0]);
 						pT = "Events for " + company.Name + " for " + eventsStartDate.toDateString();
 						if (eventsStartDate.getTime() !== eventsEndDate.getTime()) {
 							pT += " to " + eventsEndDate.toDateString();
@@ -1328,8 +1328,8 @@ window.addEventListener("load", function(oldDate) {
 						var startParts = startDate[0].value.split("/"),
 						    endParts = endDate[0].value.split("/"),
 						    pT = "";
-						eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]);
-						eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						eventsStartDate = new Date(startParts[2], startParts[1]-1, startParts[0]);
+						eventsEndDate = new Date(endParts[2], endParts[1]-1, endParts[0]);
 						pT = "Events for " + client.Name + " for " + eventsStartDate.toDateString();
 						if (eventsStartDate.getTime() !== eventsEndDate.getTime()) {
 							pT += " to " + eventsEndDate.toDateString();
@@ -1338,13 +1338,14 @@ window.addEventListener("load", function(oldDate) {
 						rpc.getEventsWithClient(client.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							var row,
 							    i = 0,
-							    totalWaiting = 0, totalTripTime = 0,
+							    totalWaiting = 0, totalTripTime = 0, totalPrice = 0,
 							    wg = new waitGroup(function() {
 								var row = createElement("tr");
 								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "6");
 								row.appendChild(createElement("td")).setInnerText(totalWaiting + " mins");
 								row.appendChild(createElement("td")).setInnerText("");
 								row.appendChild(createElement("td")).setInnerText((new Date(totalTripTime)).toTimeString());
+								row.appendChild(createElement("td")).setInnerText("£" + (totalPrice / 100).formatMoney());
 								eventTable.appendChild(row).setAttribute("class", "overline");
 							    });
 							if (events.length === 0) {
@@ -1357,7 +1358,8 @@ window.addEventListener("load", function(oldDate) {
 								    inCar = createElement("td").setInnerText("-"),
 								    waiting = createElement("td").setInnerText("-"),
 								    dropOff = createElement("td").setInnerText("-"),
-								    tripTime = createElement("td").setInnerText("-");
+								    tripTime = createElement("td").setInnerText("-"),
+								    price = createElement("td").setInnerText("-");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
@@ -1366,21 +1368,24 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(waiting);
 								row.appendChild(dropOff);
 								row.appendChild(tripTime);
+								row.appendChild(price);
 								rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
 									driverCell.setInnerText(driver.Name);
 								}.bind(null, driverCell));
 								wg.add();
-								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, eventFinals) {
+								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, price, eventFinals) {
 									if (eventFinals.FinalsSet) {
 										inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
 										waiting.setInnerText(eventFinals.Waiting + " mins");
 										dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
 										tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
+										price.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
 										totalWaiting += eventFinals.Waiting;
 										totalTripTime += eventFinals.Trip;
+										totalPrice += eventFinals.Price;
 									}
 									wg.done();
-								}.bind(null, inCar, waiting, dropOff, tripTime));
+								}.bind(null, inCar, waiting, dropOff, tripTime, price));
 								eventTable.appendChild(row);
 							}
 						});
@@ -1400,6 +1405,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Waiting");
 					tableTitles.appendChild(createElement("th")).setInnerText("Drop Off");
 					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
+					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
 			}()],
@@ -1634,8 +1640,8 @@ window.addEventListener("load", function(oldDate) {
 						}
 						var startParts = startDate[0].value.split("/"),
 						    endParts = endDate[0].value.split("/");
-						eventsStartDate = new Date(startParts[0], startParts[1]-1, startParts[2]),
-						eventsEndDate = new Date(endParts[0], endParts[1]-1, endParts[2]);
+						eventsStartDate = new Date(startParts[2], startParts[1]-1, startParts[0]),
+						eventsEndDate = new Date(endParts[2], endParts[1]-1, endParts[0]);
 						rpc.getEventsWithDriver(driver.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							var row,
 							    i = 0,
@@ -2469,7 +2475,7 @@ window.addEventListener("load", function(oldDate) {
 				if (minutes < 10) {
 					minutes = "0" + minutes;
 				}
-				return date + "/" + month + "/" + year + " " + hour + ":" + minutes;
+				return hour + ":" + minutes + " " + date + "/" + month + "/" + year;
 			},
 			toString: function() {
 				return this.getDayName() + ", " + this.getDate() + this.getOrdinalSuffix() + " of " + this.getMonthName() + ", " + this.getFullYear() +" @ " + this.getHours() + ":" + this.getMinutes() + ":" + this.getSeconds();
