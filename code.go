@@ -1674,11 +1674,11 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(companyCell);
-								row.appendChild(milesCell).setAttribute("class", "noPrint");
-								row.appendChild(tripCell).setAttribute("class", "noPrint");
-								row.appendChild(driverHoursCell).setAttribute("class", "noPrint");
-								row.appendChild(parkingCell).setAttribute("class", "noPrint");
-								row.appendChild(subCell).setAttribute("class", "noPrint");
+								row.appendChild(milesCell);
+								row.appendChild(tripCell);
+								row.appendChild(driverHoursCell);
+								row.appendChild(parkingCell);
+								row.appendChild(subCell);
 								rpc.getClient(events[i].ClientID, function(clientCell, phoneCell, companyCell, client) {
 									clientCell.setInnerText(client.Name);
 									phoneCell.setInnerText(client.PhoneNumber);
