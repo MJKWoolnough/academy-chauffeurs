@@ -1106,8 +1106,7 @@ window.addEventListener("load", function(oldDate) {
 				var eventsStartDate = new Date(),
 				    eventsEndDate = new Date();
 				return function() {
-					var dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
-					    startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
+					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
 					    getEvents = addFormSubmit("Show Events", function() {
 						while (eventTable.hasChildNodes()) {
@@ -1318,8 +1317,7 @@ window.addEventListener("load", function(oldDate) {
 				var eventsStartDate = new Date(),
 				    eventsEndDate = new Date();
 				return function() {
-					var dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
-					    startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
+					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
 					    getEvents = addFormSubmit("Show Events", function() {
 						while (eventTable.hasChildNodes()) {
@@ -1631,8 +1629,7 @@ window.addEventListener("load", function(oldDate) {
 				var eventsStartDate = new Date(),
 				    eventsEndDate = new Date();
 				return function () {
-					var dateCheck = regexpCheck(/^[0-9]{1,4}\/(0?[1-9]|1[0-2])\/(0?[1-9]|1[0-9]|2[0-9]|3[01])$/, "Please enter a valid date (YYYY/MM/DD)"),
-					    startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
+					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
 					    getEvents = addFormSubmit("Show Events", function() {
 						while (eventTable.hasChildNodes()) {
@@ -2135,6 +2132,7 @@ window.addEventListener("load", function(oldDate) {
 			}
 		}
 	},
+	dateCheck = regexpCheck(/^(0?[1-9]|1[0-9]|2[0-9]|3[01])\/(0?[1-9]|1[0-2])\/[0-9]{1,4}$/, "Please enter a valid date (DD/MM/YYYY)"),
 	autocomplete = function(rpcCall, nameDiv, idDiv) {
 		var autocompleteDiv = createElement("ul"),
 		    cache = {},
