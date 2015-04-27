@@ -217,13 +217,13 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND ([Start] <= ? AND [START] > ? OR [End] <= ?3 AND [END] > ?4);",
 
 		// Company List
-		"SELECT [ID], [Name], [Address], [Colour] FROM [Company] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
+		"SELECT [ID], [Name], [Address], [Colour] FROM [Company] WHERE [Deleted] = 0 ORDER BY [Name] ASC;",
 
 		// Client List
-		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
+		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [Deleted] = 0 ORDER BY [Name] ASC;",
 
 		// Clients for company
-		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [CompanyID] = ? AND [Deleted] = 0 ORDER BY [ID] ASC;",
+		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [CompanyID] = ? AND [Deleted] = 0 ORDER BY [Name] ASC;",
 
 		// Events with unsent messages
 		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[MessageSent] = 0 AND [Event].[Start] > ? AND [Event].[Deleted] = 0 ORDER BY [Event].Start ASC;",
