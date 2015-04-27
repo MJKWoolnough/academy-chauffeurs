@@ -37,7 +37,7 @@ var styleCSS = []byte(`@media screen {
 		background-color: #fff;
 		margin-left : auto;
 		margin-right : auto;
-		width : 80%;
+		width : 90%;
 	}
 
 	/* form */
