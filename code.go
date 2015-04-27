@@ -1640,10 +1640,11 @@ window.addEventListener("load", function(oldDate) {
 							var row,
 							    i = 0,
 							    pT = "Driver Sheet for " + driver.Name + " for " + eventsStartDate.toDateString(),
-							    totalMiles = 0, totalTrip = 0, totalDriverHours = 0, totalParking = 0, totalSub = 0,
+							    totalWaiting = 0, totalMiles = 0, totalTrip = 0, totalDriverHours = 0, totalParking = 0, totalSub = 0,
 							    wg = new waitGroup(function() {
 								var row = createElement("tr");
-								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "7");
+								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "8");
+								row.appendChild(createElement("td")).setInnerText(totalWaiting);
 								row.appendChild(createElement("td")).setInnerText(totalMiles);
 								row.appendChild(createElement("td")).setInnerText((new Date(totalTrip)).toTimeString());
 								row.appendChild(createElement("td")).setInnerText((new Date(totalDriverHours)).toTimeString());
@@ -1656,7 +1657,7 @@ window.addEventListener("load", function(oldDate) {
 							}
 							printTitle.setInnerText(pT);
 							if (events.length === 0) {
-								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "6");
+								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "8");
 								return;
 							}
 							for (; i < events.length; i++) {
@@ -1666,6 +1667,8 @@ window.addEventListener("load", function(oldDate) {
 								var clientCell = row.appendChild(createElement("td")),
 								    phoneCell = row.appendChild(createElement("td")),
 								    companyCell = createElement("td"),
+								    inCarCell = createElement("td").setInnerText("-"),
+								    waitingCell = createElement("td").setInnerText("-"),
 								    milesCell = createElement("td").setInnerText("-"),
 								    tripCell = createElement("td").setInnerText("-"),
 								    driverHoursCell = createElement("td").setInnerText("-"),
@@ -1674,11 +1677,13 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(companyCell);
-								row.appendChild(milesCell);
-								row.appendChild(tripCell);
-								row.appendChild(driverHoursCell);
-								row.appendChild(parkingCell);
-								row.appendChild(subCell);
+								row.appendChild(inCarCell).setAttribute("class", "noPrint");
+								row.appendChild(waitingCell).setAttribute("class", "noPrint");
+								row.appendChild(milesCell).setAttribute("class", "noPrint");
+								row.appendChild(tripCell).setAttribute("class", "noPrint");
+								row.appendChild(driverHoursCell).setAttribute("class", "noPrint");
+								row.appendChild(parkingCell).setAttribute("class", "noPrint");
+								row.appendChild(subCell).setAttribute("class", "noPrint");
 								rpc.getClient(events[i].ClientID, function(clientCell, phoneCell, companyCell, client) {
 									clientCell.setInnerText(client.Name);
 									phoneCell.setInnerText(client.PhoneNumber);
@@ -1687,21 +1692,24 @@ window.addEventListener("load", function(oldDate) {
 									});
 								}.bind(null, clientCell, phoneCell, companyCell));
 								wg.add();
-								rpc.getEventFinals(events[i].ID, function(milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
+								rpc.getEventFinals(events[i].ID, function(inCarCell, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
 									if (eventFinals.FinalsSet) {
+										inCarCell.setInnerText((new Date(eventFinals.InCar)).toTimeString()).removeAttribute("class");
+										waitingCell.setInnerText(eventFinals.Waiting).removeAttribute("class");
 										milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
 										tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
 										driverHoursCell.setInnerText((new Date(eventFinals.DriverHours)).toTimeString()).removeAttribute("class");
 										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney()).removeAttribute("class");
 										subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney()).removeAttribute("class");
 										totalMiles += eventFinals.Miles;
+										totalWaiting += eventFinals.Waiting;
 										totalTrip += eventFinals.Trip;
 										totalDriverHours += eventFinals.DriverHours;
 										totalParking += eventFinals.Parking;
 										totalSub += eventFinals.Sub;
 									}
 									wg.done();
-								}.bind(null, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i));
+								}.bind(null, inCarCell, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i));
 								eventTable.appendChild(row);
 							}
 						});
@@ -1719,6 +1727,8 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Company");
+					tableTitles.appendChild(createElement("th")).setInnerText("In Car");
+					tableTitles.appendChild(createElement("th")).setInnerText("Waiting");
 					tableTitles.appendChild(createElement("th")).setInnerText("Miles");
 					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours");
