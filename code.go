@@ -2431,7 +2431,7 @@ window.addEventListener("load", function(oldDate) {
 				if (date < 10) {
 					date = "0" + date;
 				}
-				return year + "/" + month + "/" + date;
+				return date + "/" + month + "/" + year;
 			},
 			toTimeString: function() {
 				var hour = this.getHours(),
@@ -2469,7 +2469,7 @@ window.addEventListener("load", function(oldDate) {
 				if (minutes < 10) {
 					minutes = "0" + minutes;
 				}
-				return year + "/" + month + "/" + date + " " + hour + ":" + minutes;
+				return date + "/" + month + "/" + year + " " + hour + ":" + minutes;
 			},
 			toString: function() {
 				return this.getDayName() + ", " + this.getDate() + this.getOrdinalSuffix() + " of " + this.getMonthName() + ", " + this.getFullYear() +" @ " + this.getHours() + ":" + this.getMinutes() + ":" + this.getSeconds();
