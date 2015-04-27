@@ -1153,7 +1153,7 @@ window.addEventListener("load", function(oldDate) {
 							    totalParking = 0, totalCost = 0,
 							    wg = new waitGroup(function() {
 								var row = createElement("tr");
-								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "6");
+								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "7");
 								row.appendChild(createElement("td")).setInnerText("£" + (totalParking / 100).formatMoney());
 								row.appendChild(createElement("td")).setInnerText("£" + (totalCost / 100).formatMoney());
 								eventTable.appendChild(row).setAttribute("class", "overline");
@@ -1163,6 +1163,7 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
 								var clientCell = row.appendChild(createElement("td")),
+								    refCell = row.appendChild(createElement("td")),
 								    driverCell = createElement("td").setInnerText("-"),
 								    parkingCell = createElement("td").setInnerText("-"),
 								    priceCell = createElement("td").setInnerText("-");
@@ -1172,12 +1173,13 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(parkingCell);
 								row.appendChild(priceCell);
 								loading.add();
-								rpc.getClient(events[i].ClientID, function(clientCell, i, client) {
+								rpc.getClient(events[i].ClientID, function(clientCell, refCell, i, client) {
 									loading.done();
 									events[i].ClientReference = client.Reference;
 									events[i].ClientName = client.Name;
 									clientCell.setInnerText(client.Name);
-								}.bind(null, clientCell, i));
+									refCell.setInnerText(client.Reference);
+								}.bind(null, clientCell, refCell, i));
 								loading.add();
 								rpc.getDriver(events[i].DriverID, function(driverCell, i, driver) {
 									loading.done();
@@ -1213,6 +1215,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Start");
 					tableTitles.appendChild(createElement("th")).setInnerText("End");
 					tableTitles.appendChild(createElement("th")).setInnerText("Client");
+					tableTitles.appendChild(createElement("th")).setInnerText("Reference");
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
