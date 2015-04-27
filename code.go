@@ -1643,7 +1643,7 @@ window.addEventListener("load", function(oldDate) {
 							    totalMiles = 0, totalTrip = 0, totalDriverHours = 0, totalParking = 0, totalSub = 0,
 							    wg = new waitGroup(function() {
 								var row = createElement("tr");
-								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "6");
+								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "7");
 								row.appendChild(createElement("td")).setInnerText(totalMiles);
 								row.appendChild(createElement("td")).setInnerText((new Date(totalTrip)).toTimeString());
 								row.appendChild(createElement("td")).setInnerText((new Date(totalDriverHours)).toTimeString());
@@ -1664,6 +1664,7 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
 								var clientCell = row.appendChild(createElement("td")),
+								    phoneCell = row.appendChild(createElement("td")),
 								    companyCell = createElement("td"),
 								    milesCell = createElement("td").setInnerText("-"),
 								    tripCell = createElement("td").setInnerText("-"),
@@ -1678,12 +1679,13 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(driverHoursCell).setAttribute("class", "noPrint");
 								row.appendChild(parkingCell).setAttribute("class", "noPrint");
 								row.appendChild(subCell).setAttribute("class", "noPrint");
-								rpc.getClient(events[i].ClientID, function(clientCell, companyCell, client) {
+								rpc.getClient(events[i].ClientID, function(clientCell, phoneCell, companyCell, client) {
 									clientCell.setInnerText(client.Name);
+									phoneCell.setInnerText(client.PhoneNumber);
 									rpc.getCompany(client.CompanyID, function(company) {
 										companyCell.setInnerText(company.Name);
 									});
-								}.bind(null, clientCell, companyCell));
+								}.bind(null, clientCell, phoneCell, companyCell));
 								wg.add();
 								rpc.getEventFinals(events[i].ID, function(milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
 									if (eventFinals.FinalsSet) {
@@ -1713,6 +1715,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Start");
 					tableTitles.appendChild(createElement("th")).setInnerText("End");
 					tableTitles.appendChild(createElement("th")).setInnerText("Client");
+					tableTitles.appendChild(createElement("th")).setInnerText("Phone Number");
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Company");
