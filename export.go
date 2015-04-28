@@ -30,9 +30,9 @@ func (c *Calls) export(w http.ResponseWriter, r *http.Request) {
 
 func (e *EventsFilter) ParserList() form.ParserList {
 	return form.ParserList{
-		"ID":    form.Int64{&e.ID},
-		"Start": form.Int64{&e.Start},
-		"Time":  form.Int64{&e.End},
+		"id":        form.Int64{&e.ID},
+		"startTime": form.Int64{&e.Start},
+		"endTime":   form.Int64{&e.End},
 	}
 }
 
