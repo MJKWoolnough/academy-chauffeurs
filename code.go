@@ -233,6 +233,8 @@ window.addEventListener("load", function(oldDate) {
 			var username = addFormElement("Text Magic Username", "text", "tmusername", s.TMUsername, regexpCheck(/.+/, "Please enter your Text Magic username")),
 			    password = addFormElement("Text Magic Password", "text", "tmpassword", s.TMPassword, regexpCheck(/.+/, "Please enter your Text Magic password")),
 			    template = addFormElement("Message Template", "textarea", "template", s.TMTemplate, regexpCheck(/.*/, "Please enter a valid message template")),
+			    calusername = addFormElement("Calendar Username", "text", "calusername", s.CalUsername, regexpCheck(/.+/, "Please enter your Google Calendar username")),
+			    calpassword = addFormElement("Calendar Password", "text", "calpassword", s.CalPassword, regexpCheck(/.+/, "Please enter your Google Calendar password")),
 			    senderID = addFormElement("Sender ID", "text", "senderID", s.TMFrom, regexpCheck(/.+/, "Please enter a sender ID")),
 			    useNumber = addFormElement("Driver # as Sender", "checkbox", "useNumber", s.TMUseNumber),
 			    vat = addFormElement("VAT (%)", "text", "vat", s.VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
@@ -259,6 +261,8 @@ window.addEventListener("load", function(oldDate) {
 				s.TMUsername = username[0].value;
 				s.TMPassword = password[0].value;
 				s.TMTemplate = template[0].value;
+				s.CalUsername = calusername[0].value;
+				s.CalPassword = calpassword[0].value;
 				s.TMFrom = senderID[0].value;
 				s.TMUseNumber = useNumber[0].checked;
 				s.VATPercent = parseFloat(vat[0].value);
@@ -2537,23 +2541,25 @@ window.addEventListener("load", function(oldDate) {
 			},
 		};
 	}());
-	Element.prototype.removeChildren = function(filter) {
-		if (typeof filter === "function") {
-			var docFrag = document.createDocumentFragment();
-			while (this.hasChildNodes()) {
-				if (filter(this.firstChild)) {
-					this.removeChild(this.firstChild);
-				} else {
-					docFrag.appendChild(this.firstChild);
+	Element.prototype.removeChildren = (function() {
+		var docFrag = document.createDocumentFragment();
+		return function(filter) {
+			if (typeof filter === "function") {
+				while (this.hasChildNodes()) {
+					if (filter(this.firstChild)) {
+						this.removeChild(this.firstChild);
+					} else {
+						docFrag.appendChild(this.firstChild);
+					}
+				}
+				this.appendChild(docFrag);
+			} else {
+				while (this.hasChildNodes()) {
+					this.removeChild(this.lastChild);
 				}
 			}
-			this.appendChild(docFrag);
-		} else {
-			while (this.hasChildNodes()) {
-				this.removeChild(this.lastChild);
-			}
-		}
-	};
+		};
+	}());
 	Element.prototype.getElementById = function(id) {
 		return this.querySelector("#" + id);
 	};
