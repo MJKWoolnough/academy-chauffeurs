@@ -194,9 +194,7 @@ window.addEventListener("load", function(oldDate) {
 		};
 		this.clearLayer = function(callback) {
 			return function() {
-				while (layer.hasChildNodes()) {
-					layer.removeChild(layer.lastChild);
-				}
+				layer.removeChildren()
 				callback();
 			};
 		};
@@ -922,9 +920,7 @@ window.addEventListener("load", function(oldDate) {
 				if (tab.getAttribute("class") === "selected") {
 					return;
 				}
-				while (contentDiv.hasChildNodes()) {
-					contentDiv.removeChild(contentDiv.lastChild);
-				}
+				contentDiv.removeChildren();
 				tabs.map(function(tab) {tab.removeAttribute("class")});
 				tab.setAttribute("class", "selected");
 				var tLayer = layer;
@@ -1092,6 +1088,7 @@ window.addEventListener("load", function(oldDate) {
 				headerRow.appendChild(createElement("th")).setInnerText("Reference");
 				headerRow.appendChild(createElement("th")).setInnerText("# Events");
 				rpc.clientsForCompany(company.ID, function(clients) {
+					exportButton.removeChildren();
 					if (clients.length === 0) {
 						clientsTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Clients").setAttribute("colspan", 4);
 						return;
@@ -1115,12 +1112,9 @@ window.addEventListener("load", function(oldDate) {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
 					    getEvents = addFormSubmit("Show Events", function() {
-						while (eventTable.hasChildNodes()) {
-							if (eventTable.lastChild === tableTitles) {
-								break;
-							}
-							eventTable.removeChild(eventTable.lastChild);
-						}
+						eventTable.removeChildren(function(elm) {
+							return elm !== tableTitles;
+						});
 						while (eventTable.nextSibling !== null) {
 							eventTable.parentNode.removeChild(eventTable.nextSibling);
 						}
@@ -1140,6 +1134,7 @@ window.addEventListener("load", function(oldDate) {
 							return;
 						}
 						rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "9");
 								return;
@@ -1340,12 +1335,9 @@ window.addEventListener("load", function(oldDate) {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
 					    getEvents = addFormSubmit("Show Events", function() {
-						while (eventTable.hasChildNodes()) {
-							if (eventTable.lastChild === tableTitles) {
-								break;
-							}
-							eventTable.removeChild(eventTable.lastChild);
-						}
+						eventTable.removeChildren(function(elm) {
+							return elm !== eventTable;
+						});
 						var startParts = startDate[0].value.split("/"),
 						    endParts = endDate[0].value.split("/"),
 						    pT = "";
@@ -1369,6 +1361,7 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText("£" + (totalPrice / 100).formatMoney());
 								eventTable.appendChild(row).setAttribute("class", "overline");
 							    });
+							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "10");
 								return;
@@ -1691,15 +1684,10 @@ window.addEventListener("load", function(oldDate) {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
 					    getEvents = addFormSubmit("Show Events", function() {
-						while (eventTable.hasChildNodes()) {
-							if (eventTable.lastChild === tableTitles) {
-								break;
-							}
-							eventTable.removeChild(eventTable.lastChild);
-						}
-						while (exportButton.hasChildNodes()) {
-							exportButton.removeChild(exportButton.lastChild);
-						}
+						eventTable.removeChildren(function(elm) {
+							return elm !== tableTitles;
+						});
+						exportButton.removeChildren();
 						var startParts = startDate[0].value.split("/"),
 						    endParts = endDate[0].value.split("/");
 						eventsStartDate = new Date(startParts[2], startParts[1]-1, startParts[0]),
@@ -1724,6 +1712,7 @@ window.addEventListener("load", function(oldDate) {
 								pT += " to " + eventsEndDate.toDateString();
 							}
 							printTitle.setInnerText(pT);
+							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "14");
 								return;
@@ -2191,9 +2180,7 @@ window.addEventListener("load", function(oldDate) {
 		return function() {
 			var errorDiv = document.getElementById("error_" + this.getAttribute("id"));
 			if (this.value.match(regexp)) {
-				while (errorDiv.hasChildNodes()) {
-					errorDiv.removeChild(errorDiv.lastChild);
-				}
+				errorDiv.removeChildren();
 			} else {
 				errorDiv.setInnerText(error);
 			}
@@ -2206,9 +2193,7 @@ window.addEventListener("load", function(oldDate) {
 		    clicker,
 		    activator,
 		    func = function(valUp, values){
-			while (autocompleteDiv.hasChildNodes()) {
-				autocompleteDiv.removeChild(autocompleteDiv.lastChild);
-			}
+			autocompleteDiv.removeChildren();
 			var bounds = nameDiv.getBoundingClientRect();
 			autocompleteDiv.style.left = Math.round(bounds.left + (window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft) - (document.documentElement.clientLeft || document.body.clientLeft || 0)) + "px";
 			autocompleteDiv.style.top = Math.round(bounds.bottom + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop) - (document.documentElement.clientTop || document.body.clientTop || 0)) + "px";
@@ -2552,20 +2537,33 @@ window.addEventListener("load", function(oldDate) {
 			},
 		};
 	}());
+	Element.prototype.removeChildren = function(filter) {
+		if (typeof filter === "function") {
+			var docFrag = document.createDocumentFragment();
+			while (this.hasChildNodes()) {
+				if (filter(this.firstChild)) {
+					this.removeChild(this.firstChild);
+				} else {
+					docFrag.appendChild(this.firstChild);
+				}
+			}
+			this.appendChild(docFrag);
+		} else {
+			while (this.hasChildNodes()) {
+				this.removeChild(this.lastChild);
+			}
+		}
+	};
 	Element.prototype.getElementById = function(id) {
 		return this.querySelector("#" + id);
 	};
 	Element.prototype.setInnerText = function(text) {
-		while (this.hasChildNodes()) {
-			this.removeChild(this.lastChild);
-		}
+		this.removeChildren();
 		this.appendChild(document.createTextNode(text));
 		return this;
 	};
 	Element.prototype.setPreText = function(text) {
-		while (this.hasChildNodes()) {
-			this.removeChild(this.lastChild);
-		}
+		this.removeChildren();
 		var parts = text.split("\n"),
 		    i = 0;
 		for (; i < parts.length; i++) {
