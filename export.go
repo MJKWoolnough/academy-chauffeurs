@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -49,7 +50,7 @@ func formatTime(msec int64) string {
 }
 
 func formatMoney(pence int64) string {
-	return "£" + strconv.FormatFloat(float64(pence)/100, 'f', 2, 64)
+	return strconv.FormatFloat(float64(pence)/100, 'f', 2, 64)
 }
 
 func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
@@ -57,10 +58,18 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 	err := form.Parse(&f, r.PostForm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		if e, ok := err.(form.Errors); ok {
+			for k, v := range e {
+				fmt.Fprintf(w, "%s = %s\n", k, v)
+			}
+		} else {
+			w.Write([]byte(err.Error()))
+		}
 		return
 	}
 	if f.Start > f.End {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid times"))
 		return
 	}
 	var (
@@ -70,17 +79,21 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 	err = c.DriverEvents(f, &e)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	err = c.GetDriver(f.ID, &d)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	dateStr := formatDate(f.Start)
 	if f.Start != f.End {
 		dateStr += " to " + formatDate(f.End)
 	}
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "inline; filename=\"driverEvents-"+d.Name+"-"+dateStr+".csv\"")
 	cw := csv.NewWriter(w)
 	cw.Write([]string{"Driver Sheet for " + d.Name + " for " + dateStr})
 	cw.Write([]string{})
@@ -97,7 +110,7 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 		"Miles",
 		"Trip Time",
 		"Driver Hours",
-		"Parking",
+		"Parking (GBP)",
 	})
 	for _, ev := range e {
 		var (
@@ -112,7 +125,7 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 		record[0] = formatDateTime(ev.Start)
 		record[1] = formatDateTime(ev.End)
 		record[2] = cl.Name
-		record[3] = cl.PhoneNumber
+		record[3] = " " + cl.PhoneNumber
 		record[4] = ev.From
 		record[5] = ev.To
 		record[6] = cy.Name
@@ -136,10 +149,18 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 	err := form.Parse(&f, r.PostForm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		if e, ok := err.(form.Errors); ok {
+			for k, v := range e {
+				fmt.Fprintf(w, "%s = %s\n", k, v)
+			}
+		} else {
+			w.Write([]byte(err.Error()))
+		}
 		return
 	}
 	if f.Start > f.End {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid times"))
 		return
 	}
 	var (
@@ -150,22 +171,27 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 	err = c.ClientEvents(f, &e)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	err = c.GetClient(f.ID, &cl)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	err = c.GetCompany(cl.CompanyID, &cy)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	dateStr := formatDate(f.Start)
 	if f.Start != f.End {
 		dateStr += " to " + formatDate(f.End)
 	}
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "inline; filename=\"clientEvents-"+cl.Name+"-"+dateStr+".csv\"")
 	cw := csv.NewWriter(w)
 	cw.Write([]string{"Client Events for " + cl.Name + " for " + dateStr})
 	cw.Write([]string{})
@@ -179,7 +205,7 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 		"Waiting",
 		"Drop Off",
 		"Trip Time",
-		"Price",
+		"Price (GBP)",
 	})
 	for _, ev := range e {
 		var (
@@ -213,28 +239,40 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 	err := form.Parse(&f, r.PostForm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		if e, ok := err.(form.Errors); ok {
+			for k, v := range e {
+				fmt.Fprintf(w, "%s = %s\n", k, v)
+			}
+		} else {
+			w.Write([]byte(err.Error()))
+		}
 		return
 	}
 	if f.Start > f.End {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid times"))
 		return
 	}
 	var cy Company
 	err = c.GetCompany(f.ID, &cy)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	var e []Event
 	err = c.CompanyEvents(f, &e)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	dateStr := formatDate(f.Start)
 	if f.Start != f.End {
 		dateStr += " to " + formatDate(f.End)
 	}
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "inline; filename=\"companyEvents-"+cy.Name+"-"+dateStr+".csv\"")
 	cw := csv.NewWriter(w)
 	cw.Write([]string{"Company Events for " + cy.Name + " for " + dateStr})
 	cw.Write([]string{})
@@ -246,8 +284,8 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 		"From",
 		"To",
 		"Driver",
-		"Parking",
-		"Price",
+		"Parking (GBP)",
+		"Price (GBP)",
 	})
 	for _, ev := range e {
 		var (
@@ -259,8 +297,8 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 		c.GetClient(ev.ClientID, &cl)
 		c.GetDriver(ev.DriverID, &d)
 		record := make([]string, 7, 9)
-		record[0] = formatTime(ev.Start)
-		record[1] = formatTime(ev.End)
+		record[0] = formatDateTime(ev.Start)
+		record[1] = formatDateTime(ev.End)
 		record[2] = cl.Name
 		record[3] = cl.Reference
 		record[4] = ev.From
@@ -282,22 +320,33 @@ func (c *Calls) exportCompanyClients(w http.ResponseWriter, r *http.Request) {
 	err := form.ParseValue("companyID", form.Int64{&companyID}, r.PostForm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		if e, ok := err.(form.Errors); ok {
+			for k, v := range e {
+				fmt.Fprintf(w, "%s = %s\n", k, v)
+			}
+		} else {
+			w.Write([]byte(err.Error()))
+		}
 		return
 	}
 	var cy Company
 	err = c.GetCompany(companyID, &cy)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	var cl []Client
 	err = c.ClientsForCompany(companyID, &cl)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "inline; filename=\"clientList-"+cy.Name+".csv\"")
 	cw := csv.NewWriter(w)
-	cw.Write([]string{"Company List for " + cy.Name})
+	cw.Write([]string{"Client List for " + cy.Name})
 	cw.Write([]string{})
 	cw.Write([]string{
 		"Client Name",
@@ -307,7 +356,7 @@ func (c *Calls) exportCompanyClients(w http.ResponseWriter, r *http.Request) {
 	for _, client := range cl {
 		cw.Write([]string{
 			client.Name,
-			client.Reference,
+			" " + client.Reference,
 			client.PhoneNumber,
 		})
 	}
@@ -319,8 +368,17 @@ func (c *Calls) exportCompanyList(w http.ResponseWriter, r *http.Request) {
 	err := c.Companies(struct{}{}, &cy)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		if e, ok := err.(form.Errors); ok {
+			for k, v := range e {
+				fmt.Fprintf(w, "%s = %s\n", k, v)
+			}
+		} else {
+			w.Write([]byte(err.Error()))
+		}
 		return
 	}
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "inline; filename=\"companyList.csv\"")
 	cw := csv.NewWriter(w)
 	cw.Write([]string{"Company List"})
 	cw.Write([]string{})
@@ -362,7 +420,7 @@ func (c *Calls) exportClientList(w http.ResponseWriter, r *http.Request) {
 			client.Name,
 			cy.Name,
 			client.Reference,
-			client.PhoneNumber,
+			" " + client.PhoneNumber,
 		})
 	}
 	cw.Flush()
