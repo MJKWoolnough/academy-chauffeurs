@@ -317,7 +317,7 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 
 func (c *Calls) exportCompanyClients(w http.ResponseWriter, r *http.Request) {
 	var companyID int64
-	err := form.ParseValue("companyID", form.Int64{&companyID}, r.PostForm)
+	err := form.ParseValue("id", form.Int64{&companyID}, r.PostForm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		if e, ok := err.(form.Errors); ok {
