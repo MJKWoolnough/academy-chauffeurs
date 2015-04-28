@@ -2206,13 +2206,15 @@ window.addEventListener("load", function(oldDate) {
 			if (autocompleteDiv.parentNode !== null) {
 				autocompleteDiv.parentNode.removeChild(autocompleteDiv);
 			}
-			if (valUp.length === 0) {
+			if (valUp.length === 0 && typeof idDiv !== "undefined") {
 				return;
 			}
 			if (typeof cache[valUp] === "undefined") {
 				rpcCall(valUp, function(values) {
 					func(valUp, values);
-					cache[valUp] = values;
+					if (values.length > 0) {
+						cache[valUp] = values;
+					}
 				});
 			} else {
 				func(valUp, cache[valUp]);

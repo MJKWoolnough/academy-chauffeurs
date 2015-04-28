@@ -683,7 +683,7 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 			} else {
 				stmt = AutocompleteToAddress
 			}
-			rows, err := c.statements[stmt].Query(req.ClientID)
+			rows, err := c.statements[stmt].Query(req.ClientID, MAXRETURN)
 			if err != nil {
 				return err
 			}
