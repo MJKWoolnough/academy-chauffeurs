@@ -72,6 +72,11 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("invalid times"))
 		return
 	}
+	dateStr := formatDate(f.Start)
+	if f.Start != f.End {
+		dateStr += " to " + formatDate(f.End)
+	}
+	f.End += 24 * 3600 * 1000
 	var (
 		e []Event
 		d Driver
@@ -87,10 +92,6 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
-	}
-	dateStr := formatDate(f.Start)
-	if f.Start != f.End {
-		dateStr += " to " + formatDate(f.End)
 	}
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Disposition", "inline; filename=\"driverEvents-"+d.Name+"-"+dateStr+".csv\"")
@@ -168,6 +169,11 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 		cl Client
 		cy Company
 	)
+	dateStr := formatDate(f.Start)
+	if f.Start != f.End {
+		dateStr += " to " + formatDate(f.End)
+	}
+	f.End += 24 * 3600 * 1000
 	err = c.ClientEvents(f, &e)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -185,10 +191,6 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
-	}
-	dateStr := formatDate(f.Start)
-	if f.Start != f.End {
-		dateStr += " to " + formatDate(f.End)
 	}
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Disposition", "inline; filename=\"clientEvents-"+cl.Name+"-"+dateStr+".csv\"")
@@ -253,6 +255,11 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("invalid times"))
 		return
 	}
+	dateStr := formatDate(f.Start)
+	if f.Start != f.End {
+		dateStr += " to " + formatDate(f.End)
+	}
+	f.End += 24 * 3600 * 1000
 	var cy Company
 	err = c.GetCompany(f.ID, &cy)
 	if err != nil {
@@ -266,10 +273,6 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
-	}
-	dateStr := formatDate(f.Start)
-	if f.Start != f.End {
-		dateStr += " to " + formatDate(f.End)
 	}
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Disposition", "inline; filename=\"companyEvents-"+cy.Name+"-"+dateStr+".csv\"")
