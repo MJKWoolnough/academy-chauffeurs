@@ -1078,7 +1078,12 @@ window.addEventListener("load", function(oldDate) {
 				    printOnly = toPrint.appendChild(createElement("div")),
 				    clientsTable = toPrint.appendChild(createElement("table")),
 				    headerRow = clientsTable.appendChild(createElement("tr")),
-				    i = 0;
+				    i = 0,
+				    exportButton = layer.appendChild(createElement("form"));
+				exportButton.setAttribute("method", "post");
+				exportButton.setAttribute("action", "/export");
+				exportButton.setAttribute("target", "_new");
+				exportButton.setAttribute("class", "noPrint");
 				toPrint.setAttribute("class", "toPrint");
 				printOnly.setAttribute("class", "printOnly");
 				printOnly.appendChild(createElement("h1")).setInnerText("Clients for " + company.Name);
@@ -1091,6 +1096,7 @@ window.addEventListener("load", function(oldDate) {
 						clientsTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Clients").setAttribute("colspan", 4);
 						return;
 					}
+					makeExportButton(exportButton, "companyClients", company.ID);
 					for (; i < clients.length; i++) {
 						var row = clientsTable.appendChild(createElement("tr")),
 						    name = row.appendChild(createElement("td")).setInnerText(clients[i].Name),
@@ -1135,9 +1141,10 @@ window.addEventListener("load", function(oldDate) {
 						}
 						rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							if (events.length === 0) {
-								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
+								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "9");
 								return;
 							}
+							makeExportButton(exportButton, "companyEvents", company.ID, eventsStartDate, eventsEndDate);
 							var loading = new waitGroup(function() {
 								var invoiceButton = createElement("input");
 								invoiceButton.setAttribute("class", "noPrint");
@@ -1207,7 +1214,11 @@ window.addEventListener("load", function(oldDate) {
 					    printTitle = toPrint.appendChild(createElement("h2")),
 					    eventFormTable = toPrint.appendChild(createElement("table")),
 					    eventTable = eventFormTable.appendChild(createElement("table")),
-					    tableTitles = eventTable.appendChild(createElement("tr"));
+					    tableTitles = eventTable.appendChild(createElement("tr")),
+					    exportButton = layer.appendChild(createElement("form"));
+					exportButton.setAttribute("method", "post");
+					exportButton.setAttribute("action", "/export");
+					exportButton.setAttribute("target", "_new");
 					toPrint.setAttribute("class", "toPrint");
 					printTitle.setAttribute("class", "printOnly");
 					printTitle.setInnerText("Events for " + company.Name);
@@ -1276,7 +1287,15 @@ window.addEventListener("load", function(oldDate) {
 				}
 				row.appendChild(createElement("td")).setInnerText(company.Address);
 				table.appendChild(row);
-			    };
+			    },
+			    exportButton = createElement("form");
+			exportButton.setAttribute("method", "post");
+			exportButton.setAttribute("action", "/export");
+			exportButton.setAttribute("target", "_new");
+			exportButton.setAttribute("class", "noPrint");
+			if (companies.length > 0) {
+				makeExportButton(exportButton, "companyList");
+			}
 			addAdder(null, function() {
 				stack.addLayer("addCompany", addCompanyToTable);
 				addCompany();
@@ -1286,6 +1305,7 @@ window.addEventListener("load", function(oldDate) {
 			companies.map(addCompanyToTable);
 			table.setAttribute("class", "toPrint");
 			layer.appendChild(table);
+			layer.appendChild(exportButton);
 			stack.setFragment();
 			layer.setAttribute("class", "toPrint");
 		});
@@ -1350,9 +1370,10 @@ window.addEventListener("load", function(oldDate) {
 								eventTable.appendChild(row).setAttribute("class", "overline");
 							    });
 							if (events.length === 0) {
-								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
+								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "10");
 								return;
 							}
+							makeExportButton(exportButton, "clientEvents", client.ID, eventsStartDate, eventsEndDate);
 							for (; i < events.length; i++) {
 								row = createElement("tr");
 								var driverCell = row.appendChild(createElement("td")),
@@ -1394,7 +1415,11 @@ window.addEventListener("load", function(oldDate) {
 					    toPrint = layer.appendChild(createElement("div")),
 					    printTitle = toPrint.appendChild(createElement("h2")),
 					    eventTable = toPrint.appendChild(createElement("table")),
-					    tableTitles = eventTable.appendChild(createElement("tr"));
+					    tableTitles = eventTable.appendChild(createElement("tr")),
+					    exportButton = layer.appendChild(createElement("form"));
+					exportButton.setAttribute("method", "post");
+					exportButton.setAttribute("action", "/export");
+					exportButton.setAttribute("target", "_new");
 					toPrint.setAttribute("class", "toPrint");
 					printTitle.setAttribute("class", "printOnly");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
@@ -1475,7 +1500,15 @@ window.addEventListener("load", function(oldDate) {
 				row.appendChild(createElement("td")).setInnerText(client.PhoneNumber);
 				row.appendChild(createElement("td")).setInnerText(client.Reference);
 				table.appendChild(row);
-			    };
+			    },
+			    exportButton = createElement("form");
+			exportButton.setAttribute("method", "post");
+			exportButton.setAttribute("action", "/export");
+			exportButton.setAttribute("target", "_new");
+			exportButton.setAttribute("class", "noPrint");
+			if (clients.length > 0) {
+				makeExportButton(exportButton, "clientList");
+			}
 			addAdder(null, function() {
 				stack.addLayer("addClient", addClientToTable);
 				addClient();
@@ -1487,6 +1520,7 @@ window.addEventListener("load", function(oldDate) {
 			clients.map(addClientToTable);
 			table.setAttribute("class", "toPrint");
 			layer.appendChild(table);
+			layer.appendChild(exportButton);
 			stack.setFragment();
 			layer.setAttribute("class", "toPrint");
 		});
@@ -1604,6 +1638,31 @@ window.addEventListener("load", function(oldDate) {
 	enableElement = function(part) {
 		part.removeAttribute("disabled");
 	},
+	makeExportButton = function(exportButton, typeStr, id, startDate, endDate) {
+		var type = exportButton.appendChild(createElement("input")),
+		    submit = exportButton.appendChild(createElement("input"));
+		type.setAttribute("type", "hidden");
+		type.setAttribute("name", "type");
+		type.setAttribute("value", typeStr);
+		submit.setAttribute("type", "submit");
+		submit.setAttribute("value", "Export");
+		if (typeof id !== "undefined") {
+			var idE = exportButton.appendChild(createElement("input"));
+			idE.setAttribute("type", "hidden");
+			idE.setAttribute("name", "id");
+			idE.setAttribute("value", id.toString());
+			if (typeof startDate !== "undefined" && typeof endDate !== "undefined") {
+				var start = exportButton.appendChild(createElement("input")),
+				    end = exportButton.appendChild(createElement("input"));
+				start.setAttribute("type", "hidden");
+				start.setAttribute("name", "startTime");
+				start.setAttribute("value", startDate.getTime().toString());
+				end.setAttribute("type", "hidden");
+				end.setAttribute("name", "endTime");
+				end.setAttribute("value", endDate.getTime().toString());
+			}
+		}
+	},
 	showDriver = function(driver) {
 		stack.addLayer("showDriver");
 		stack.addFragment();
@@ -1638,6 +1697,9 @@ window.addEventListener("load", function(oldDate) {
 							}
 							eventTable.removeChild(eventTable.lastChild);
 						}
+						while (exportButton.hasChildNodes()) {
+							exportButton.removeChild(exportButton.lastChild);
+						}
 						var startParts = startDate[0].value.split("/"),
 						    endParts = endDate[0].value.split("/");
 						eventsStartDate = new Date(startParts[2], startParts[1]-1, startParts[0]),
@@ -1663,9 +1725,10 @@ window.addEventListener("load", function(oldDate) {
 							}
 							printTitle.setInnerText(pT);
 							if (events.length === 0) {
-								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "8");
+								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "14");
 								return;
 							}
+							makeExportButton(exportButton ,"driverEvents", driver.ID, eventsStartDate, eventsEndDate);
 							for (; i < events.length; i++) {
 								row = createElement("tr");
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
@@ -1723,7 +1786,11 @@ window.addEventListener("load", function(oldDate) {
 					    toPrint = layer.appendChild(createElement("div")),
 					    printTitle = toPrint.appendChild(createElement("h2")),
 					    eventTable = toPrint.appendChild(createElement("table")),
-					    tableTitles = eventTable.appendChild(createElement("tr"));
+					    tableTitles = eventTable.appendChild(createElement("tr")),
+					    exportButton = layer.appendChild(createElement("form"));
+					exportButton.setAttribute("method", "post");
+					exportButton.setAttribute("action", "/export");
+					exportButton.setAttribute("target", "_new");
 					toPrint.setAttribute("class", "toPrint");
 					printTitle.setAttribute("class", "printOnly");
 					tableTitles.appendChild(createElement("th")).setInnerText("Start");
