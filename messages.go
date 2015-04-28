@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"strings"
 	"text/template"
 	"time"
 
@@ -25,7 +26,7 @@ type MessageData struct {
 }
 
 type MessageVars struct {
-	StartDate, StartTime, EndDate, EndTime, From, To, ClientName, DriverName, DriverPhoneNumber, DriverReg string
+	StartDate, StartTime, EndDate, EndTime, From, To, ClientName, ClientFirstName, ClientLastName, DriverName, DriverPhoneNumber, DriverReg string
 }
 
 func setMessageVars(username, password, messageTemplate, fromS string, fromNumberB bool) error {
@@ -68,6 +69,8 @@ func (c *Calls) PrepareMessage(eventID int64, m *MessageData) error {
 	start := time.Unix(event.Start/1000, 0)
 	end := time.Unix(event.End/1000, 0)
 
+	names := strings.Split(client.Name, " ")
+
 	data := MessageVars{
 		start.Format("02/01/06"),
 		start.Format("15:04"),
@@ -75,6 +78,8 @@ func (c *Calls) PrepareMessage(eventID int64, m *MessageData) error {
 		end.Format("15:04"),
 		event.From, event.To,
 		client.Name,
+		names[0],
+		names[len(names)-1],
 		driver.Name,
 		driver.PhoneNumber,
 		driver.RegistrationNumber,
