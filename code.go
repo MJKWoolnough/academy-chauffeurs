@@ -812,8 +812,10 @@ window.addEventListener("load", function(oldDate) {
 						name.style.marginLeft = (maxWidth - nameWidth) / 2 + "px";
 						from.style.marginLeft = (maxWidth - fromWidth) / 2 + "px";
 						to.style.marginLeft = (maxWidth - toWidth) / 2 + "px";
-						eventDiv.style.width = maxWidth + 12 + "px";
-						eventDiv.style.left = newLeft + "px";
+						if (maxWidth + 12 > parseInt(width)) {
+							eventDiv.style.width = maxWidth + 12 + "px";
+							eventDiv.style.left = newLeft + "px";
+						}
 					});
 					eventDiv.addEventListener("mouseout", function() {
 						name.style.marginLeft = "0";
