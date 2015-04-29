@@ -163,7 +163,7 @@ func (c *Calls) SetCompany(cy Company, resp *SetCompanyResponse) error {
 			err = e
 		} else {
 			resp.ID = cy.ID
-			_, err = c.statements[UpdateCompany].Exec(cy.Name, cy.Address, cy.ID)
+			_, err = c.statements[UpdateCompany].Exec(cy.Name, cy.Address, cy.Colour, cy.ID)
 		}
 	}
 	return err
