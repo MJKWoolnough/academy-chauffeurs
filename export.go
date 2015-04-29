@@ -1,13 +1,14 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/MJKWoolnough/form"
+	"github.com/MJKWoolnough/memio"
+	"github.com/tealeg/xlsx"
 )
 
 func (c *Calls) export(w http.ResponseWriter, r *http.Request) {
@@ -93,56 +94,77 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	w.Header().Set("Content-Type", "text/csv")
-	w.Header().Set("Content-Disposition", "inline; filename=\"driverEvents-"+d.Name+"-"+dateStr+".csv\"")
-	cw := csv.NewWriter(w)
-	cw.Write([]string{"Driver Sheet for " + d.Name + " for " + dateStr})
-	cw.Write([]string{})
-	cw.Write([]string{
-		"Start",
-		"End",
+	xls := xlsx.NewFile()
+	sheet := xls.AddSheet("Driver Events")
+	sheet.AddRow().WriteSlice(&[]string{"Driver Sheet for " + d.Name + " for " + dateStr}, -1)
+	sheet.AddRow()
+	sheet.AddRow().WriteSlice(&[]string{
+		"Date",
+		"Time",
 		"Client Name",
 		"Phone Number",
-		"From",
-		"To",
-		"Company Name",
+		"Pick Up",
+		"Destination",
 		"In Car Time",
 		"Waiting Time (mins)",
+		"Drop",
 		"Miles",
-		"Trip Time",
-		"Driver Hours",
+		"Hours",
 		"Parking (GBP)",
-	})
-	for _, ev := range e {
+	}, -1)
+	lastDate := time.Unix(0, 0)
+	for n, ev := range e {
 		var (
 			ef EventFinals
 			cl Client
-			cy Company
 		)
-		c.GetEventFinals(ev.ID, &ef)
-		c.GetClient(ev.ClientID, &cl)
-		c.GetCompany(cl.CompanyID, &cy)
-		record := make([]string, 7, 13)
-		record[0] = formatDateTime(ev.Start)
-		record[1] = formatDateTime(ev.End)
+		if err := c.GetEventFinals(ev.ID, &ef); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		if err := c.GetClient(ev.ClientID, &cl); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		record := make([]string, 6, 12)
+		thisDate := time.Unix((ev.Start-(ev.Start%(24*3600000)))/1000, 0)
+		record[0] = formatDate(ev.Start)
+		if n > 0 {
+			if !thisDate.Equal(lastDate) {
+				sheet.AddRow()
+			} else {
+				record[0] = ""
+			}
+		}
+		lastDate = thisDate
+		record[1] = formatTime(ev.Start)
 		record[2] = cl.Name
-		record[3] = " " + cl.PhoneNumber
+		record[3] = cl.PhoneNumber
 		record[4] = ev.From
 		record[5] = ev.To
-		record[6] = cy.Name
 		if ef.FinalsSet {
 			record = append(record,
 				formatTime(ef.InCar),
 				strconv.Itoa(int(ef.Waiting)),
+				formatTime(ef.Drop),
 				strconv.Itoa(int(ef.Miles)),
-				formatTime(ef.Trip),
 				formatTime(ef.DriverHours),
 				formatMoney(ef.Parking),
 			)
 		}
-		cw.Write(record)
+		sheet.AddRow().WriteSlice(&record, -1)
 	}
-	cw.Flush()
+	var buf []byte
+	if err = xls.Write(memio.Create(&buf)); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", "inline; filename=\"driverEvents-"+d.Name+"-"+dateStr+".xlsx\"")
+	http.ServeContent(w, r, "", time.Now(), memio.Open(buf))
 }
 
 func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
@@ -192,12 +214,11 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	w.Header().Set("Content-Type", "text/csv")
-	w.Header().Set("Content-Disposition", "inline; filename=\"clientEvents-"+cl.Name+"-"+dateStr+".csv\"")
-	cw := csv.NewWriter(w)
-	cw.Write([]string{"Client Events for " + cl.Name + " for " + dateStr})
-	cw.Write([]string{})
-	cw.Write([]string{
+	xls := xlsx.NewFile()
+	sheet := xls.AddSheet("Client Events")
+	sheet.AddRow().WriteSlice(&[]string{"Client Events for " + cl.Name + " for " + dateStr}, -1)
+	sheet.AddRow()
+	sheet.AddRow().WriteSlice(&[]string{
 		"Driver",
 		"From",
 		"To",
@@ -208,14 +229,22 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 		"Drop Off",
 		"Trip Time",
 		"Price (GBP)",
-	})
+	}, -1)
 	for _, ev := range e {
 		var (
 			ef EventFinals
 			d  Driver
 		)
-		c.GetEventFinals(ev.ID, &ef)
-		c.GetDriver(ev.DriverID, &d)
+		if err := c.GetEventFinals(ev.ID, &ef); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		if err := c.GetDriver(ev.DriverID, &d); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
 		record := make([]string, 5, 10)
 		record[0] = d.Name
 		record[1] = ev.From
@@ -231,9 +260,17 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 				formatMoney(ef.Price),
 			)
 		}
-		cw.Write(record)
+		sheet.AddRow().WriteSlice(&record, -1)
 	}
-	cw.Flush()
+	var buf []byte
+	if err = xls.Write(memio.Create(&buf)); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", "inline; filename=\"clientEvents-"+cl.Name+"-"+dateStr+".xlsx\"")
+	http.ServeContent(w, r, "", time.Now(), memio.Open(buf))
 }
 
 func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
@@ -274,12 +311,11 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	w.Header().Set("Content-Type", "text/csv")
-	w.Header().Set("Content-Disposition", "inline; filename=\"companyEvents-"+cy.Name+"-"+dateStr+".csv\"")
-	cw := csv.NewWriter(w)
-	cw.Write([]string{"Company Events for " + cy.Name + " for " + dateStr})
-	cw.Write([]string{})
-	cw.Write([]string{
+	xls := xlsx.NewFile()
+	sheet := xls.AddSheet("Company Events")
+	sheet.AddRow().WriteSlice(&[]string{"Company Events for " + cy.Name + " for " + dateStr}, -1)
+	sheet.AddRow()
+	sheet.AddRow().WriteSlice(&[]string{
 		"Start",
 		"End",
 		"Client",
@@ -289,16 +325,28 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 		"Driver",
 		"Parking (GBP)",
 		"Price (GBP)",
-	})
+	}, -1)
 	for _, ev := range e {
 		var (
 			ef EventFinals
 			cl Client
 			d  Driver
 		)
-		c.GetEventFinals(ev.ID, &ef)
-		c.GetClient(ev.ClientID, &cl)
-		c.GetDriver(ev.DriverID, &d)
+		if err := c.GetEventFinals(ev.ID, &ef); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		if err := c.GetClient(ev.ClientID, &cl); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		if err := c.GetDriver(ev.DriverID, &d); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
 		record := make([]string, 7, 9)
 		record[0] = formatDateTime(ev.Start)
 		record[1] = formatDateTime(ev.End)
@@ -313,9 +361,17 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 				formatMoney(ef.Price),
 			)
 		}
-		cw.Write(record)
+		sheet.AddRow().WriteSlice(&record, -1)
 	}
-	cw.Flush()
+	var buf []byte
+	if err = xls.Write(memio.Create(&buf)); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", "inline; filename=\"companyEvents-"+cy.Name+"-"+dateStr+".xlsx\"")
+	http.ServeContent(w, r, "", time.Now(), memio.Open(buf))
 }
 
 func (c *Calls) exportCompanyClients(w http.ResponseWriter, r *http.Request) {
@@ -346,24 +402,31 @@ func (c *Calls) exportCompanyClients(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	w.Header().Set("Content-Type", "text/csv")
-	w.Header().Set("Content-Disposition", "inline; filename=\"clientList-"+cy.Name+".csv\"")
-	cw := csv.NewWriter(w)
-	cw.Write([]string{"Client List for " + cy.Name})
-	cw.Write([]string{})
-	cw.Write([]string{
+	xls := xlsx.NewFile()
+	sheet := xls.AddSheet("Client List for " + cy.Name)
+	sheet.AddRow().WriteSlice(&[]string{"Client List for " + cy.Name}, -1)
+	sheet.AddRow()
+	sheet.AddRow().WriteSlice(&[]string{
 		"Client Name",
 		"Reference",
 		"Phone Number",
-	})
+	}, -1)
 	for _, client := range cl {
-		cw.Write([]string{
+		sheet.AddRow().WriteSlice(&[]string{
 			client.Name,
 			" " + client.Reference,
 			client.PhoneNumber,
-		})
+		}, -1)
 	}
-	cw.Flush()
+	var buf []byte
+	if err = xls.Write(memio.Create(&buf)); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", "inline; filename=\"clientList-"+cy.Name+".xlsx\"")
+	http.ServeContent(w, r, "", time.Now(), memio.Open(buf))
 }
 
 func (c *Calls) exportCompanyList(w http.ResponseWriter, r *http.Request) {
@@ -380,22 +443,29 @@ func (c *Calls) exportCompanyList(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	w.Header().Set("Content-Type", "text/csv")
-	w.Header().Set("Content-Disposition", "inline; filename=\"companyList.csv\"")
-	cw := csv.NewWriter(w)
-	cw.Write([]string{"Company List"})
-	cw.Write([]string{})
-	cw.Write([]string{
+	xls := xlsx.NewFile()
+	sheet := xls.AddSheet("Company List")
+	sheet.AddRow().WriteSlice(&[]string{"Company List"}, -1)
+	sheet.AddRow()
+	sheet.AddRow().WriteSlice(&[]string{
 		"Company Name",
 		"Address",
-	})
+	}, -1)
 	for _, company := range cy {
-		cw.Write([]string{
+		sheet.AddRow().WriteSlice(&[]string{
 			company.Name,
 			company.Address,
-		})
+		}, -1)
 	}
-	cw.Flush()
+	var buf []byte
+	if err = xls.Write(memio.Create(&buf)); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", "inline; filename=\"companyList.xlsx\"")
+	http.ServeContent(w, r, "", time.Now(), memio.Open(buf))
 }
 
 func (c *Calls) exportClientList(w http.ResponseWriter, r *http.Request) {
@@ -405,26 +475,37 @@ func (c *Calls) exportClientList(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "text/csv")
-	w.Header().Set("Content-Disposition", "inline; filename=\"clientList.csv\"")
-	cw := csv.NewWriter(w)
-	cw.Write([]string{"Client List"})
-	cw.Write([]string{})
-	cw.Write([]string{
+	xls := xlsx.NewFile()
+	sheet := xls.AddSheet("Client List")
+	sheet.AddRow().WriteSlice(&[]string{"Client List"}, -1)
+	sheet.AddRow()
+	sheet.AddRow().WriteSlice(&[]string{
 		"Client Name",
 		"Company Name",
 		"Reference",
 		"Phone Number",
-	})
+	}, -1)
 	for _, client := range cl {
 		var cy Company
-		c.GetCompany(client.CompanyID, &cy)
-		cw.Write([]string{
+		if err := c.GetCompany(client.CompanyID, &cy); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		sheet.AddRow().WriteSlice(&[]string{
 			client.Name,
 			cy.Name,
 			client.Reference,
 			" " + client.PhoneNumber,
-		})
+		}, -1)
 	}
-	cw.Flush()
+	var buf []byte
+	if err = xls.Write(memio.Create(&buf)); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", "inline; filename=\"clientList.xlsx\"")
+	http.ServeContent(w, r, "", time.Now(), memio.Open(buf))
 }
