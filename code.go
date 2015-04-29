@@ -761,13 +761,13 @@ window.addEventListener("load", function(oldDate) {
 				return;
 			}
 			eventCell = days[dayStr][1].removeChild(days[dayStr][1].getElementById("cell_" + blockStr));
-			left = eventCell.style.left;
-			width = (e.End - e.Start) / 60000 + "px";
+			var left = eventCell.style.left,
+			    width = (e.End - e.Start) / 60000;
 			eventDiv.setAttribute("class", "event");
 			eventDiv.addEventListener("click", showEvent.bind(null, e));
 			eventDiv.style.left = left;
 			eventDiv.style.top = eventCell.style.top;
-			eventDiv.style.width = width;
+			eventDiv.style.width = width + "px";
 			eventDiv.setAttribute("id", "event_" + blockStr);
 			rpc.getCompanyColourFromClient(e.ClientID, function(colour) {
 				eventDiv.style.backgroundColor = "#" + colour.toString(16);
@@ -797,35 +797,40 @@ window.addEventListener("load", function(oldDate) {
 				if (toWidth > maxWidth) {
 					maxWidth = toWidth;
 				}
-				//if (maxWidth + 12 > parseInt(width)) { // 1px left border + 5px left padding + 5px right padding + 1px right border
-					eventDiv.setAttribute("class", "event expandable");
-					eventDiv.appendChild(start);
-					eventDiv.appendChild(end);
-					if (startWidth > maxWidth) {
-						maxWidth = startWidth;
-					}
-					if (endWidth > maxWidth) {
-						maxWidth = endWidth;
-					}
-					var newLeft = parseInt(left) - (((maxWidth + 12) - parseInt(width)) / 2);
+				eventDiv.setAttribute("class", "event expandable");
+				eventDiv.appendChild(start);
+				eventDiv.appendChild(end);
+				if (startWidth > maxWidth) {
+					maxWidth = startWidth;
+				}
+				if (endWidth > maxWidth) {
+					maxWidth = endWidth;
+				}
+				var newLeft = parseInt(left) - (((maxWidth + 12) - width) / 2);
+				// 1px left border + 5px left padding + 5px right padding + 1px right border
+				if (maxWidth + 12 > parseInt(width)) {
 					eventDiv.addEventListener("mouseover", function() {
 						name.style.marginLeft = (maxWidth - nameWidth) / 2 + "px";
 						from.style.marginLeft = (maxWidth - fromWidth) / 2 + "px";
 						to.style.marginLeft = (maxWidth - toWidth) / 2 + "px";
-						if (maxWidth + 12 > parseInt(width)) {
-							eventDiv.style.width = maxWidth + 12 + "px";
-							eventDiv.style.left = newLeft + "px";
-						}
+						eventDiv.style.width = maxWidth + 12 + "px";
+						eventDiv.style.left = newLeft + "px";
 					});
-					eventDiv.addEventListener("mouseout", function() {
-						name.style.marginLeft = "0";
-						from.style.marginLeft = "0";
-						to.style.marginLeft = "0";
-						eventDiv.style.left = left;
-						eventDiv.style.width = width;
+				} else {
+					eventDiv.addEventListener("mouseover", function() {
+						name.style.marginLeft = (width - nameWidth) / 2 + "px";
+						from.style.marginLeft = (width - fromWidth) / 2 + "px";
+						to.style.marginLeft = (width - toWidth) / 2 + "px";
+					});
+				}
+				eventDiv.addEventListener("mouseout", function() {
+					name.style.marginLeft = "0";
+					from.style.marginLeft = "0";
+					to.style.marginLeft = "0";
+					eventDiv.style.left = left;
+					eventDiv.style.width = width + "px";
 
-					});
-				//}
+				});
 			});
 			days[dayStr][1].appendChild(eventDiv);
 		};
