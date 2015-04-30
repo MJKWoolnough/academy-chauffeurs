@@ -226,7 +226,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [CompanyID] = ? AND [Deleted] = 0 ORDER BY [Name] ASC;",
 
 		// Events with unsent messages
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[MessageSent] = 0 AND [Event].[Start] > ? AND [Event].[Deleted] = 0 ORDER BY [Event].Start ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[MessageSent] = 0 AND [Event].[Start] > ? AND [Event].[DriverID] > 0 AND [Event].[Deleted] = 0 ORDER BY [Event].Start ASC;",
 
 		// Mark message as sent
 		"UPDATE [Event] SET [MessageSent] = 1 WHERE [ID] = ?;",
