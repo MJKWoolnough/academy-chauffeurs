@@ -221,11 +221,15 @@ var styleCSS = []byte(`@media screen {
 		transition-timing-function : ease;
 	}
 
-	.cellOdd {
+	.driverUnassignedEven, .driverUnassignedOdd {
+		position : absolute;
+	}
+
+	.cellOdd, .driverUnassignedOdd .cellEven {
 		background-color : #ddd;
 	}
 
-	.cellEven {
+	.cellEven, .driverUnassignedOdd .cellOdd {
 		background-color : #aaa;
 	}
 
