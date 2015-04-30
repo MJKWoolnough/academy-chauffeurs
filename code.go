@@ -282,6 +282,7 @@ window.addEventListener("load", function(oldDate) {
 		var dateTime,
 		    dateShift,
 		    driverEvents = createElement("div"),
+		    unassignedEvents = [],
 		    eventCells = driverEvents.appendChild(createElement("div")),
 		    dates = createElement("div"),
 		    drivers = [],
@@ -323,6 +324,7 @@ window.addEventListener("load", function(oldDate) {
 					if (unix < minOnScreenDayStart || unix > maxOnScreenDayEnd) {
 						dates.removeChild(days[keys[t]][0]);
 						eventCells.removeChild(days[keys[t]][1]);
+						eventCells.removeChild(days[keys[t]][2]);
 					}
 				}
 			}
@@ -333,6 +335,7 @@ window.addEventListener("load", function(oldDate) {
 				day = tDate.getDate();
 				if (addDay(year, month, day)) {
 					var driverIDs = Object.keys(drivers);
+					driverIDs.push(0);
 					for (i = 0; i < driverIDs.length; i++) {
 						rpc.getEventsWithDriver(parseInt(driverIDs[i]), tDate.getTime(), tDate.getTime() + 86400000, function(events) {
 							for(var i = 0; i < events.length; i++) {
@@ -396,6 +399,7 @@ window.addEventListener("load", function(oldDate) {
 			if (typeof days[year + "_" + month + "_" + day] !== "undefined") {
 				dates.appendChild(days[year + "_" + month + "_" + day][0]);
 				eventCells.appendChild(days[year + "_" + month + "_" + day][1]);
+				eventCells.appendChild(days[year + "_" + month + "_" + day][2]);
 				return;
 			} else if (document.getElementById("month_" + year + "_" + month) === null) {
 				addMonth(year, month);
@@ -403,7 +407,10 @@ window.addEventListener("load", function(oldDate) {
 			var dayDate = new Date(year, month, day),
 			    dayDiv = createElement("div"),
 			    dayEnclosure = createElement("div"),
-			    i = 0;
+			    i = 0,
+			    unassigned = eventCells.appendChild(createElement("div"));
+			unassigned.setAttribute("class", "driverUnassigned" + (Object.keys(drivers).length % 2 === 0 ? "Even":"Odd"));
+			unassigned.style.top = nextDriverPos + "px";
 			dayDiv.appendChild(createElement("div")).setInnerText(dayDate.getDayName() + ", " + day + dayDate.getOrdinalSuffix()).setAttribute("class", "slider");
 			dayDiv.setAttribute("class", "day");
 			dayDiv.setAttribute("id", "day_" + year + "_" + month + "_" + day);
@@ -411,7 +418,7 @@ window.addEventListener("load", function(oldDate) {
 			dayEnclosure.appendChild(dayDiv);
 			dayEnclosure.setAttribute("class", "dayEnclosure");
 
-			days[year + "_" + month + "_" + day] = [dayEnclosure, eventCells.appendChild(createElement("div"))];
+			days[year + "_" + month + "_" + day] = [dayEnclosure, eventCells.appendChild(createElement("div")), unassigned];
 			for (; i < 24; i++) {
 				addHour(year, month, day, i);
 			}
@@ -445,7 +452,7 @@ window.addEventListener("load", function(oldDate) {
 			dayDiv[0].appendChild(fifteenDiv);
 			for (var i = 0; i < driverIDs.length; i++) {
 				cellDiv = createElement("div");
-				cellDiv.setAttribute("class", "eventCell " + (block % 2 == i % 2 ? "cellOdd" : "cellEven"));
+				cellDiv.setAttribute("class", "eventCell " + (block % 2 === i % 2 ? "cellOdd" : "cellEven"));
 				cellDiv.setAttribute("id", "cell_" + driverIDs[i] + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 				cellDiv.style.left = leftPos;
 				cellDiv.style.top = drivers[driverIDs[i]].yPos + "px";
@@ -456,6 +463,17 @@ window.addEventListener("load", function(oldDate) {
 				cellDiv.addEventListener("click", eventOnClick);
 				dayDiv[1].appendChild(cellDiv);
 			}
+			cellDiv = createElement("div");
+			cellDiv.setAttribute("class", "eventCell " + (block % 2 === 0 ? "cellOdd" : "cellEven"))
+			cellDiv.setAttribute("id", "cell_0_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+			cellDiv.style.left = leftPos;
+			cellDiv.style.top = "0px";
+			cellDiv.addEventListener("mouseover", eventOnMouseOver);
+			cellDiv.addEventListener("mouseover", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute select"));
+			cellDiv.addEventListener("mouseout", eventOnMouseOut);
+			cellDiv.addEventListener("mouseout", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute"));
+			cellDiv.addEventListener("click", eventOnClick);
+			dayDiv[2].appendChild(cellDiv);
 		    },
 		    isOnScreen = function(div) {
 			var left = parseInt(eventCells.style.left, 10) + parseInt(div.style.left, 10),
@@ -678,7 +696,12 @@ window.addEventListener("load", function(oldDate) {
 				    day = tDate.getDate(),
 				    hour = tDate.getHours(),
 				    block = tDate.getMinutes() / 15,
-				    cell = days[year + "_" + month + "_" + day][1].getElementById("cell_" + thisDriverID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+				    cell;
+				if (thisDriverID === 0) {
+					cell = days[year + "_" + month + "_" + day][2].getElementById("cell_0_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+				} else {
+					cell = days[year + "_" + month + "_" + day][1].getElementById("cell_" + thisDriverID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+				}
 				if (cell === null) {
 					return null;
 				}
@@ -736,9 +759,14 @@ window.addEventListener("load", function(oldDate) {
 				eventsHighlighted = [];
 			} else if (getEventsBetween(e.target.getAttribute("id")) !== null){
 				eventsHighlighted.push(eventSelected);
-				var id = e.target.getAttribute("id");
+				var id = e.target.getAttribute("id"),
+				    driverID = cellIdToDriver(id);
 				stack.addLayer("addEvent", addEventToTable);
-				addEvent(drivers[cellIdToDriver(id)], new Date(cellIdToDate(eventSelected.getAttribute("id"))), new Date(cellIdToDate(id) + 900000));
+				if (driverID === 0) {
+					addEvent({ID: 0, Name: "Unassigned"}, new Date(cellIdToDate(eventSelected.getAttribute("id"))), new Date(cellIdToDate(id) + 900000));
+				} else {
+					addEvent(drivers[driverID], new Date(cellIdToDate(eventSelected.getAttribute("id"))), new Date(cellIdToDate(id) + 900000));
+				}
 				eventSelected = null;
 			}
 		    }.bind(this),
@@ -746,7 +774,6 @@ window.addEventListener("load", function(oldDate) {
 			if (typeof e === "undefined") {
 				return;
 			}
-			drivers[e.DriverID].events[e.Start] = e;
 			var eventDate = new Date(e.Start),
 			    year = eventDate.getFullYear(),
 			    month = eventDate.getMonth(),
@@ -760,13 +787,35 @@ window.addEventListener("load", function(oldDate) {
 			if (typeof days[dayStr] === "undefined") {
 				return;
 			}
-			eventCell = days[dayStr][1].removeChild(days[dayStr][1].getElementById("cell_" + blockStr));
+			if (e.DriverID === 0) {
+				eventCell = days[dayStr][2].getElementById("cell_" + blockStr);
+			} else {
+				eventCell = days[dayStr][1].removeChild(days[dayStr][1].getElementById("cell_" + blockStr));
+			}
 			var left = eventCell.style.left,
 			    width = (e.End - e.Start) / 60000;
 			eventDiv.setAttribute("class", "event");
 			eventDiv.addEventListener("click", showEvent.bind(null, e));
 			eventDiv.style.left = left;
-			eventDiv.style.top = eventCell.style.top;
+			if (e.DriverID === 0) {
+				var blockTop = 0,
+				    i = 0;
+				Loop:
+				while (true) {
+					blockTop += 100;
+					for (; i < unassignedEvents.length; i++) {
+						if (unassignedEvents[i].Top === blockTop && Math.max(unassignedEvents[i].Start, e.Start) < Math.min(unassignedEvents[i].End, e.End)) {
+							continue Loop;
+						}
+					}
+					break;
+				}
+				e.Top = blockTop;
+				unassignedEvents.push(e);
+				eventDiv.style.top = blockTop + "px";
+			} else {
+				eventDiv.style.top = eventCell.style.top;
+			}
 			eventDiv.style.width = width + "px";
 			eventDiv.setAttribute("id", "event_" + blockStr);
 			rpc.getCompanyColourFromClient(e.ClientID, function(colour) {
@@ -832,7 +881,11 @@ window.addEventListener("load", function(oldDate) {
 
 				});
 			});
-			days[dayStr][1].appendChild(eventDiv);
+			if (e.DriverID === 0) {
+				days[dayStr][2].appendChild(eventDiv);
+			} else {
+				days[dayStr][1].appendChild(eventDiv);
+			}
 		};
 		this.addDriver = function(d) {
 			if (typeof d === "undefined") {
@@ -840,7 +893,6 @@ window.addEventListener("load", function(oldDate) {
 			}
 			drivers[d.ID] = d;
 			drivers[d.ID].yPos = nextDriverPos;
-			drivers[d.ID].events = [];
 			var dDiv = createElement("div"),
 			    t;
 			drivers[d.ID].driverDiv = dDiv;
@@ -867,6 +919,8 @@ window.addEventListener("load", function(oldDate) {
 				    month = parts[1],
 				    day = parts[2],
 				    dayDiv = days[keys[i]];
+				dayDiv[2].style.top = nextDriverPos + "px";
+				dayDiv[2].setAttribute("class", "driverUnassigned" + (oddEven ? "Odd":"Even"));
 				for (var hour = 0; hour < 24; hour++) {
 					for (var block = 0; block < 4; block++) {
 						var cellDiv = createElement("div"),
@@ -886,7 +940,6 @@ window.addEventListener("load", function(oldDate) {
 			}
 		};
 		this.updateDriver = function(d) {
-			d.events = drivers[d.ID].events;
 			d.yPos = drivers[d.ID].yPos;
 			d.driverDiv = drivers[d.ID].driverDiv;
 			d.driverDiv.getElementsByTagName("div")[0].setInnerText(d.Name);
@@ -1192,12 +1245,17 @@ window.addEventListener("load", function(oldDate) {
 									clientCell.setInnerText(client.Name);
 									refCell.setInnerText(client.Reference);
 								}.bind(null, clientCell, refCell, i));
-								loading.add();
-								rpc.getDriver(events[i].DriverID, function(driverCell, i, driver) {
-									loading.done();
-									events[i].DriverName = driver.Name;
-									driverCell.setInnerText(driver.Name);
-								}.bind(null, driverCell, i));
+								if (events[i].DriverID === 0) {
+									events[i].DriverName = "Unassigned";
+									driverCell.setInnerText("Unassigned");
+								} else {
+									loading.add();
+									rpc.getDriver(events[i].DriverID, function(driverCell, i, driver) {
+										loading.done();
+										events[i].DriverName = driver.Name;
+										driverCell.setInnerText(driver.Name);
+									}.bind(null, driverCell, i));
+								}
 								loading.add();
 								wg.add();
 								rpc.getEventFinals(events[i].ID, function(parkingCell, priceCell, i, eventFinals) {
@@ -1395,9 +1453,13 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(dropOff);
 								row.appendChild(tripTime);
 								row.appendChild(price);
-								rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
-									driverCell.setInnerText(driver.Name);
-								}.bind(null, driverCell));
+								if (events[i].DriverID === 0) {
+									driverCell.setInnerText("Unassigned");
+								} else {
+									rpc.getDriver(events[i].DriverID, function(driverCell, driver) {
+										driverCell.setInnerText(driver.Name);
+									}.bind(null, driverCell));
+								}
 								wg.add();
 								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, price, eventFinals) {
 									if (eventFinals.FinalsSet) {
@@ -2035,12 +2097,16 @@ window.addEventListener("load", function(oldDate) {
 					companyName.setInnerText(company.Name);
 				});
 			});
-			rpc.getDriver(e.DriverID, function(driver) {
-				driverName.setInnerText(driver.Name);
-				driverReg.setInnerText(driver.RegistrationNumber);
-			});
+			if (e.DriverID === 0) {
+				driverName.setInnerText("Unassigned");
+			} else {
+				rpc.getDriver(e.DriverID, function(driver) {
+					driverName.setInnerText(driver.Name);
+					driverReg.setInnerText(driver.RegistrationNumber);
+				});
+			}
 		}];
-		if (e.Start < (new Date()).getTime()) {
+		if (e.Start < (new Date()).getTime() && e.DriverID > 0) {
 			tabData[tabData.length] = [ "Final Details", function() {
 				var inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
@@ -2105,12 +2171,17 @@ window.addEventListener("load", function(oldDate) {
 						events.reload("event", e.ID);
 					}
 				});
-				rpc.getDriver(e.DriverID, function(d) {
-					e.DriverName = d.Name;
-					rpc.getClient(e.ClientID, function(c) {
-						e.ClientName = c.Name;
+				rpc.getClient(e.ClientID, function(c) {
+					e.ClientName = c.Name;
+					if (e.DriverID === 0) {
+						e.DriverName = "Unassigned";
 						setEvent(e);
-					});
+					} else {
+						rpc.getDriver(e.DriverID, function(d) {
+							e.DriverName = d.Name;
+							setEvent(e);
+						});
+					}
 				});
 			});
 			deleter.setAttribute("class", "simpleButton");
