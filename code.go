@@ -291,7 +291,7 @@ window.addEventListener("load", function(oldDate) {
 		    plusDriver = driverEvents.appendChild(createElement("div")),
 		    nextDriverPos = 0,
 		    timeToPos = function(date) {
-			return ((date.getTime() - dateShift) / 60000) + "px";
+			return Math.floor((date.getTime() - dateShift) / 60000) + "px";
 		    },
 		    update = function(date) {
 			if (typeof date === "undefined") {
@@ -676,20 +676,24 @@ window.addEventListener("load", function(oldDate) {
 			var parts = id.split("_");
 			return new Date(parts[2], parts[3], parts[4], parts[5], parts[6] * 15).getTime();
 		    },
-		    getEventsBetween = function(id) {
+		    getEventsBetween = function(thatID) {
 			if (eventSelected === null) {
 				return null;
 			}
-			var thatID = eventSelected.getAttribute("id"),
-			    thisDriverID = cellIdToDriver(id),
+			var thisID = eventSelected.getAttribute("id"),
+			    thisDriverID = cellIdToDriver(thisID),
 			    thatDriverID = cellIdToDriver(thatID),
-			    thisTime = cellIdToDate(id),
-			    thatTime = cellIdToDate(thatID),
-			    events = [];
-			if (thisDriverID !== thatDriverID || thisTime <= thatTime || thisTime - thatTime > 86400000) {
+			    thisTime = cellIdToDate(thisID),
+			    thatTime = cellIdToDate(thatID);
+			if (thisDriverID !== thatDriverID || thisTime >= thatTime) {
 				return null;
 			}
-			for (var t = thatTime + 900000; t <= thisTime; t += 900000) {
+			return eventCellsBetween(thisDriverID, thisTime + 900000, thatTime + 90000);
+		    },
+		    eventCellsBetween = function(driverID, thisTime, thatTime) {
+			var events = [],
+			    t;
+			for (t = thisTime; t < thatTime; t += 900000) {
 				var tDate = new Date(t),
 				    year = tDate.getFullYear(),
 				    month = tDate.getMonth(),
@@ -697,10 +701,10 @@ window.addEventListener("load", function(oldDate) {
 				    hour = tDate.getHours(),
 				    block = tDate.getMinutes() / 15,
 				    cell;
-				if (thisDriverID === 0) {
-					cell = days[year + "_" + month + "_" + day][2].getElementById("cell_0_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+				if (driverID === 0) {
+					cell = days[year + "_" + month + "_" + day][2].getChildElementById("cell_0_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 				} else {
-					cell = days[year + "_" + month + "_" + day][1].getElementById("cell_" + thisDriverID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
+					cell = days[year + "_" + month + "_" + day][1].getChildElementById("cell_" + driverID + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 				}
 				if (cell === null) {
 					return null;
@@ -720,24 +724,39 @@ window.addEventListener("load", function(oldDate) {
 		    },
 		    eventOnMouseOver = function(e) {
 			e = e || event;
+			if (moverSelected !== null) {
+				var thisID = moverSelected.getAttribute("id"),
+				    thatID = e.target.getAttribute("id"),
+				    driverID = cellIdToDriver(thatID),
+				    startDate = cellIdToDate(thatID),
+				    endDate = startDate + parseInt(moverSelected.getAttribute("timeWidth")),
+				    cells = eventCellsBetween(driverID, startDate, endDate),
+				    i = 0;
+				if (cells === null) {
+					return;
+				}
+				for (; i < cells.length; i++) {
+					changeThirdCellClass(cells[i], "eventsInBetween");
+				}
+				eventsHighlighted = cells;
+				return;
+			}
 			if (e.target === eventSelected) {
 				return;
 			}
 			if (eventSelected !== null) {
-				if (cellIdToDriver(e.target.getAttribute("id")) === cellIdToDriver(eventSelected.getAttribute("id"))) {
-					var cells = getEventsBetween(e.target.getAttribute("id"));
-					if (cells === null) {
-						return;
-					}
-					for (var i = 0; i < cells.length; i++) {
-						changeThirdCellClass(cells[i], "eventsInBetween");
-					}
-					eventsHighlighted = cells;
+				var cells = getEventsBetween(e.target.getAttribute("id"));
+				if (cells === null) {
+					return;
 				}
-				return;
+				for (var i = 0; i < cells.length; i++) {
+					changeThirdCellClass(cells[i], "eventsInBetween");
+				}
+				eventsHighlighted = cells;
+			} else {
+				changeThirdCellClass(e.target, "eventHover");
+				eventsHighlighted = [e.target];
 			}
-			changeThirdCellClass(e.target, "eventHover");
-			eventsHighlighted = [e.target];
 		    },
 		    eventOnMouseOut = function() {
 			for (var i = 0; i < eventsHighlighted.length; i++) {
@@ -747,9 +766,12 @@ window.addEventListener("load", function(oldDate) {
 		    },
 		    eventSelected = null,
 		    eventsHighlighted = [],
+		    moverSelected = null,
 		    eventOnClick = function(e) {
 			e = e || eventsent;
-			if (e.target === eventSelected) {
+			if (moverSelected !== null) {
+
+			} else if (e.target === eventSelected) {
 				eventSelected = null;
 				changeThirdCellClass(e.target, "eventHover");
 				eventsHighlighted.push(e.target);
@@ -770,6 +792,20 @@ window.addEventListener("load", function(oldDate) {
 				eventSelected = null;
 			}
 		    }.bind(this),
+		    moveEvent = function(eventDiv, e) {
+			e = e || window.event;
+			e.stopPropagation();
+			if (eventSelected !== null) {
+				eventOnClick({target: eventSelected});
+			}
+			if (moverSelected === eventDiv) {
+				moverSelected = null;
+				e.target.setAttribute("class", "eventMover");
+			} else if (moverSelected === null) {
+				moverSelected = eventDiv;
+				e.target.setAttribute("class", "eventMover selected");
+			}
+		    },
 		    addEventToTable = function(e) {
 			if (typeof e === "undefined") {
 				return;
@@ -783,6 +819,7 @@ window.addEventListener("load", function(oldDate) {
 			    dayStr = year + "_" + month + "_" + day,
 			    blockStr = e.DriverID + "_" + dayStr + "_" + hour + "_" + block,
 			    eventDiv = createElement("div"),
+			    eventMover = eventDiv.appendChild(createElement("div")),
 			    eventCell, left, width;
 			if (typeof days[dayStr] === "undefined") {
 				return;
@@ -790,13 +827,16 @@ window.addEventListener("load", function(oldDate) {
 			if (e.DriverID === 0) {
 				eventCell = days[dayStr][2].getElementById("cell_" + blockStr);
 			} else {
-				eventCell = days[dayStr][1].removeChild(days[dayStr][1].getElementById("cell_" + blockStr));
+				eventCell = eventDiv.appendChild(days[dayStr][1].getElementById("cell_" + blockStr));
 			}
 			var left = eventCell.style.left,
 			    width = (e.End - e.Start) / 60000;
 			eventDiv.setAttribute("class", "event");
 			eventDiv.addEventListener("click", showEvent.bind(null, e));
 			eventDiv.style.left = left;
+			eventDiv.setAttribute("timeWidth", e.End - e.Start);
+			eventMover.setAttribute("class", "eventMover");
+			eventMover.addEventListener("click", moveEvent.bind(null, eventDiv));
 			if (e.DriverID === 0) {
 				var blockTop = 0,
 				    i = 0;
@@ -855,7 +895,7 @@ window.addEventListener("load", function(oldDate) {
 				if (endWidth > maxWidth) {
 					maxWidth = endWidth;
 				}
-				var newLeft = parseInt(left) - (((maxWidth + 12) - width) / 2);
+				var newLeft = Math.floor(parseInt(left) - (((maxWidth + 12) - width) / 2));
 				// 1px left border + 5px left padding + 5px right padding + 1px right border
 				if (maxWidth + 12 > parseInt(width)) {
 					eventDiv.addEventListener("mouseover", function() {
@@ -864,6 +904,7 @@ window.addEventListener("load", function(oldDate) {
 						to.style.marginLeft = (maxWidth - toWidth) / 2 + "px";
 						eventDiv.style.width = maxWidth + 12 + "px";
 						eventDiv.style.left = newLeft + "px";
+						eventMover.style.left = parseInt(left) - newLeft + "px";
 					});
 				} else {
 					eventDiv.addEventListener("mouseover", function() {
@@ -878,6 +919,7 @@ window.addEventListener("load", function(oldDate) {
 					to.style.marginLeft = "0";
 					eventDiv.style.left = left;
 					eventDiv.style.width = width + "px";
+					eventMover.style.left = "0px";
 
 				});
 			});
@@ -2640,6 +2682,14 @@ window.addEventListener("load", function(oldDate) {
 	}());
 	Element.prototype.getElementById = function(id) {
 		return this.querySelector("#" + id);
+	};
+	Element.prototype.getChildElementById = function(id) {
+		for (var i = 0; i < this.childNodes.length; i++) {
+			if (this.childNodes[i].getAttribute("id") === id) {
+				return this.childNodes[i];
+			}
+		}
+		return null;
 	};
 	Element.prototype.setInnerText = function(text) {
 		this.removeChildren();

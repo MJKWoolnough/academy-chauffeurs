@@ -245,6 +245,27 @@ var styleCSS = []byte(`@media screen {
 		background-color : #00f;
 	}
 
+	.eventMover {
+		border : 1px solid #000;
+		position : absolute;
+		width : 6px;
+		height : 6px;
+		background-color : #fff;
+		font-size : 5px;
+		text-align : center;
+		top : 0px;
+		left : 0px;
+		padding : 0;
+		margin : 0;
+		transform : translate(-1px, -1px);
+		transition : left 1s, background-color 0.25s !important;
+		transition-timing-function : ease;
+	}
+
+	.eventMover.selected {
+		background-color : #000;
+	}
+
 	.canceller {
 		float : right;
 		margin-right : 2px;
@@ -319,6 +340,10 @@ var styleCSS = []byte(`@media screen {
 		-moz-user-select : none;
 		-webkit-user-select : none;
 		cursor : pointer;
+	}
+
+	.event .eventCell {
+		display : none;
 	}
 
 	.event.expandable {
