@@ -767,10 +767,32 @@ window.addEventListener("load", function(oldDate) {
 		    eventSelected = null,
 		    eventsHighlighted = [],
 		    moverSelected = null,
+		    moverFifteenSelected = null,
 		    eventOnClick = function(e) {
-			e = e || eventsent;
+			e = e || event;
 			if (moverSelected !== null) {
-
+				var newPlaceID = e.target.getAttribute("id"),
+				    newDriverID = cellIdToDriver(newPlaceID),
+				    newStartTime = cellIdToDate(newPlaceID);
+				rpc.getEvent(parseInt(moverSelected.getAttribute("eventID")), function(ev) {
+					if (ev.DriverID === 0) {
+						for (var i = 0; i < unassignedEvents.length; i++) {
+							if (unassignedEvents[i].ID === ev.ID) {
+								unassignedEvents.splice(i, 1);
+								break;
+							}
+						}
+					}
+					moverSelected.parentNode.removeChild(moverSelected);
+					moverSelected = null;
+					ev.DriverID = newDriverID;
+					ev.End = (ev.End - ev.Start) + newStartTime;
+					ev.Start = newStartTime;
+					rpc.setEvent(ev, function() {
+						addEventToTable(ev);
+						e.target.dispatchEvent(new MouseEvent("mouseout", {"view": window, "bubble": false, "cancelable": true}));
+					});
+				});
 			} else if (e.target === eventSelected) {
 				eventSelected = null;
 				changeThirdCellClass(e.target, "eventHover");
@@ -799,9 +821,17 @@ window.addEventListener("load", function(oldDate) {
 				eventOnClick({target: eventSelected});
 			}
 			if (moverSelected === eventDiv) {
+				if (moverFifteenSelected !== null) {
+					eventDiv.appendChild(moverFifteenSelected);
+					moverFifteenSelected = null;
+				}
 				moverSelected = null;
 				e.target.setAttribute("class", "eventMover");
 			} else if (moverSelected === null) {
+				moverFifteenSelected = eventDiv.querySelector(".eventCell");
+				if (moverFifteenSelected !== null) {
+					eventDiv.parentNode.appendChild(moverFifteenSelected);
+				}
 				moverSelected = eventDiv;
 				e.target.setAttribute("class", "eventMover selected");
 			}
@@ -835,6 +865,7 @@ window.addEventListener("load", function(oldDate) {
 			eventDiv.addEventListener("click", showEvent.bind(null, e));
 			eventDiv.style.left = left;
 			eventDiv.setAttribute("timeWidth", e.End - e.Start);
+			eventDiv.setAttribute("eventID", e.ID);
 			eventMover.setAttribute("class", "eventMover");
 			eventMover.addEventListener("click", moveEvent.bind(null, eventDiv));
 			if (e.DriverID === 0) {
