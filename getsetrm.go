@@ -176,10 +176,7 @@ type SetEventResponse struct {
 }
 
 func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
-	if e.DriverID == 0 {
-		resp.Errors = true
-		resp.DriverError = "Driver Required"
-	} else {
+	if e.DriverID > 0 {
 		var d Driver
 		if err := c.GetDriver(e.DriverID, &d); err != nil {
 			return err
