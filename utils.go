@@ -1,6 +1,9 @@
 package main
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var ErrInvalidMobileNumber = errors.New("Invalid Mobile Phone Number Format")
 
@@ -42,4 +45,8 @@ func ParseMobileNumber(a string) (MobileNumber, error) {
 func ValidMobileNumber(pn string) bool {
 	_, err := ParseMobileNumber(pn)
 	return err == nil
+}
+
+func now() int64 {
+	return time.Now().Unix()
 }

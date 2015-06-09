@@ -235,15 +235,16 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 		if err != nil {
 			return err
 		}
+		t := now()
 		if e.ID == 0 {
-			r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID)
+			r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, t, t)
 			if er == nil {
 				resp.ID, er = r.LastInsertId()
 			}
 			err = er
 		} else {
 			resp.ID = e.ID
-			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, e.ID)
+			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, t, e.ID)
 		}
 		if err != nil {
 			return err
@@ -295,7 +296,7 @@ func (c *Calls) RemoveClient(id int64, _ *struct{}) error {
 	if err != nil {
 		return err
 	}
-	_, err = c.statements[DeleteClientEvents].Exec(id)
+	_, err = c.statements[DeleteClientEvents].Exec(now(), id)
 	return err
 }
 
@@ -310,11 +311,11 @@ func (c *Calls) RemoveCompany(id int64, _ *struct{}) error {
 	if err != nil {
 		return err
 	}
-	_, err = c.statements[DeleteCompanyEvents].Exec(id)
+	_, err = c.statements[DeleteCompanyEvents].Exec(now(), id)
 	return err
 }
 
 func (c *Calls) RemoveEvent(id int64, _ *struct{}) error {
-	_, err := c.statements[DeleteEvent].Exec(id)
+	_, err := c.statements[DeleteEvent].Exec(now(), id)
 	return err
 }

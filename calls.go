@@ -100,6 +100,8 @@ const (
 	AutocompleteFromAddress
 	AutocompleteToAddress
 
+	CalendarData
+
 	TotalStmts
 )
 
@@ -127,7 +129,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Colour] INTEGER, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] INTEGER, [To] INTEGER, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Trip] INTEGER DEFAULT 0, [DriverHours] INTEGER DEFAULT 0, [Price] INTEGER DEFAULT 0, [Sub] INTEGER DEFAULT 0, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT NOT NULL DEFAULT '', [FinalsSet] BOOLEAN DEFAULT 0 NOT NULL, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
-		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL, [CalendarUsername] TEXT, [CalendarPassword] TEXT);",
+		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL, [CalendarUsername] TEXT, [CalendarPassword] TEXT, [UploadCalendar] BOOLEAN DEFAULT 0 NOT NULL CHECK ([UploadCalendar] IN (0, 1)));",
 		"[FromAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT);",
 		"[ToAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT);",
 	} {
@@ -146,7 +148,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"INSERT INTO [Driver]([Name], [RegistrationNumber], [PhoneNumber]) VALUES (?, ?, ?);",
 		"INSERT INTO [Company]([Name], [Address], [Colour]) VALUES (?, ?, ?);",
 		"INSERT INTO [Client]([CompanyID], [Name], [PhoneNumber], [Reference]) VALUES (?, ?, ?, ?);",
-		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To]) VALUES (?, ?, ?, ?, ?, ?);",
+		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To], [Created], [Updated]) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
 		"INSERT INTO [FromAddresses]([Address]) VALUES (?);",
 		"INSERT INTO [ToAddresses]([Address]) VALUES (?);",
 
@@ -165,7 +167,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Driver] SET [Name] = ?, [RegistrationNumber] = ?, [PhoneNumber] = ? WHERE [ID] = ?;",
 		"UPDATE [Company] SET [Name] = ?, [Address] = ?, [Colour] = ? WHERE [ID] = ?;",
 		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ? WHERE [ID] = ?;",
-		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ? WHERE [ID] = ?;",
+		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ?, [Updated] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [FinalsSet] = 1, [InCar] = ?, [Parking] = ?, [Waiting] = ?, [Drop] = ?, [Miles] = ?, [Trip] = ?, [DriverHours] = ?, [Price] = ?, [Sub] = ? WHERE [ID] = ?;",
 
 		// Delete (set deleted)
@@ -173,12 +175,12 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Driver] SET [Deleted] = 1 WHERE [ID] = ?;",
 		"UPDATE [Company] SET [Deleted] = 1 WHERE [ID] = ?;",
 		"UPDATE [Client] SET [Deleted] = 1 WHERE [ID] = ?;",
-		"UPDATE [Event] SET [Deleted] = 1 WHERE [ID] = ?;",
+		"UPDATE [Event] SET [Deleted] = 1, [Updated] = ? WHERE [ID] = ?;",
 
-		"UPDATE [Event] SET [Deleted] = 1 WHERE [DriverID] = ?;",
-		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] = ?;",
+		"UPDATE [Event] SET [Deleted] = 1, [Updated] = ? WHERE [DriverID] = ?;",
+		"UPDATE [Event] SET [Deleted] = 1, [Updated] = ? WHERE [ClientID] = ?;",
 		"UPDATE [Client] SET [Deleted] = 1 WHERE [CompanyID] = ?;",
-		"UPDATE [Event] SET [Deleted] = 1 WHERE [ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?);",
+		"UPDATE [Event] SET [Deleted] = 1, [Updated] = ? WHERE [ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?);",
 
 		// Get Notes
 
@@ -254,6 +256,9 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Autocomplete To Address
 		"SELECT [ToAddresses].[Address] FROM [Event] LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? GROUP BY [Event].[From] ORDER BY COUNT(1) DESC LIMIT ?;",
+
+		// All event data for calendar output
+		"SELECT [Event].[Start], [Event].[End], [Event].[From], [Event].[To], [Event].[Created], [Event].[Updated], [Driver].[Name], [Client].[Name], [Company].[Name] FROM [Event] LEFT JOIN [Driver] ON ([Driver].[ID] = [Event].[DriverID]) LEFT JOIN [Client] ON ([Client].ID = [Event].[ClientID]) LEFT JOIN [Company] ON ([Company].ID = [Client].[CompanyID]) WHERE [Event].[Start] > ? AND [Event].[End] < ?;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
