@@ -129,7 +129,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Colour] INTEGER, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] INTEGER, [To] INTEGER, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Trip] INTEGER DEFAULT 0, [DriverHours] INTEGER DEFAULT 0, [Price] INTEGER DEFAULT 0, [Sub] INTEGER DEFAULT 0, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT NOT NULL DEFAULT '', [FinalsSet] BOOLEAN DEFAULT 0 NOT NULL, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
-		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL, [CalendarUsername] TEXT, [CalendarPassword] TEXT, [UploadCalendar] BOOLEAN DEFAULT 0 NOT NULL CHECK ([UploadCalendar] IN (0, 1)));",
+		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL, [CalendarUsername] TEXT, [CalendarPassword] TEXT, [CalendarAddress] TEXT, [UploadCalendar] BOOLEAN DEFAULT 0 NOT NULL CHECK ([UploadCalendar] IN (0, 1)));",
 		"[FromAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT);",
 		"[ToAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT);",
 	} {
@@ -198,8 +198,8 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Settings
 
-		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [CalendarUsername], [CalendarPassword] FROM [Settings];",
-		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?, [CalendarUsername] = ?, [CalendarPassword] = ?;",
+		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [CalendarUsername], [CalendarPassword], [CalendarAddress], [UploadCalendar], [Port] FROM [Settings];",
+		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?, [CalendarUsername] = ?, [CalendarPassword] = ?, [CalendarAddress] = ?, [UploadCalendar] = ?, [Port] = ?;",
 
 		// Searches
 
@@ -258,7 +258,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ToAddresses].[Address] FROM [Event] LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? GROUP BY [Event].[From] ORDER BY COUNT(1) DESC LIMIT ?;",
 
 		// All event data for calendar output
-		"SELECT [Event].[Start], [Event].[End], [Event].[From], [Event].[To], [Event].[Created], [Event].[Updated], [Driver].[Name], [Client].[Name], [Company].[Name] FROM [Event] LEFT JOIN [Driver] ON ([Driver].[ID] = [Event].[DriverID]) LEFT JOIN [Client] ON ([Client].ID = [Event].[ClientID]) LEFT JOIN [Company] ON ([Company].ID = [Client].[CompanyID]) WHERE [Event].[Start] > ? AND [Event].[End] < ?;",
+		"SELECT [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address], [Event].[Created], [Event].[Updated], [Driver].[Name], [Client].[Name], [Company].[Name] FROM [Event] LEFT JOIN [Driver] ON ([Driver].[ID] = [Event].[DriverID]) LEFT JOIN [Client] ON ([Client].ID = [Event].[ClientID]) LEFT JOIN [Company] ON ([Company].ID = [Client].[CompanyID]) LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[Start] > ? AND [Event].[End] < ? AND [Event].[Deleted] = 0;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
@@ -749,13 +749,15 @@ func (c *Calls) SetEventFinals(e EventFinals, _ *struct{}) error {
 }
 
 type Settings struct {
-	TMUseNumber                                                          bool
-	TMUsername, TMPassword, TMTemplate, TMFrom, CalUsername, CalPassword string
-	VATPercent, AdminPercent                                             float64
+	Port                                                                             uint16
+	TMUseNumber                                                                      bool
+	TMUsername, TMPassword, TMTemplate, TMFrom, CalUsername, CalPassword, CalAddress string
+	VATPercent, AdminPercent                                                         float64
+	UploadCalendar                                                                   bool
 }
 
 func (c *Calls) GetSettings(_ struct{}, s *Settings) error {
-	return c.statements[GetSettings].QueryRow().Scan(&s.TMUsername, &s.TMPassword, &s.TMTemplate, &s.TMUseNumber, &s.TMFrom, &s.VATPercent, &s.AdminPercent, &s.CalUsername, &s.CalPassword)
+	return c.statements[GetSettings].QueryRow().Scan(&s.TMUsername, &s.TMPassword, &s.TMTemplate, &s.TMUseNumber, &s.TMFrom, &s.VATPercent, &s.AdminPercent, &s.CalUsername, &s.CalPassword, &s.CalAddress, &s.UploadCalendar, &s.Port)
 }
 
 func (c *Calls) SetSettings(s Settings, errStr *string) error {
@@ -763,7 +765,11 @@ func (c *Calls) SetSettings(s Settings, errStr *string) error {
 		*errStr = err.Error()
 		return nil
 	}
-	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.VATPercent, s.AdminPercent, s.CalUsername, s.CalPassword)
+	if err := checkUpload(s.UploadCalendar, s.CalUsername, s.CalPassword, s.CalAddress); err != nil {
+		*errStr = err.Error()
+		return nil
+	}
+	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.VATPercent, s.AdminPercent, s.CalUsername, s.CalPassword, s.CalAddress, s.UploadCalendar, s.Port)
 	return err
 }
 
