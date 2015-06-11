@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -63,8 +64,8 @@ func (c *Calls) uploadCalendar() error {
 	return conn.Stor(uri.Path, pr)
 }
 
-func checkUpload(uploadCalendar bool, username, password, u string) error {
-	if uploadCalendar {
+func checkUpload(upload bool, username, password, u string) error {
+	if upload {
 		uri, err := url.Parse(u)
 		if err != nil {
 			return err
@@ -86,7 +87,7 @@ func checkUpload(uploadCalendar bool, username, password, u string) error {
 	calendarUsername = username
 	calendarPassword = password
 	calendarURL = u
-	checkUpload = uploadCalendar
+	uploadCalendar = upload
 	return nil
 }
 
@@ -120,3 +121,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	}
 	return &cal, nil
 }
+
+// Errors
+
+var ErrInvalidScheme = errors.New("invalid scheme")
