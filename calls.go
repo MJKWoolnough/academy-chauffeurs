@@ -272,7 +272,7 @@ func newCalls(dbFName string) (*Calls, error) {
 	if err != nil {
 		return nil, err
 	} else if count == 0 {
-		_, err = db.Exec("INSERT INTO [Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [CalendarUsername], [CalendarPassword]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", "username", "password", DefaultTemplate, 1, "Academy Chauffeurs", 20, 10, "username", "password")
+		_, err = db.Exec("INSERT INTO [Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [CalendarUsername], [CalendarPassword], [CalendarAddress], [UploadCalendar], [Port]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", "username", "password", DefaultTemplate, 1, "Academy Chauffeurs", 20, 10, "username", "password", "ftp://server/path", false, 8080)
 		if err != nil {
 			return nil, err
 		}
