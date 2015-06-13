@@ -233,12 +233,15 @@ window.addEventListener("load", function(oldDate) {
 			var username = addFormElement("Text Magic Username", "text", "tmusername", s.TMUsername, regexpCheck(/.+/, "Please enter your Text Magic username")),
 			    password = addFormElement("Text Magic Password", "text", "tmpassword", s.TMPassword, regexpCheck(/.+/, "Please enter your Text Magic password")),
 			    template = addFormElement("Message Template", "textarea", "template", s.TMTemplate, regexpCheck(/.*/, "Please enter a valid message template")),
+			    uploadCal = addFormElement("Upload Calendar", "checkbox", "uploadcalendar", s.UploadCalendar),
 			    calusername = addFormElement("Calendar Username", "text", "calusername", s.CalUsername, regexpCheck(/.+/, "Please enter your Calendar ftp username")),
 			    calpassword = addFormElement("Calendar Password", "text", "calpassword", s.CalPassword, regexpCheck(/.+/, "Please enter your Calendar ftp password")),
+			    calurl = addFormElement("Calendar URI", "text", "calpassword", s.CalAddress, regexpCheck(/.+/, "Please enter your Calendar ftp password")),
 			    senderID = addFormElement("Sender ID", "text", "senderID", s.TMFrom, regexpCheck(/.+/, "Please enter a sender ID")),
 			    useNumber = addFormElement("Driver # as Sender", "checkbox", "useNumber", s.TMUseNumber),
 			    vat = addFormElement("VAT (%)", "text", "vat", s.VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
-			    admin = addFormElement("Admin Cost (%)", "text", "admin", s.AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
+			    admin = addFormElement("Admin Cost (%)", "text", "admin", s.AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
+			    serverPort = addFormElement("Server Port:", "text", "port", s.Port, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
 			useNumber[0].addEventListener("change", function() {
 				if (useNumber[0].checked) {
 					senderID[0].value = s.TMFrom;
@@ -248,6 +251,18 @@ window.addEventListener("load", function(oldDate) {
 				}
 			});
 			useNumber[0].dispatchEvent(new MouseEvent("change", {"view": window, "bubble": false, "cancelable": true}));
+			uploadCal[0].addEventListener("change", function() {
+				if (uploadCal[0].checked) {
+					calusername[0].removeAttribute("readonly");
+					calpassword[0].removeAttribute("readonly");
+					calurl[0].removeAttribute("readonly");
+				} else {
+					calusername[0].setAttribute("readonly", "readonly");
+					calpassword[0].setAttribute("readonly", "readonly");
+					calurl[0].setAttribute("readonly", "readonly");
+				}
+			});
+			uploadCal[0].dispatchEvent(new MouseEvent("change", {"view": window, "bubble": false, "cancelable": true}));
 			addFormSubmit("Set Settings", function() {
 				var error = false;
 				[username, password, template, vat, admin].map(function(i) {
