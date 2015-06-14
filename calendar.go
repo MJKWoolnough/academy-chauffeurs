@@ -22,7 +22,12 @@ func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	ics.NewEncoder(&buf).Encode(cal)
+	err = ics.NewEncoder(&buf).Encode(cal)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
 	w.Header().Add("Content-Length", strconv.Itoa(buf.Len()))
 	buf.WriteTo(w)
 }
@@ -95,7 +100,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	var cal ics.Calendar
 	cal.ProductID = "CALExport 0.01"
 	n := now()
-	rows, err := c.statements[CalendarData].Query(n-3600*24*31, n+3600*24*365)
+	rows, err := c.statements[CalendarData].Query((n-3600*24*31)*1000, (n+3600*24*365)*1000)
 	if err != nil {
 		return nil, err
 	}
@@ -103,23 +108,33 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	cal.Events = make([]ics.Event, 0, 1024)
 	for rows.Next() {
 		var (
-			start, end, created, updated      int64
+			id, start, end, created, updated  int64
 			from, to, driver, client, company string
 		)
-		err := rows.Scan(&start, &end, &from, &to, &created, &updated, &driver, &client, &company)
+		err := rows.Scan(&id, &start, &end, &from, &to, &created, &updated, &driver, &client, &company)
 		if err != nil {
 			return nil, err
 		}
 		ev := ics.NewEvent()
-		ev.Created = time.Unix(created, 0)
-		ev.LastModified = time.Unix(updated, 0)
-		ev.Start.Time = time.Unix(start/1000, 0).In(time.Local)
-		ev.Duration.Duration = time.Unix(end/1000, 0).Sub(time.Unix(start/1000, 0))
+		ev.UID = time.Unix(created, 0).In(time.UTC).Format("20060102T150405Z") + "-" + pad(strconv.FormatUint(uint64(id), 36)) + "@academy-chauffeurs.co.uk"
+		ev.Created = time.Unix(created, 0).In(time.UTC)
+		ev.LastModified = time.Unix(updated, 0).In(time.UTC)
+		ev.Start.Time = time.Unix(start/1000, start%1000).In(time.Local)
+		ev.Duration.Duration = time.Unix(end/1000, end%1000).Sub(ev.Start.Time)
 		ev.Location.String = from
 		ev.Description.String = driver + " - " + client + " (" + company + ") - " + from + " -> " + to
+		ev.Summary.String = driver + " - " + client + " (" + company + ")"
 		cal.Events = append(cal.Events, ev)
 	}
 	return &cal, nil
+}
+
+const padLength = 20
+
+func pad(s string) string {
+	t := bytes.Repeat([]byte{'0'}, padLength)
+	copy(t[padLength-len(s):], s)
+	return string(t)
 }
 
 // Errors
