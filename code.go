@@ -241,7 +241,8 @@ window.addEventListener("load", function(oldDate) {
 			    useNumber = addFormElement("Driver # as Sender", "checkbox", "useNumber", s.TMUseNumber),
 			    vat = addFormElement("VAT (%)", "text", "vat", s.VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
 			    admin = addFormElement("Admin Cost (%)", "text", "admin", s.AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
-			    serverPort = addFormElement("Server Port:", "text", "port", s.Port, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
+			    unass = addFormElement("Unassigned events warning (hours)", "text", "uass", s.Unassigned, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
+			    serverPort = addFormElement("Server Port:", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer"));
 			useNumber[0].addEventListener("change", function() {
 				if (useNumber[0].checked) {
 					senderID[0].value = s.TMFrom;
@@ -278,10 +279,14 @@ window.addEventListener("load", function(oldDate) {
 				s.TMTemplate = template[0].value;
 				s.CalUsername = calusername[0].value;
 				s.CalPassword = calpassword[0].value;
+				s.CalAddress = calurl[0].value;
+				s.UploadCalendar = uploadCal[0].checked;
 				s.TMFrom = senderID[0].value;
 				s.TMUseNumber = useNumber[0].checked;
 				s.VATPercent = parseFloat(vat[0].value);
 				s.AdminPercent = parseFloat(admin[0].value);
+				s.Unassigned = parseInt(unass[0].value);
+				s.Port = parseInt(port[0].value);
 				rpc.setSettings(s, function(templateError) {
 					if (templateError === "") {
 						window.location.search = '';
