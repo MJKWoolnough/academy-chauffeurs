@@ -519,6 +519,7 @@ window.addEventListener("load", function(oldDate) {
 					item.setInnerText(text);
 					item.setAttribute("class", "simpleButton");
 					item.addEventListener("click", callback);
+					return item;
 				};
 			    }(),
 			    params = window.location.search.substring(1).split("&"), i = 0, paramParts, toLoad = [];
@@ -607,6 +608,7 @@ window.addEventListener("load", function(oldDate) {
 					clientList();
 				});
 				addToBar("Messages", messageList);
+				checkUnassigned(addToBar("", goToNextUnassigned));
 				dateShift = now.getTime();
 				rpc.drivers(function(ds) {
 					plusDriver.appendChild(createElement("div")).setInnerText("Add Driver");
@@ -645,6 +647,12 @@ window.addEventListener("load", function(oldDate) {
 					window.addEventListener("resize", update.bind(this, undefined));
 				}.bind(this));
 			}.bind(this));
+		    },
+		    goToNextUnassigned = function() {
+
+		    },
+		    checkUnassigned = function(i) {
+
 		    },
 		    moveHandler = function(buttNum) {
 			var yearShift = 0,

@@ -285,7 +285,11 @@ var styleCSS = []byte(`@media screen {
 		height : 20px;
 		float : left;
 		text-align : center;
-		width : 33.3%;
+		width : 30%;
+	}
+
+	#topBar > div:last-child {
+		width : 10%;
 	}
 
 	.simpleButton {
