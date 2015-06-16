@@ -649,10 +649,12 @@ window.addEventListener("load", function(oldDate) {
 			}.bind(this));
 		    },
 		    goToNextUnassigned = function() {
-
+			rpc.getFirstUnassigned(function(unix) {
+				update(new Date(unix));
+			});
 		    },
 		    checkUnassigned = function(i) {
-
+			window.setInterval(rpc.getUnassignedCount.bind(rpc, i.setInnerText.bind(i, num)), 60000);
 		    },
 		    moveHandler = function(buttNum) {
 			var yearShift = 0,
