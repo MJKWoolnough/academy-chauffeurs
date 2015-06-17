@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"net/rpc"
 	"strings"
 	"sync"
@@ -101,6 +102,9 @@ const (
 	AutocompleteToAddress
 
 	CalendarData
+
+	UnassignedCount
+	FirstUnassigned
 
 	TotalStmts
 )
@@ -259,10 +263,15 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// All event data for calendar output
 		"SELECT [Event].[ID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address], [Event].[Created], [Event].[Updated], [Driver].[Name], [Client].[Name], [Company].[Name] FROM [Event] LEFT JOIN [Driver] ON ([Driver].[ID] = [Event].[DriverID]) LEFT JOIN [Client] ON ([Client].ID = [Event].[ClientID]) LEFT JOIN [Company] ON ([Company].ID = [Client].[CompanyID]) LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[Start] > ? AND [Event].[End] < ? AND [Event].[Deleted] = 0;",
+
+		// Unassigned events
+		"SELECT COUNT(1) FROM [Event] WHERE [DriverID] = 0 AND [Deleted] = 0;",
+
+		"SELECT [Start] FROM [Event] WHERE [DriverID] = 0 AND [Deleted] = 0 ORDER BY [Start] ASC LIMIT 1;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(err.Error() + "\n" + ps)
 		}
 		c.statements[n] = stmt
 	}
@@ -272,7 +281,7 @@ func newCalls(dbFName string) (*Calls, error) {
 	if err != nil {
 		return nil, err
 	} else if count == 0 {
-		_, err = db.Exec("INSERT INTO [Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [CalendarUsername], [CalendarPassword], [CalendarAddress], [UploadCalendar], [Port], [Unassigned]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", "username", "password", DefaultTemplate, 1, "Academy Chauffeurs", 20, 10, "username", "password", "ftp://server/path", false, 8080, 72)
+		_, err = db.Exec("INSERT INTO [Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [CalendarUsername], [CalendarPassword], [CalendarAddress], [UploadCalendar], [Port], [Unassigned]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", "username", "password", DefaultTemplate, 1, "Academy Chauffeurs", 20, 10, "username", "password", "ftp://server/path", false, 8080, 7)
 		if err != nil {
 			return nil, err
 		}
@@ -775,4 +784,16 @@ func (c *Calls) SetSettings(s Settings, errStr *string) error {
 
 func (c *Calls) CompanyColour(clientID int64, colour *uint32) error {
 	return c.statements[CompanyColourFromClient].QueryRow(clientID).Scan(colour)
+}
+
+func (c *Calls) FirstUnassigned(_ struct{}, t *int64) error {
+	err := c.statements[FirstUnassigned].QueryRow().Scan(t)
+	if err != sql.ErrNoRows {
+		return err
+	}
+	return nil
+}
+
+func (c *Calls) UnassignedCount(_ struct{}, n *uint64) error {
+	return c.statements[UnassignedCount].QueryRow().Scan(n)
 }
