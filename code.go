@@ -243,7 +243,7 @@ window.addEventListener("load", function(oldDate) {
 			    useNumber = addFormElement("Driver # as Sender", "checkbox", "useNumber", s.TMUseNumber),
 			    vat = addFormElement("VAT (%)", "text", "vat", s.VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
 			    admin = addFormElement("Admin Cost (%)", "text", "admin", s.AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
-			    unass = addFormElement("Unassigned events warning (hours)", "text", "uass", s.Unassigned, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
+			    unass = addFormElement("Unassigned events warning (days)", "text", "uass", s.Unassigned, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
 			    serverPort = addFormElement("Server Port:", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer"));
 			useNumber[0].addEventListener("change", function() {
 				if (useNumber[0].checked) {
@@ -305,6 +305,7 @@ window.addEventListener("load", function(oldDate) {
 		    dateShift,
 		    driverEvents = createElement("div"),
 		    unassignedEvents = [],
+		    unassignedNear = 1000 * 3600 * 24 * 7,
 		    eventCells = driverEvents.appendChild(createElement("div")),
 		    dates = createElement("div"),
 		    drivers = [],
@@ -599,6 +600,7 @@ window.addEventListener("load", function(oldDate) {
 				}
 			}
 			rpc.getSettings(function (s) {
+				unassignedNear = s.Unassigned * 24 * 3600 * 1000;
 				vatPercent = s.VATPercent;
 				adminPercent = s.AdminPercent;
 				addToBar("Companies", function() {
@@ -657,10 +659,25 @@ window.addEventListener("load", function(oldDate) {
 				}
 			});
 		    },
+		    unassignedCheck,
 		    checkUnassigned = function(i) {
-			var f = rpc.getUnassignedCount.bind(rpc, i.setInnerText.bind(i));
-			window.setInterval(f, 60000);
-			f();
+			unassignedCheck = rpc.getUnassignedCount.bind(rpc, function(num) {
+				if (num > 0) {
+					i.setInnerText(num);
+					rpc.getFirstUnassigned(function(unix) {
+						if (unix - (new Date()).getTime() < unassignedNear) {
+							i.setAttribute("class", "simpleButton nearPulse");
+						} else {
+							i.setAttribute("class", "simpleButton pulse");
+						}
+					});
+				} else {
+					i.setInnerText("");
+					i.setAttribute("class", "simpleButton");
+				}
+			});
+			window.setInterval(unassignedCheck, 10000);
+			unassignedCheck();
 		    },
 		    moveHandler = function(buttNum) {
 			var yearShift = 0,
@@ -826,6 +843,7 @@ window.addEventListener("load", function(oldDate) {
 					ev.Start = newStartTime;
 					rpc.setEvent(ev, function() {
 						addEventToTable(ev);
+						unassignedCheck();
 						e.target.dispatchEvent(new MouseEvent("mouseout", {"view": window, "bubble": false, "cancelable": true}));
 					});
 				});

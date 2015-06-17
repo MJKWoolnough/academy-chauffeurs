@@ -298,6 +298,26 @@ var styleCSS = []byte(`@media screen {
 		transition-timing-function : ease;
 	}
 
+	.pulse {
+		animation: pulser 2s infinite;
+	}
+
+	@keyframes pulser {
+		0% { background-color : #eee; }
+		50% { background-color : #aaa; }
+		100% { background-color : #eee; }
+	}
+
+	.nearPulse {
+		animation: nearPulser 2s infinite;
+	}
+
+	@keyframes nearPulser {
+		0% { background-color : #eee; }
+		50% { background-color : #f00; }
+		100% { background-color : #eee; }
+	}
+
 	.simpleButton:hover {
 		cursor : pointer;
 		background-color : #000 !important;
