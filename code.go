@@ -110,6 +110,8 @@ window.addEventListener("load", function(oldDate) {
 		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName"); // partial,  callback
 		this.autocompleteClientName = request.bind(this, "AutocompleteClientName");   // partial,  callback
 		this.getCompanyColourFromClient = request.bind(this, "CompanyColour");        // clientID, callback
+		this.getFirstUnassigned = request.bind(this, "FirstUnassigned"); //callback
+		this.getUnassignedCount = request.bind(this, "UnassignedCount"); //callback
 	})(function() {
 		events.init();	
 	}),
@@ -654,7 +656,7 @@ window.addEventListener("load", function(oldDate) {
 			});
 		    },
 		    checkUnassigned = function(i) {
-			window.setInterval(rpc.getUnassignedCount.bind(rpc, i.setInnerText.bind(i, num)), 60000);
+			window.setInterval(rpc.getUnassignedCount.bind(rpc, i.setInnerText.bind(i)), 60000);
 		    },
 		    moveHandler = function(buttNum) {
 			var yearShift = 0,
