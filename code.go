@@ -652,7 +652,9 @@ window.addEventListener("load", function(oldDate) {
 		    },
 		    goToNextUnassigned = function() {
 			rpc.getFirstUnassigned(function(unix) {
-				update(new Date(unix));
+				if (unix > 0) {
+					update(new Date(unix));
+				}
 			});
 		    },
 		    checkUnassigned = function(i) {
