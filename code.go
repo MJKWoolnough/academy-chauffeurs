@@ -110,8 +110,8 @@ window.addEventListener("load", function(oldDate) {
 		this.autocompleteCompanyName = request.bind(this, "AutocompleteCompanyName"); // partial,  callback
 		this.autocompleteClientName = request.bind(this, "AutocompleteClientName");   // partial,  callback
 		this.getCompanyColourFromClient = request.bind(this, "CompanyColour");        // clientID, callback
-		this.getFirstUnassigned = request.bind(this, "FirstUnassigned"); //callback
-		this.getUnassignedCount = request.bind(this, "UnassignedCount"); //callback
+		this.getFirstUnassigned = request.bind(this, "FirstUnassigned", null); //callback
+		this.getUnassignedCount = request.bind(this, "UnassignedCount", null); //callback
 	})(function() {
 		events.init();	
 	}),
