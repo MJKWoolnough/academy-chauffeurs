@@ -658,7 +658,9 @@ window.addEventListener("load", function(oldDate) {
 			});
 		    },
 		    checkUnassigned = function(i) {
-			window.setInterval(rpc.getUnassignedCount.bind(rpc, i.setInnerText.bind(i)), 60000);
+			var f = rpc.getUnassignedCount.bind(rpc, i.setInnerText.bind(i));
+			window.setInterval(f, 60000);
+			f();
 		    },
 		    moveHandler = function(buttNum) {
 			var yearShift = 0,
