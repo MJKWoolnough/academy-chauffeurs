@@ -797,3 +797,9 @@ func (c *Calls) FirstUnassigned(_ struct{}, t *int64) error {
 func (c *Calls) UnassignedCount(_ struct{}, n *uint64) error {
 	return c.statements[UnassignedCount].QueryRow().Scan(n)
 }
+
+func (c *Calls) getPort() (uint16, error) {
+	var port uint16
+	err := c.db.QueryRow("SELECT [Port] FROM [Settings];").Scan(&port)
+	return port, err
+}

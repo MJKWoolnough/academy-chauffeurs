@@ -3,7 +3,7 @@ package main
 var codeJS = []byte(`"use strict";
 window.addEventListener("load", function(oldDate) {
 	var rpc = new (function(onload){
-		var ws = new WebSocket("ws://127.0.0.1:8080/rpc"),
+		var ws = new WebSocket("ws://127.0.0.1:" + window.location.port + "/rpc"),
 		    requests = [],
 		    nextID = 0,
 		    request = function (method, params, callback) {

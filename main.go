@@ -1,13 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"net/rpc/jsonrpc"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"sync"
 
 	"golang.org/x/net/websocket"
@@ -47,11 +47,7 @@ func rpcHandler(conn *websocket.Conn) {
 }
 
 func main() {
-	os.Chdir(filepath.Dir(os.Args[0]))
-	const (
-		address = "127.0.0.1:8080"
-		dbFName = "ac.db"
-	)
+	const dbFName = "ac.db"
 	err := backupDatabase(dbFName)
 	if err != nil {
 		log.Println(err)
@@ -65,6 +61,12 @@ func main() {
 		return
 	}
 
+	port, err := nc.getPort()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	http.Handle("/", file{pageHTML, "application/xhtml+xml; charset=utf-8"})
 	http.Handle("/code.js", file{codeJS, "text/javascript; charset=utf-8"})
 	http.Handle("/style.css", file{styleCSS, "text/css; charset=utf-8"})
@@ -72,7 +74,7 @@ func main() {
 	http.Handle("/export", http.HandlerFunc(nc.export))
 	http.Handle("/ics", http.HandlerFunc(nc.calendar))
 
-	l, err := net.Listen("tcp", address)
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Println(err)
 		return
