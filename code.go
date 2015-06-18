@@ -288,7 +288,7 @@ window.addEventListener("load", function(oldDate) {
 				s.VATPercent = parseFloat(vat[0].value);
 				s.AdminPercent = parseFloat(admin[0].value);
 				s.Unassigned = parseInt(unass[0].value);
-				s.Port = parseInt(port[0].value);
+				s.Port = parseInt(serverPort[0].value);
 				rpc.setSettings(s, function(templateError) {
 					if (templateError === "") {
 						window.location.search = '';
