@@ -97,6 +97,8 @@ func checkUpload(upload bool, username, password, u string) error {
 }
 
 func (c *Calls) makeCalendar() (*ics.Calendar, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	var cal ics.Calendar
 	cal.ProductID = "CALExport 0.01"
 	n := now()
