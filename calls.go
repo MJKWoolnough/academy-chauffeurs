@@ -106,6 +106,9 @@ const (
 	UnassignedCount
 	FirstUnassigned
 
+	IsModified
+	SetLastModified
+
 	TotalStmts
 )
 
@@ -133,7 +136,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"[Company]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT, [Address] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Colour] INTEGER, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Client]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompanyID] INTEGER, [Name] TEXT, [PhoneNumber] TEXT, [Reference] TEXT, [Note] TEXT NOT NULL DEFAULT '', [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
 		"[Event]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [DriverID] INTEGER, [ClientID] INTEGER, [Start] INTEGER, [End] INTEGER, [From] INTEGER, [To] INTEGER, [InCar] INTEGER DEFAULT 0, [Parking] INTEGER DEFAULT 0, [Waiting] INTEGER DEFAULT 0, [Drop] INTEGER DEFAULT 0, [Miles] INTEGER DEFAULT 0, [Trip] INTEGER DEFAULT 0, [DriverHours] INTEGER DEFAULT 0, [Price] INTEGER DEFAULT 0, [Sub] INTEGER DEFAULT 0, [MessageSent] BOOLEAN DEFAULT 0 NOT NULL CHECK ([MessageSent] IN (0,1)), [Note] TEXT NOT NULL DEFAULT '', [FinalsSet] BOOLEAN DEFAULT 0 NOT NULL, [Created] INTEGER, [Updated] INTEGER, [Deleted] BOOLEAN DEFAULT 0 NOT NULL CHECK ([Deleted] IN (0,1)));",
-		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL, [CalendarUsername] TEXT, [CalendarPassword] TEXT, [CalendarAddress] TEXT, [UploadCalendar] BOOLEAN DEFAULT 0 NOT NULL CHECK ([UploadCalendar] IN (0, 1)), [Port] INTEGER, [Unassigned] INTEGER);",
+		"[Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL, [CalendarUsername] TEXT, [CalendarPassword] TEXT, [CalendarAddress] TEXT, [UploadCalendar] BOOLEAN DEFAULT 0 NOT NULL CHECK ([UploadCalendar] IN (0, 1)), [Port] INTEGER, [Unassigned] INTEGER, [LastModified] INTEGER);",
 		"[FromAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT);",
 		"[ToAddresses]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Address] TEXT);",
 	} {
@@ -268,6 +271,12 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT COUNT(1) FROM [Event] WHERE [DriverID] = 0 AND [Deleted] = 0;",
 
 		"SELECT [Start] FROM [Event] WHERE [DriverID] = 0 AND [Deleted] = 0 ORDER BY [Start] ASC LIMIT 1;",
+
+		// Last Modified
+
+		"SELECT COUNT(1) FROM [Event] WHERE [Updated] > (SELECT [LastModified] FROM [Settings]) LIMIT 1;",
+
+		"UPDATE [Settings] SET [LastModified] = ?;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
@@ -281,7 +290,7 @@ func newCalls(dbFName string) (*Calls, error) {
 	if err != nil {
 		return nil, err
 	} else if count == 0 {
-		_, err = db.Exec("INSERT INTO [Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [CalendarUsername], [CalendarPassword], [CalendarAddress], [UploadCalendar], [Port], [Unassigned]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", "username", "password", DefaultTemplate, 1, "Academy Chauffeurs", 20, 10, "username", "password", "ftp://server/path", false, 8080, 7)
+		_, err = db.Exec("INSERT INTO [Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [CalendarUsername], [CalendarPassword], [CalendarAddress], [UploadCalendar], [Port], [Unassigned], [LastModified]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", "username", "password", DefaultTemplate, 1, "Academy Chauffeurs", 20, 10, "username", "password", "ftp://server/path", false, 8080, 7, 0)
 		if err != nil {
 			return nil, err
 		}
