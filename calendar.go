@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -14,18 +15,44 @@ import (
 	"github.com/jlaffaye/ftp"
 )
 
+var (
+	calChan chan struct{}
+)
+
+func (c *Calls) uploader() {
+	t := time.NewTicker(10 * time.Minute)
+	for {
+		select {
+		case <-t.C:
+			var modified byte
+			c.mu.Lock()
+			err := c.statements[IsModified].QueryRow().Scan(&modified)
+			if err == nil && modified == 1 {
+				err = c.uploadCalendar()
+			}
+			c.mu.Unlock()
+			if err != nil {
+				log.Println(err)
+			}
+		case <-calChan:
+			t.Stop()
+			return
+		}
+	}
+}
+
 func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
-	var buf bytes.Buffer
+	c.mu.Lock()
 	cal, err := c.makeCalendar()
+	c.mu.Unlock()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	var buf bytes.Buffer
 	err = ics.NewEncoder(&buf).Encode(cal)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Add("Content-Length", strconv.Itoa(buf.Len()))
@@ -35,20 +62,17 @@ func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
 var (
 	calMut                                          sync.RWMutex
 	calendarUsername, calendarPassword, calendarURL string
-	uploadCalendar                                  bool
 )
 
 func (c *Calls) uploadCalendar() error {
 	calMut.RLock()
-	defer calMut.RUnlock()
-	if !uploadCalendar {
-		return nil
-	}
+	calUsername, calPassword, calURL := calendarUsername, calendarPassword, calendarURL
+	calMut.RUnlock()
 	cal, err := c.makeCalendar()
 	if err != nil {
 		return err
 	}
-	uri, err := url.Parse(calendarURL)
+	uri, err := url.Parse(calURL)
 	if err != nil {
 		return err
 	}
@@ -56,15 +80,15 @@ func (c *Calls) uploadCalendar() error {
 	if err != nil {
 		return err
 	}
-	err = conn.Login(calendarUsername, calendarPassword)
+	err = conn.Login(calUsername, calPassword)
 	if err != nil {
 		return err
 	}
 	pr, pw := io.Pipe()
 	defer pr.Close()
 	go func() {
+		defer pw.Close()
 		ics.NewEncoder(pw).Encode(cal)
-		pw.Close()
 	}()
 	return conn.Stor(uri.Path, pr)
 }
@@ -92,13 +116,10 @@ func checkUpload(upload bool, username, password, u string) error {
 	calendarUsername = username
 	calendarPassword = password
 	calendarURL = u
-	uploadCalendar = upload
 	return nil
 }
 
 func (c *Calls) makeCalendar() (*ics.Calendar, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	var cal ics.Calendar
 	cal.ProductID = "CALExport 0.01"
 	n := now()

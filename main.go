@@ -67,6 +67,16 @@ func main() {
 		return
 	}
 
+	upload, err := nc.getUpload()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	calChan = make(chan struct{})
+	if upload {
+		go nc.uploader()
+	}
+
 	http.Handle("/", file{pageHTML, "application/xhtml+xml; charset=utf-8"})
 	http.Handle("/code.js", file{codeJS, "text/javascript; charset=utf-8"})
 	http.Handle("/style.css", file{styleCSS, "text/css; charset=utf-8"})

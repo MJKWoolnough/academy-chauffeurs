@@ -787,7 +787,18 @@ func (c *Calls) SetSettings(s Settings, errStr *string) error {
 		*errStr = err.Error()
 		return nil
 	}
-	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.VATPercent, s.AdminPercent, s.CalUsername, s.CalPassword, s.CalAddress, s.UploadCalendar, s.Port, s.Unassigned)
+	oldUpload, err := c.getUpload()
+	if err != nil {
+		return err
+	}
+	_, err = c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.VATPercent, s.AdminPercent, s.CalUsername, s.CalPassword, s.CalAddress, s.UploadCalendar, s.Port, s.Unassigned)
+	if oldUpload != s.UploadCalendar {
+		if s.UploadCalendar {
+			go c.uploader()
+		} else {
+			calChan <- struct{}{}
+		}
+	}
 	return err
 }
 
@@ -811,4 +822,10 @@ func (c *Calls) getPort() (uint16, error) {
 	var port uint16
 	err := c.db.QueryRow("SELECT [Port] FROM [Settings];").Scan(&port)
 	return port, err
+}
+
+func (c *Calls) getUpload() (bool, error) {
+	var upload bool
+	err := c.db.QueryRow("SELECT [UploadCalendar] FROM [Settings];").Scan(&upload)
+	return upload, err
 }
