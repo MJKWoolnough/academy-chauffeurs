@@ -21,6 +21,7 @@ var (
 
 func (c *Calls) uploader() {
 	t := time.NewTicker(10 * time.Minute)
+	log.Println("Starting uploader")
 	for {
 		select {
 		case <-t.C:
@@ -36,6 +37,7 @@ func (c *Calls) uploader() {
 			}
 		case <-calChan:
 			t.Stop()
+			log.Println("Stopping uploader")
 			return
 		}
 	}
