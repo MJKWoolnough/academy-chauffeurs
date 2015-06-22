@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"io"
 	"log"
@@ -133,12 +134,18 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	cal.Events = make([]ics.Event, 0, 1024)
 	for rows.Next() {
 		var (
-			id, start, end, created, updated  int64
-			from, to, driver, client, company string
+			id, start, end, created, updated     int64
+			from, to, client, company, driverStr string
+			driver                               sql.NullString
 		)
 		err := rows.Scan(&id, &start, &end, &from, &to, &created, &updated, &driver, &client, &company)
 		if err != nil {
 			return nil, err
+		}
+		if driver.Valid {
+			driverStr = driver.String
+		} else {
+			driverStr = "Unassigned"
 		}
 		ev := ics.NewEvent()
 		ev.UID = time.Unix(created, 0).In(time.UTC).Format("20060102T150405Z") + "-" + pad(strconv.FormatUint(uint64(id), 36)) + "@academy-chauffeurs.co.uk"
@@ -147,8 +154,8 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		ev.Start.Time = time.Unix(start/1000, start%1000).In(time.Local)
 		ev.Duration.Duration = time.Unix(end/1000, end%1000).Sub(ev.Start.Time)
 		ev.Location.String = from
-		ev.Description.String = driver + " - " + client + " (" + company + ") - " + from + " -> " + to
-		ev.Summary.String = driver + " - " + client + " (" + company + ")"
+		ev.Description.String = driverStr + " - " + client + " (" + company + ") - " + from + " -> " + to
+		ev.Summary.String = driverStr + " - " + client + " (" + company + ")"
 		cal.Events = append(cal.Events, ev)
 	}
 	return &cal, nil
