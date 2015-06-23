@@ -151,11 +151,14 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		ev.UID = time.Unix(created, 0).In(time.UTC).Format("20060102T150405Z") + "-" + pad(strconv.FormatUint(uint64(id), 36)) + "@academy-chauffeurs.co.uk"
 		ev.Created = time.Unix(created, 0).In(time.UTC)
 		ev.LastModified = time.Unix(updated, 0).In(time.UTC)
-		ev.Start.Time = time.Unix(start/1000, start%1000).In(time.Local)
+		ev.Start.Time = time.Unix(start/1000, start%1000)
 		ev.Duration.Duration = time.Unix(end/1000, end%1000).Sub(ev.Start.Time)
 		ev.Location.String = from
 		ev.Description.String = driverStr + " - " + client + " (" + company + ") - " + from + " -> " + to
 		ev.Summary.String = driverStr + " - " + client + " (" + company + ")"
+		var a ics.DisplayAlarm
+		a.Trigger.Duration = time.Minute * -10
+		ev.Alarms = []ics.Alarm{a}
 		cal.Events = append(cal.Events, ev)
 	}
 	return &cal, nil
