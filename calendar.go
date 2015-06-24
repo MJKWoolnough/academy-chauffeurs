@@ -4,45 +4,12 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
-	"io"
-	"log"
 	"net/http"
-	"net/url"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/MJKWoolnough/ics"
-	"github.com/jlaffaye/ftp"
 )
-
-var (
-	calChan chan struct{}
-)
-
-func (c *Calls) uploader() {
-	t := time.NewTicker(10 * time.Minute)
-	log.Println("Starting uploader")
-	for {
-		select {
-		case <-t.C:
-			var modified byte
-			c.mu.Lock()
-			err := c.statements[IsModified].QueryRow().Scan(&modified)
-			if err == nil && modified == 1 {
-				err = c.uploadCalendar()
-			}
-			c.mu.Unlock()
-			if err != nil {
-				log.Println(err)
-			}
-		case <-calChan:
-			t.Stop()
-			log.Println("Stopping uploader")
-			return
-		}
-	}
-}
 
 func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
 	c.mu.Lock()
@@ -60,66 +27,6 @@ func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add("Content-Length", strconv.Itoa(buf.Len()))
 	buf.WriteTo(w)
-}
-
-var (
-	calMut                                          sync.RWMutex
-	calendarUsername, calendarPassword, calendarURL string
-)
-
-func (c *Calls) uploadCalendar() error {
-	calMut.RLock()
-	calUsername, calPassword, calURL := calendarUsername, calendarPassword, calendarURL
-	calMut.RUnlock()
-	cal, err := c.makeCalendar()
-	if err != nil {
-		return err
-	}
-	uri, err := url.Parse(calURL)
-	if err != nil {
-		return err
-	}
-	conn, err := ftp.Dial(uri.Host)
-	if err != nil {
-		return err
-	}
-	err = conn.Login(calUsername, calPassword)
-	if err != nil {
-		return err
-	}
-	pr, pw := io.Pipe()
-	defer pr.Close()
-	go func() {
-		defer pw.Close()
-		ics.NewEncoder(pw).Encode(cal)
-	}()
-	return conn.Stor(uri.Path, pr)
-}
-
-func checkUpload(upload bool, username, password, u string) error {
-	if upload {
-		uri, err := url.Parse(u)
-		if err != nil {
-			return err
-		}
-		if uri.Scheme != "ftp" {
-			return ErrInvalidScheme
-		}
-		conn, err := ftp.Dial(uri.Host)
-		if err != nil {
-			return err
-		}
-		err = conn.Login(username, password)
-		if err != nil {
-			return err
-		}
-	}
-	calMut.Lock()
-	defer calMut.Unlock()
-	calendarUsername = username
-	calendarPassword = password
-	calendarURL = u
-	return nil
 }
 
 func (c *Calls) makeCalendar() (*ics.Calendar, error) {
