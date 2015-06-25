@@ -68,7 +68,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		ev.Description.String = driverStr + " - " + client + " (" + company + ") - " + from + " -> " + to
 		ev.Summary.String = driverStr + " - " + client + " (" + company + ")"
 		var a ics.DisplayAlarm
-		a.Trigger.Duration = time.Minute * alarmTime
+		a.Trigger.Duration = time.Minute * time.Duration(alarmTime)
 		ev.Alarms = []ics.Alarm{a}
 		cal.Events = append(cal.Events, ev)
 	}
