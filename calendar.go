@@ -30,6 +30,10 @@ func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Calls) makeCalendar() (*ics.Calendar, error) {
+	var alarmTime int
+	if err := c.statements[AlarmTime].QueryRow().Scan(&alarmTime); err != nil {
+		return nil, err
+	}
 	var cal ics.Calendar
 	cal.ProductID = "CALExport 0.01"
 	n := now()
@@ -64,7 +68,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		ev.Description.String = driverStr + " - " + client + " (" + company + ") - " + from + " -> " + to
 		ev.Summary.String = driverStr + " - " + client + " (" + company + ")"
 		var a ics.DisplayAlarm
-		a.Trigger.Duration = time.Minute * -10
+		a.Trigger.Duration = time.Minute * alarmTime
 		ev.Alarms = []ics.Alarm{a}
 		cal.Events = append(cal.Events, ev)
 	}
