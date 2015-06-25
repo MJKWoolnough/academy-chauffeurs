@@ -203,8 +203,8 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Settings
 
-		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [CalendarUsername], [CalendarPassword], [CalendarAddress], [UploadCalendar], [Port], [Unassigned], [AlarmTime] FROM [Settings];",
-		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?, [CalendarUsername] = ?, [CalendarPassword] = ?, [CalendarAddress] = ?, [UploadCalendar] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?;",
+		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime] FROM [Settings];",
+		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?;",
 
 		// Searches
 
@@ -285,7 +285,7 @@ func newCalls(dbFName string) (*Calls, error) {
 	if err != nil {
 		return nil, err
 	} else if count == 0 {
-		_, err = db.Exec("INSERT INTO [Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", "username", "password", DefaultTemplate, 1, "Academy Chauffeurs", 20, 10, 8080, 7, -15)
+		_, err = db.Exec("INSERT INTO [Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", "username", "password", DefaultTemplate, 1, "Academy Chauffeurs", 20, 10, 8080, 7, -15)
 		if err != nil {
 			return nil, err
 		}
