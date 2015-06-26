@@ -40,7 +40,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	)
 	a.Trigger.Duration = time.Minute * time.Duration(alarmTime)
 	alarm := []ics.Alarm{a}
-	cal.ProductID = "CALExport 0.01"
+	cal.ProductID = "Academy Chauffeurs 1.0"
 	n := now()
 	rows, err := c.statements[CalendarData].Query((n - 3600*24*30*6) * 1000)
 	if err != nil {
