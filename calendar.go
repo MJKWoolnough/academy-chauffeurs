@@ -34,7 +34,12 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	if err := c.statements[AlarmTime].QueryRow().Scan(&alarmTime); err != nil {
 		return nil, err
 	}
-	var cal ics.Calendar
+	var (
+		a   ics.DisplayAlarm
+		cal ics.Calendar
+	)
+	a.Trigger.Duration = time.Minute * time.Duration(alarmTime)
+	alarm := []ics.Alarm{a}
 	cal.ProductID = "CALExport 0.01"
 	n := now()
 	rows, err := c.statements[CalendarData].Query((n-3600*24*31)*1000, (n+3600*24*365)*1000)
@@ -67,9 +72,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		ev.Location.String = from
 		ev.Description.String = driverStr + " - " + client + " (" + company + ") - " + from + " -> " + to
 		ev.Summary.String = driverStr + " - " + client + " (" + company + ")"
-		var a ics.DisplayAlarm
-		a.Trigger.Duration = time.Minute * time.Duration(alarmTime)
-		ev.Alarms = []ics.Alarm{a}
+		ev.Alarms = alarm
 		cal.Events = append(cal.Events, ev)
 	}
 	return &cal, nil
