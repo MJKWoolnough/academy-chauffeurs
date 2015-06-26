@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/MJKWoolnough/ics"
@@ -58,6 +59,8 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		if err != nil {
 			return nil, err
 		}
+		from = strings.Replace(from, "\n", " ", -1)
+		to = strings.Replace(to, "\n", " ", -1)
 		if driver.Valid {
 			driverStr = driver.String
 		} else {
