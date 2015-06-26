@@ -241,7 +241,7 @@ window.addEventListener("load", function(oldDate) {
 			    admin = addFormElement("Admin Cost (%)", "text", "admin", s.AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
 			    unass = addFormElement("Unassigned events warning (days)", "text", "uass", s.Unassigned, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
 			    alarmTime = addFormElement("Calendar Export Alarm Time (m)", "text", "alarmTime", s.AlarmTime, regexpCheck(/^-?[0-9]+$/, "Please enter a valid integer")),
-			    serverPort = addFormElement("Server Port:", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer"));
+			    serverPort = addFormElement("Server Port", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer"));
 			useNumber[0].addEventListener("change", function() {
 				if (useNumber[0].checked) {
 					senderID[0].value = s.TMFrom;
@@ -251,18 +251,6 @@ window.addEventListener("load", function(oldDate) {
 				}
 			});
 			useNumber[0].dispatchEvent(new MouseEvent("change", {"view": window, "bubble": false, "cancelable": true}));
-			uploadCal[0].addEventListener("change", function() {
-				if (uploadCal[0].checked) {
-					calusername[0].removeAttribute("readonly");
-					calpassword[0].removeAttribute("readonly");
-					calurl[0].removeAttribute("readonly");
-				} else {
-					calusername[0].setAttribute("readonly", "readonly");
-					calpassword[0].setAttribute("readonly", "readonly");
-					calurl[0].setAttribute("readonly", "readonly");
-				}
-			});
-			uploadCal[0].dispatchEvent(new MouseEvent("change", {"view": window, "bubble": false, "cancelable": true}));
 			addFormSubmit("Set Settings", function() {
 				var error = false;
 				[username, password, template, vat, admin].map(function(i) {
@@ -276,10 +264,6 @@ window.addEventListener("load", function(oldDate) {
 				s.TMUsername = username[0].value;
 				s.TMPassword = password[0].value;
 				s.TMTemplate = template[0].value;
-				s.CalUsername = calusername[0].value;
-				s.CalPassword = calpassword[0].value;
-				s.CalAddress = calurl[0].value;
-				s.UploadCalendar = uploadCal[0].checked;
 				s.TMFrom = senderID[0].value;
 				s.TMUseNumber = useNumber[0].checked;
 				s.VATPercent = parseFloat(vat[0].value);
