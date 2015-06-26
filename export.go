@@ -143,7 +143,7 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 		lastDate = thisDate
 		record[1] = formatTime(ev.Start)
 		record[2] = cl.Name
-		record[3] = cl.PhoneNumber
+		record[3] = " " + cl.PhoneNumber
 		record[4] = ev.From
 		record[5] = ev.To
 		if ef.FinalsSet {
