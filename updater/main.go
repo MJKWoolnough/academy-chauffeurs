@@ -51,7 +51,7 @@ func main() {
 		return
 	}
 	defer resp.Body.Close()
-	f, err := os.Open(fname)
+	f, err := os.Create(fname)
 	if err != nil {
 		fmt.Println(err)
 		return
