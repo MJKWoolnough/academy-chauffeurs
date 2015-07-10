@@ -64,12 +64,12 @@ func main() {
 	if Err(err) {
 		return
 	}
-	defer f.Close()
 	fmt.Println("Downloading...")
 	bar := pb.New64(resp.ContentLength).SetUnits(pb.U_BYTES)
 	bar.Start()
 	w := io.MultiWriter(f, bar)
 	_, err = io.Copy(w, resp.Body)
+	f.Close()
 	if Err(err) {
 		os.Remove(fname + ".new")
 		return
