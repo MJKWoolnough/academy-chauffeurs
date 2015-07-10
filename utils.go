@@ -37,7 +37,7 @@ func ParseMobileNumber(a string) (MobileNumber, error) {
 		}
 	}
 	if (num < 7000000000 || num >= 8000000000) && (num < 447000000000 || num >= 448000000000) {
-		return 0, ErrInvalidMobileNumber
+		//return 0, ErrInvalidMobileNumber
 	}
 	return num, nil
 }
