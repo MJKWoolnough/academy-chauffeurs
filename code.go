@@ -2044,7 +2044,7 @@ window.addEventListener("load", function(oldDate) {
 		var clientName = addFormElement("Client Name", "text", "client_name", client.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
 		    companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
-		    clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number")),
+		    clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber, regexpCheck(/^(0|\+)[0-9 ]*$/, "Please enter a valid mobile telephone number")),
 		    clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code"));
 		addLister(companyName[1], function() {
 			companyName[1].setInnerText("");
