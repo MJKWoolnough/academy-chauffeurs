@@ -254,7 +254,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT COUNT(1) FROM [Event] WHERE [DriverID] = ? AND [Deleted] = 0;",
 
 		// Company Colour from ClientID
-		"SELECT [Company].[Colour] FROM [Company] LEFT JOIN [Client] ON ([Client].[CompanyID] = [Company].[ID]) WHERE [Client].[ID] = ?;",
+		"SELECT [Company].[Colour] FROM [Client] LEFT JOIN [Company] ON ([Client].[CompanyID] = [Company].[ID]) WHERE [Client].[ID] = ?;",
 
 		// Autocomplete From Address
 		"SELECT [FromAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) WHERE [Event].[ClientID] = ? GROUP BY [Event].[From] ORDER BY COUNT(1) DESC LIMIT ?;",
