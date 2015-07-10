@@ -1447,6 +1447,7 @@ window.addEventListener("load", function(oldDate) {
 					addLister(nameCell, stack.removeLayer.bind(null, company));
 				} else {
 					nameCell.setAttribute("class", "simpleButton");
+					nameCell.style.backgroundColor = "#" + company.Colour.toString(16);
 					nameCell.addEventListener("click", function() {
 						stack.addLayer("showCompany", function(c) {
 							if (typeof c !== "undefined") {
@@ -1647,8 +1648,9 @@ window.addEventListener("load", function(oldDate) {
 				var row = createElement("tr"),
 				    nameCell = row.appendChild(createElement("td")).appendChild(createElement("div")),
 				    companyCell = row.appendChild(createElement("td")),
-				    setCompanyCell = function() {
+				    setCompanyCell = function(company) {
 					companyCell.setInnerText(companies[client.CompanyID].Name);
+					companyCell.style.backgroundColor = "#" + company.Colour.toString(16);
 					//companyCell.setAttribute("class", "simpleButton");
 					//companyCell.addEventListener("click", showCompany.bind(null, companies[client.CompanyID]));
 					client.CompanyName = companies[client.CompanyID].Name;
@@ -1669,7 +1671,7 @@ window.addEventListener("load", function(oldDate) {
 							return;
 						}
 						companies[company.ID] = company;
-						setCompanyCell();
+						setCompanyCell(company);
 					});
 				}
 				row.appendChild(createElement("td")).setInnerText(client.PhoneNumber);
