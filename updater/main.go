@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -14,51 +15,42 @@ import (
 )
 
 var (
-	executeablePath = flag.String("exe", "c:\\ac\\ac.exe", "path to executeable")
+	executeablePath = flag.String("exe", "c:\\ac\\academy-chauffeurs.exe", "path to executeable")
 	serviceName     = flag.String("svc", "Academy Chauffeurs", "service name")
 	url             = flag.String("url", "http://vimagination.zapto.org/ac.exe", "update url")
 )
+
+func Err(err error) {
+	if err != nil {
+		fmt.Println(err)
+		r := bufio.NewReader(os.Stdin)
+		r.ReadString('\n')
+		os.Exit(1)
+	}
+}
 
 func main() {
 	flag.Parse()
 	fname := path.Clean(*executeablePath)
 	_, err := os.Stat(fname)
 	if os.IsNotExist(err) {
-		fmt.Println("executeable not found")
-		return
+		Err("executable not found")
 	}
 	m, err := mgr.Connect()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	Err(err)
 	defer m.Disconnect()
 	s, err := m.OpenService(*serviceName)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	Err(err)
 	_, err = s.Control(svc.Stop)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	Err(err)
 	defer s.Start()
 	time.Sleep(5 * time.Second)
 	resp, err := http.Get(*url)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	Err(err)
 	defer resp.Body.Close()
 	f, err := os.Create(fname)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	Err(err)
 	defer f.Close()
-	if _, err = io.Copy(f, resp.Body); err != nil {
-		fmt.Println(err)
-		return
-	}
+	_, err = io.Copy(f, resp.Body)
+	Err(err)
 }
