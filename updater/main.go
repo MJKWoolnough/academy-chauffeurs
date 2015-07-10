@@ -52,6 +52,8 @@ func main() {
 	f, err := os.Create(fname)
 	Err(err)
 	defer f.Close()
+	fmt.Print("Downloading...")
 	_, err = io.Copy(f, resp.Body)
 	Err(err)
+	fmt.Println(" ...done!")
 }
