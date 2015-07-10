@@ -11,6 +11,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/cheggaaa/pb"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
 )
@@ -21,13 +22,14 @@ var (
 	url             = flag.String("url", "http://vimagination.zapto.org/ac.exe", "update url")
 )
 
-func Err(err error) {
+func Err(err error) bool {
 	if err != nil {
 		fmt.Println(err)
 		r := bufio.NewReader(os.Stdin)
 		r.ReadString('\n')
-		os.Exit(1)
+		return true
 	}
+	return false
 }
 
 func main() {
@@ -36,24 +38,43 @@ func main() {
 	_, err := os.Stat(fname)
 	if os.IsNotExist(err) {
 		Err(errors.New("executable not found"))
+		return
 	}
 	m, err := mgr.Connect()
-	Err(err)
+	if Err(err) {
+		return
+	}
 	defer m.Disconnect()
 	s, err := m.OpenService(*serviceName)
-	Err(err)
+	if Err(err) {
+		return
+	}
 	_, err = s.Control(svc.Stop)
-	Err(err)
+	if Err(err) {
+		return
+	}
 	defer s.Start()
 	time.Sleep(5 * time.Second)
 	resp, err := http.Get(*url)
-	Err(err)
+	if Err(err) {
+		return
+	}
 	defer resp.Body.Close()
-	f, err := os.Create(fname)
-	Err(err)
+	f, err := os.Create(fname + ".new")
+	if Err(err) {
+		return
+	}
 	defer f.Close()
-	fmt.Print("Downloading...")
-	_, err = io.Copy(f, resp.Body)
-	Err(err)
-	fmt.Println(" ...done!")
+	fmt.Println("Downloading...")
+	bar := pb.New64(resp.ContentLength).SetUnits(pb.U_BYTES)
+	bar.Start()
+	w := io.MultiWriter(f, bar)
+	_, err = io.Copy(w, resp.Body)
+	if Err(err) {
+		os.Remove(fname + ".new")
+		return
+	}
+	bar.Finish("...done")
+	Err(os.Remove(fname))
+	Err(os.Rename(fname+".new", fname))
 }
