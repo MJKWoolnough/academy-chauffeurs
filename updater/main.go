@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -34,7 +35,7 @@ func main() {
 	fname := path.Clean(*executeablePath)
 	_, err := os.Stat(fname)
 	if os.IsNotExist(err) {
-		Err("executable not found")
+		Err(errors.New("executable not found"))
 	}
 	m, err := mgr.Connect()
 	Err(err)
