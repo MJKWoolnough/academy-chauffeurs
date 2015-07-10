@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -35,11 +34,11 @@ func Err(err error) bool {
 func main() {
 	flag.Parse()
 	fname := path.Clean(*executeablePath)
-	_, err := os.Stat(fname)
+	/*_, err := os.Stat(fname)
 	if os.IsNotExist(err) {
 		Err(errors.New("executable not found"))
 		return
-	}
+	}*/
 	m, err := mgr.Connect()
 	if Err(err) {
 		return
@@ -49,9 +48,15 @@ func main() {
 	if Err(err) {
 		return
 	}
-	_, err = s.Control(svc.Stop)
-	if Err(err) {
-		return
+	switch s.Query().State {
+	case svc.StopPending:
+		time.Sleep(5 * time.Second)
+	case svc.Stopped:
+	default:
+		_, err = s.Control(svc.Stop)
+		if Err(err) {
+			return
+		}
 	}
 	defer s.Start()
 	time.Sleep(5 * time.Second)
