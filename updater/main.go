@@ -74,7 +74,7 @@ func main() {
 		os.Remove(fname + ".new")
 		return
 	}
-	bar.Finish("...done")
+	bar.FinishPrint("...done")
 	Err(os.Remove(fname))
 	Err(os.Rename(fname+".new", fname))
 }
