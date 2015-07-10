@@ -54,16 +54,20 @@ func main() {
 	}
 	switch status.State {
 	case svc.StopPending:
+		fmt.Println("Waiting for service to stop")
 		time.Sleep(5 * time.Second)
+		fmt.Println("...done waiting")
 	case svc.Stopped:
 	default:
+		fmt.Println("Stopping service...")
 		_, err = s.Control(svc.Stop)
 		if Err(err) {
 			return
 		}
+		time.Sleep(5 * time.Second)
+		fmt.Println("...service stopped")
 	}
 	defer s.Start()
-	time.Sleep(5 * time.Second)
 	resp, err := http.Get(*url)
 	if Err(err) {
 		return
