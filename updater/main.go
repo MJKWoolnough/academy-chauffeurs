@@ -43,14 +43,14 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	defer s.Control(svc.Start)
+	defer s.Start()
 	time.Sleep(5 * time.Second)
 	resp, err := http.Get(*url)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	defer resp.Close()
+	defer resp.Body.Close()
 	f, err := os.Open(fname)
 	if err != nil {
 		fmt.Println(err)
