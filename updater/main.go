@@ -48,7 +48,11 @@ func main() {
 	if Err(err) {
 		return
 	}
-	switch s.Query().State {
+	status, err := s.Query().State
+	if Err(err) {
+		return
+	}
+	switch status.State {
 	case svc.StopPending:
 		time.Sleep(5 * time.Second)
 	case svc.Stopped:
