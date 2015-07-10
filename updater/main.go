@@ -48,7 +48,7 @@ func main() {
 	if Err(err) {
 		return
 	}
-	status, err := s.Query().State
+	status, err := s.Query()
 	if Err(err) {
 		return
 	}
