@@ -25,6 +25,8 @@ func (c *Calls) export(w http.ResponseWriter, r *http.Request) {
 		c.exportClientList(w, r)
 	case "companyList":
 		c.exportCompanyList(w, r)
+	case "overview":
+		c.exportOverview(w, r)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -35,6 +37,29 @@ func (e *EventsFilter) ParserList() form.ParserList {
 		"id":        form.Int64{&e.ID},
 		"startTime": form.Int64{&e.Start},
 		"endTime":   form.Int64{&e.End},
+	}
+}
+
+type IDs struct {
+	d *[]int64
+}
+
+func (i IDs) Parse(d []string) error {
+	for _, id := range d {
+		n, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			return err
+		}
+		*i.d = append(*i.d, n)
+	}
+	return nil
+}
+
+func (c *CEventsFilter) ParserList() form.ParserList {
+	return form.ParserList{
+		"id":        IDs{&c.IDs},
+		"startTime": form.Int64{&c.Start},
+		"endTime":   form.Int64{&c.End},
 	}
 }
 
@@ -362,6 +387,105 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 	ss.Flush()
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	w.Header().Set("Content-Disposition", "inline; filename=\"companyEvents-"+cy.Name+"-"+dateStr+".csv\"")
+	http.ServeContent(w, r, "", time.Now(), memio.Open(buf))
+}
+
+func (c *Calls) exportOverview(w http.ResponseWriter, r *http.Request) {
+	var f CEventsFilter
+	err := form.Parse(&f, r.PostForm)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		if e, ok := err.(form.Errors); ok {
+			for k, v := range e {
+				fmt.Fprintf(w, "%s = %s\n", k, v)
+			}
+		} else {
+			w.Write([]byte(err.Error()))
+		}
+		return
+	}
+	if f.Start > f.End {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid times"))
+		return
+	}
+	dateStr := formatDate(f.Start)
+	if f.Start != f.End {
+		dateStr += " to " + formatDate(f.End)
+	}
+	f.End += 24 * 3600 * 1000
+	var e []Event
+	err = c.CompaniesEvents(f, &e)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	buf := make([]byte, 0, 1024*1024)
+	ss := csv.NewWriter(memio.Create(&buf))
+	ss.WriteAll([][]string{
+		{"Company Events for " + dateStr},
+		{},
+		{
+			"Start",
+			"End",
+			"Client",
+			"Company",
+			"Reference",
+			"From",
+			"To",
+			"Driver",
+			"Parking (GBP)",
+			"Price (GBP)",
+		},
+	})
+	for _, ev := range e {
+		var (
+			ef EventFinals
+			cl Client
+			cy Company
+			d  Driver
+		)
+		if err := c.GetEventFinals(ev.ID, &ef); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		if err := c.GetClient(ev.ClientID, &cl); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		if err := c.GetCompany(cl.CompanyID, &cy); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		if err := c.GetDriver(ev.DriverID, &d); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		record := make([]string, 8, 10)
+		record[0] = formatDateTime(ev.Start)
+		record[1] = formatDateTime(ev.End)
+		record[2] = cl.Name
+		record[3] = cy.Name
+		record[4] = cl.Reference
+		record[5] = ev.From
+		record[6] = ev.To
+		record[7] = d.Name
+		if ef.FinalsSet {
+			record = append(record,
+				formatMoney(ef.Parking),
+				formatMoney(ef.Price),
+			)
+		}
+		ss.Write(record)
+	}
+	ss.Flush()
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", "inline; filename=\"overview-"+dateStr+".csv\"")
 	http.ServeContent(w, r, "", time.Now(), memio.Open(buf))
 }
 

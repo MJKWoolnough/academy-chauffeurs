@@ -1632,10 +1632,12 @@ window.addEventListener("load", function(oldDate) {
 							return;
 						}
 						rpc.getEventsWithCompanies(ids, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "9");
 								return;
 							}
+							makeExportButton(exportButton, "overview", ids, eventsStartDate, eventsEndDate);
 							var row, i = 0,
 							    totalParking = 0, totalCost = 0,
 							    wg = new waitGroup(function() {
@@ -1696,7 +1698,11 @@ window.addEventListener("load", function(oldDate) {
 					    printTitle = toPrint.appendChild(createElement("h2")),
 					    eventFormTable = toPrint.appendChild(createElement("table")),
 					    eventTable = eventFormTable.appendChild(createElement("table")),
-					    tableTitles = eventTable.appendChild(createElement("tr"));
+					    tableTitles = eventTable.appendChild(createElement("tr")),
+					    exportButton = layer.appendChild(createElement("form"));
+					exportButton.setAttribute("method", "post");
+					exportButton.setAttribute("action", "/export");
+					exportButton.setAttribute("target", "_new");
 					toPrint.setAttribute("class", "toPrint");
 					printTitle.setAttribute("class", "printOnly");
 					printTitle.setInnerText("Event Overview");
@@ -2056,10 +2062,19 @@ window.addEventListener("load", function(oldDate) {
 		submit.setAttribute("type", "submit");
 		submit.setAttribute("value", "Export");
 		if (typeof id !== "undefined") {
-			var idE = exportButton.appendChild(createElement("input"));
-			idE.setAttribute("type", "hidden");
-			idE.setAttribute("name", "id");
-			idE.setAttribute("value", id.toString());
+			if (Array.isArray && Array.isArray(id)) {
+				for (var i = 0; i < id.length; i++) {
+					var idE = exportButton.appendChild(createElement("input"));
+					idE.setAttribute("type", "hidden");
+					idE.setAttribute("name", "id");
+					idE.setAttribute("value", id[i].toString());
+				}
+			} else {
+				var idE = exportButton.appendChild(createElement("input"));
+				idE.setAttribute("type", "hidden");
+				idE.setAttribute("name", "id");
+				idE.setAttribute("value", id.toString());
+			}
 			if (typeof startDate !== "undefined" && typeof endDate !== "undefined") {
 				var start = exportButton.appendChild(createElement("input")),
 				    end = exportButton.appendChild(createElement("input"));
