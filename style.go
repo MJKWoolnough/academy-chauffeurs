@@ -6,6 +6,7 @@ var styleCSS = []byte(`@media screen {
 		background-color : #fff;
 		width : 100%;
 		overflow-x : hidden;
+		font-family : Arial;
 	}
 
 	h1 {
