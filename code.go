@@ -1451,7 +1451,11 @@ window.addEventListener("load", function(oldDate) {
 					addLister(nameCell, stack.removeLayer.bind(null, company));
 				} else {
 					nameCell.setAttribute("class", "simpleButton");
-					nameCell.style.backgroundColor = "#" + company.Colour.toString(16);
+					var colourStr = company.Colour.toString(16);
+					while (colourStr.length < 6) {
+						colourStr = "0" + colourStr;
+					}
+					nameCell.style.backgroundColor = "#" + colourStr;
 					nameCell.addEventListener("click", function() {
 						stack.addLayer("showCompany", function(c) {
 							if (typeof c !== "undefined") {
@@ -1654,7 +1658,11 @@ window.addEventListener("load", function(oldDate) {
 				    companyCell = row.appendChild(createElement("td")),
 				    setCompanyCell = function(company) {
 					companyCell.setInnerText(companies[client.CompanyID].Name);
-					companyCell.style.backgroundColor = "#" + company.Colour.toString(16);
+					var colourStr = company.Colour.toString(16);
+					while (colourStr.length < 6) {
+						colourStr = "0" + colourStr;
+					}
+					companyCell.style.backgroundColor = "#" + colourStr;
 					//companyCell.setAttribute("class", "simpleButton");
 					//companyCell.addEventListener("click", showCompany.bind(null, companies[client.CompanyID]));
 					client.CompanyName = companies[client.CompanyID].Name;
