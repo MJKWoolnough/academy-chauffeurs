@@ -71,7 +71,9 @@ window.addEventListener("load", function(oldDate) {
 		this.getCompanyNote = request.bind(this, "GetCompanyNote"); // id   , callback
 		this.getEventNote = request.bind(this, "GetEventNote") ;  // id     , callback
 		this.getNumClients = request.bind(this, "NumClients");    // id     , callback
+		this.getNumClientsForCompanies = request.bind(this, "NumClientsForCompanies"); // [ids], callback
 		this.getNumEvents  = request.bind(this, "NumEvents");     // id     , callback
+		this.getNumEventsCompanies = request.bind(this, "NumEventsForCompanies"); // [ids] , callback
 		this.getNumEventsClient = request.bind(this, "NumEventsClient"); // id, callback
 		this.getNumEventsDriver = request.bind(this, "NumEventsDriver"); // id, callback
 		this.drivers       = request.bind(this, "Drivers", null);          // callback
@@ -81,6 +83,7 @@ window.addEventListener("load", function(oldDate) {
 		this.prepareMessage = request.bind(this, "PrepareMessage"); // id,    callback
 		this.sendMessage = request.bind(this, "SendMessage"); // messageData, callback
 		this.clientsForCompany = request.bind(this, "ClientsForCompany"); // id, callback
+		this.clientsForCompanies = request.bind(this, "ClientsForCompanies"); // [ids], callback
 		this.getSettings   = request.bind(this, "GetSettings", null); //      callback
 		this.setSettings   = request.bind(this, "SetSettings"); // settings , callback
 		this.getEventsWithDriver = function(driverID, start, end, callback) {
@@ -91,6 +94,9 @@ window.addEventListener("load", function(oldDate) {
 		};
 		this.getEventsWithCompany = function(companyID, start, end, callback) {
 			request("CompanyEvents", {"ID": companyID, "Start": start, "End": end}, callback);
+		};
+		this.getEventsWithCompanies = function(companyIDs, start, end, callback) {
+			request("CompaniesEvents", {"IDs": companyIDs, "Start": start, "End": end}, callback);
 		};
 		this.setDriverNote = function(id, note) {
 			request("SetDriverNote", {ID: id, Note: note});
@@ -1242,7 +1248,7 @@ window.addEventListener("load", function(oldDate) {
 				rpc.getNumClients(company.ID, numClients.setInnerText.bind(numClients));
 				rpc.getNumEvents(company.ID, numEvents.setInnerText.bind(numEvents));
 			}],
-			["Client", function() {
+			["Clients", function() {
 				var toPrint = layer.appendChild(createElement("div")),
 				    printOnly = toPrint.appendChild(createElement("div")),
 				    clientsTable = toPrint.appendChild(createElement("table")),
@@ -1436,6 +1442,11 @@ window.addEventListener("load", function(oldDate) {
 			layer.appendChild(createElement("h1")).setInnerText("Companies")
 			var table = createElement("table"),
 			    headerRow = table.appendChild(createElement("tr")),
+			    overview = createElement("div"),
+			    overviewButton = overview.appendChild(createElement("input")),
+			    doOverview = overview.appendChild(createElement("input")),
+			    cancelOverview = overview.appendChild(createElement("input")),
+			    checks = [],
 			    addCompanyToTable = function(company) {
 				if (typeof company === "undefined") {
 					return;
@@ -1446,6 +1457,11 @@ window.addEventListener("load", function(oldDate) {
 				if (addList === true) {
 					addLister(nameCell, stack.removeLayer.bind(null, company));
 				} else {
+					var check = createElement("input");
+					check.setAttribute("type", "checkbox");
+					check.setAttribute("checked", "true");
+					nameCell.parentNode.insertBefore(check, nameCell);
+					checks.push(check);
 					nameCell.setAttribute("class", "simpleButton");
 					nameCell.style.backgroundColor = company.Colour.formatColour();
 					nameCell.addEventListener("click", function() {
@@ -1467,6 +1483,45 @@ window.addEventListener("load", function(oldDate) {
 			exportButton.setAttribute("action", "/export");
 			exportButton.setAttribute("target", "_new");
 			exportButton.setAttribute("class", "noPrint");
+			overview.setAttribute("id", "overview");
+			overviewButton.setAttribute("type", "button");
+			overviewButton.setAttribute("value", "Overview");
+			overviewButton.addEventListener("click", function() {
+				overview.setAttribute("class", "check");
+				table.setAttribute("class", "toPrint check")
+			});
+			doOverview.setAttribute("type", "button");
+			doOverview.setAttribute("value", "✔");
+			doOverview.addEventListener("click", function() {
+				overview.setAttribute("class", "");
+				table.setAttribute("class", "toPrint")
+				var list = [],
+				    i = 0;
+				for (; i < checks.length; i++) {
+					if (checks[i].checked) {
+						list[companies[i].ID] = companies[i];
+					}
+				}
+				if (list.length === 1) {
+					stack.addLayer("showCompany", function(c) {
+						if (typeof c !== "undefined") {
+							stack.removeLayer();
+							stack.addLayer("companyList");
+							companyList();
+						}
+					});
+					showCompany(list[0]);
+				} else if (list.length > 1) {
+					stack.addLayer("showOverview");
+					showOverview(list);
+				}
+			});
+			cancelOverview.setAttribute("type", "button");
+			cancelOverview.setAttribute("value", "✗");
+			cancelOverview.addEventListener("click", function () {
+				overview.setAttribute("class", "");
+				table.setAttribute("class", "toPrint")
+			});
 			if (companies.length > 0) {
 				makeExportButton(exportButton, "companyList");
 			}
@@ -1479,10 +1534,187 @@ window.addEventListener("load", function(oldDate) {
 			companies.map(addCompanyToTable);
 			table.setAttribute("class", "toPrint");
 			layer.appendChild(table);
+			layer.appendChild(overview);
 			layer.appendChild(exportButton);
 			stack.setFragment();
 			layer.setAttribute("class", "toPrint");
 		});
+	},
+	showOverview = function(companies) {
+		stack.addFragment();
+		var ids = [];
+		companies.map(function(company) {
+			ids.push(company.ID);
+		});
+		layer.appendChild(createElement("h1")).setInnerText("Overview");
+		layer.appendChild(makeTabs(
+			[ "Details", function() {
+				for (var i = 0; i < ids.length; i++) {
+					layer.appendChild(createElement("label")).setInnerText("Company " + (i + 1));
+					layer.appendChild(createElement("div")).setInnerText(companies[ids[i]].Name);
+				}
+				layer.appendChild(createElement("label")).setInnerText("Total Clients")
+				var totalClients = layer.appendChild(createElement("div")).setInnerText("-"),
+				    totalEvents = createElement("div");
+				layer.appendChild(createElement("label")).setInnerText("Total Events")
+				totalEvents = layer.appendChild(totalEvents.setInnerText("-"));
+				rpc.getNumClientsForCompanies(ids, function (total) {
+					totalClients.setInnerText(total);
+				});
+				rpc.getNumEventsCompanies(ids, function (total) {
+					totalEvents.setInnerText(total);
+				});
+			}],
+			[ "Clients", function() {
+				var toPrint = layer.appendChild(createElement("div")),
+				    printOnly = toPrint.appendChild(createElement("div")),
+				    clientsTable = toPrint.appendChild(createElement("table")),
+				    headerRow = clientsTable.appendChild(createElement("tr")),
+				    i = 0,
+				    exportButton = layer.appendChild(createElement("form"));
+				exportButton.setAttribute("method", "post");
+				exportButton.setAttribute("action", "/export");
+				exportButton.setAttribute("target", "_new");
+				exportButton.setAttribute("class", "noPrint");
+				toPrint.setAttribute("class", "toPrint");
+				printOnly.setAttribute("class", "printOnly");
+				printOnly.appendChild(createElement("h1")).setInnerText("Client Overview");
+				headerRow.appendChild(createElement("th")).setInnerText("Name");
+				headerRow.appendChild(createElement("th")).setInnerText("Company");
+				headerRow.appendChild(createElement("th")).setInnerText("Phone Number");
+				headerRow.appendChild(createElement("th")).setInnerText("Reference");
+				headerRow.appendChild(createElement("th")).setInnerText("# Events");
+				rpc.clientsForCompanies(ids, function(clients) {
+					exportButton.removeChildren();
+					if (clients.length === 0) {
+						clientsTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Clients").setAttribute("colspan", 4);
+						return;
+					}
+					for (; i < clients.length; i++) {
+						var row = clientsTable.appendChild(createElement("tr")),
+						    name = row.appendChild(createElement("td")).setInnerText(clients[i].Name),
+						    company = row.appendChild(createElement("td")).setInnerText(companies[clients[i].CompanyID].Name),
+						    numEvents;
+						company.style.backgroundColor = companies[clients[i].CompanyID].Colour.formatColour();
+						row.appendChild(createElement("td")).setInnerText(clients[i].PhoneNumber);
+						row.appendChild(createElement("td")).setInnerText(clients[i].Reference);
+						numEvents = row.appendChild(createElement("td")).setInnerText("-");
+						rpc.getNumEventsClient(clients[i].ID, numEvents.setInnerText.bind(numEvents));
+					}
+				});
+			}],
+			[ "Events", function() {
+				var eventsStartDate = new Date(),
+				    eventsEndDate = new Date();
+				return function() {
+					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
+					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
+					    getEvents = addFormSubmit("Show Events", function() {
+						eventTable.removeChildren(function(elm) {
+							return elm !== tableTitles;
+						});
+						while (eventTable.nextSibling !== null) {
+							eventTable.parentNode.removeChild(eventTable.nextSibling);
+						}
+						var startParts = startDate[0].value.split("/"),
+						    endParts = endDate[0].value.split("/"),
+						    pT = "";
+						eventsStartDate = new Date(startParts[2], startParts[1]-1, startParts[0]);
+						eventsEndDate = new Date(endParts[2], endParts[1]-1, endParts[0]);
+						pT = "Events Overview for " + eventsStartDate.toDateString();
+						if (eventsStartDate.getTime() !== eventsEndDate.getTime()) {
+							pT += " to " + eventsEndDate.toDateString();
+						}
+						printTitle.setInnerText(pT);
+						if (eventsStartDate.getTime() > eventsEndDate.getTime()) {
+							endDate[1].setInnerText("Cannot be before start date");
+							eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
+							return;
+						}
+						rpc.getEventsWithCompanies(ids, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+							if (events.length === 0) {
+								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "9");
+								return;
+							}
+							var row, i = 0,
+							    totalParking = 0, totalCost = 0,
+							    wg = new waitGroup(function() {
+								var row = createElement("tr");
+								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "8");
+								row.appendChild(createElement("td")).setInnerText("£" + (totalParking / 100).formatMoney());
+								row.appendChild(createElement("td")).setInnerText("£" + (totalCost / 100).formatMoney());
+								eventTable.appendChild(row).setAttribute("class", "overline");
+							    });
+							for (; i < events.length; i++) {
+								row = createElement("tr");
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
+								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
+								var clientCell = row.appendChild(createElement("td")),
+								    companyCell = row.appendChild(createElement("td")),
+								    refCell = row.appendChild(createElement("td")),
+								    driverCell = createElement("td").setInnerText("-"),
+								    parkingCell = createElement("td").setInnerText("-"),
+								    priceCell = createElement("td").setInnerText("-");
+								row.appendChild(createElement("td")).setInnerText(events[i].From);
+								row.appendChild(createElement("td")).setInnerText(events[i].To);
+								row.appendChild(driverCell);
+								row.appendChild(parkingCell);
+								row.appendChild(priceCell);
+								rpc.getClient(events[i].ClientID, function(clientCell, refCell, companyCell, i, client) {
+									events[i].ClientReference = client.Reference;
+									events[i].ClientName = client.Name;
+									clientCell.setInnerText(client.Name);
+									refCell.setInnerText(client.Reference);
+									companyCell.setInnerText(companies[client.CompanyID].Name).style.backgroundColor = companies[client.CompanyID].Colour.formatColour();
+								}.bind(null, clientCell, refCell, companyCell, i));
+								if (events[i].DriverID === 0) {
+									events[i].DriverName = "Unassigned";
+									driverCell.setInnerText("Unassigned");
+								} else {
+									rpc.getDriver(events[i].DriverID, function(driverCell, i, driver) {
+										events[i].DriverName = driver.Name;
+										driverCell.setInnerText(driver.Name);
+									}.bind(null, driverCell, i));
+								}
+								wg.add();
+								rpc.getEventFinals(events[i].ID, function(parkingCell, priceCell, i, eventFinals) {
+									if (eventFinals.FinalsSet) {
+										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
+										priceCell.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
+										events[i].Parking = eventFinals.Parking;
+										events[i].Price = eventFinals.Price;
+										totalParking += eventFinals.Parking;
+										totalCost += eventFinals.Price;
+									}
+									wg.done();
+								}.bind(null, parkingCell, priceCell, i));
+								eventTable.appendChild(row);
+							}
+						});
+					    }),
+					    toPrint = layer.appendChild(createElement("div")),
+					    printTitle = toPrint.appendChild(createElement("h2")),
+					    eventFormTable = toPrint.appendChild(createElement("table")),
+					    eventTable = eventFormTable.appendChild(createElement("table")),
+					    tableTitles = eventTable.appendChild(createElement("tr"));
+					toPrint.setAttribute("class", "toPrint");
+					printTitle.setAttribute("class", "printOnly");
+					printTitle.setInnerText("Event Overview");
+					tableTitles.appendChild(createElement("th")).setInnerText("Start");
+					tableTitles.appendChild(createElement("th")).setInnerText("End");
+					tableTitles.appendChild(createElement("th")).setInnerText("Client");
+					tableTitles.appendChild(createElement("th")).setInnerText("Company");
+					tableTitles.appendChild(createElement("th")).setInnerText("Reference");
+					tableTitles.appendChild(createElement("th")).setInnerText("From");
+					tableTitles.appendChild(createElement("th")).setInnerText("To");
+					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
+					tableTitles.appendChild(createElement("th")).setInnerText("Parking Cost");
+					tableTitles.appendChild(createElement("th")).setInnerText("Price");
+					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
+				};
+			}()]
+		));
+		stack.setFragment();
 	},
 	showClient = function(client) {
 		stack.addLayer("showClient");

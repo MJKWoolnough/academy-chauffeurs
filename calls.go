@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/rpc"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -319,10 +320,38 @@ func (c *Calls) NumClients(id int64, num *int64) error {
 	return c.statements[NumClientsForCompany].QueryRow(id).Scan(num)
 }
 
+func (c *Calls) NumClientsForCompanies(ids []int64, total *int64) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, id := range ids {
+		var num int64
+		err := c.statements[NumClientsForCompany].QueryRow(id).Scan(&num)
+		if err != nil {
+			return err
+		}
+		*total += num
+	}
+	return nil
+}
+
 func (c *Calls) NumEvents(id int64, num *int64) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.statements[NumEventsForCompany].QueryRow(id).Scan(num)
+}
+
+func (c *Calls) NumEventsForCompanies(ids []int64, total *int64) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, id := range ids {
+		var num int64
+		err := c.statements[NumEventsForCompany].QueryRow(id).Scan(&num)
+		if err != nil {
+			return err
+		}
+		*total += num
+	}
+	return nil
 }
 
 func (c *Calls) NumEventsClient(id int64, num *int64) error {
@@ -475,6 +504,52 @@ func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
 	})
 }
 
+type CEventsFilter struct {
+	IDs        []int64
+	Start, End int64
+}
+
+type sortEvents []Event
+
+func (s sortEvents) Len() int {
+	return len(s)
+}
+
+func (s sortEvents) Less(i, j int) bool {
+	return s[i].Start < s[j].Start
+}
+
+func (s sortEvents) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (c *Calls) CompaniesEvents(f CEventsFilter, events *[]Event) error {
+	*events = make([]Event, 0)
+	for _, id := range f.IDs {
+		err := c.getList(CompanyEvents, is{id, f.Start, f.End}, func() is {
+			var (
+				e   Event
+				pos = len(*events)
+			)
+			*events = append(*events, e)
+			return is{
+				&(*events)[pos].ID,
+				&(*events)[pos].DriverID,
+				&(*events)[pos].ClientID,
+				&(*events)[pos].Start,
+				&(*events)[pos].End,
+				&(*events)[pos].From,
+				&(*events)[pos].To,
+			}
+		})
+		if err != nil {
+			return err
+		}
+	}
+	sort.Sort(sortEvents(*events))
+	return nil
+}
+
 func (c *Calls) Drivers(_ struct{}, drivers *[]Driver) error {
 	*drivers = make([]Driver, 0)
 	return c.getList(DriverList, is{}, func() is {
@@ -543,6 +618,45 @@ func (c *Calls) ClientsForCompany(companyID int64, clients *[]Client) error {
 			&(*clients)[pos].Reference,
 		}
 	})
+}
+
+type sortClients []Client
+
+func (s sortClients) Len() int {
+	return len(s)
+}
+
+func (s sortClients) Less(i, j int) bool {
+	return s[i].Name < s[j].Name
+}
+
+func (s sortClients) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (c *Calls) ClientsForCompanies(ids []int64, clients *[]Client) error {
+	*clients = make([]Client, 0)
+	for _, companyID := range ids {
+		err := c.getList(ClientForCompanyList, is{companyID}, func() is {
+			var (
+				cl  Client
+				pos = len(*clients)
+			)
+			*clients = append(*clients, cl)
+			return is{
+				&(*clients)[pos].ID,
+				&(*clients)[pos].CompanyID,
+				&(*clients)[pos].Name,
+				&(*clients)[pos].PhoneNumber,
+				&(*clients)[pos].Reference,
+			}
+		})
+		if err != nil {
+			return err
+		}
+	}
+	sort.Sort(sortClients(*clients))
+	return nil
 }
 
 func (c *Calls) UnsentMessages(_ struct{}, events *[]Event) error {

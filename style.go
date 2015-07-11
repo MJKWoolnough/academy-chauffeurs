@@ -54,7 +54,37 @@ var styleCSS = []byte(`@media screen {
 		border-style : solid;
 	}
 
-	div.adder {
+	table input[type=checkbox] {
+		display : none;
+		margin : 0;
+		padding : 0;
+	}
+
+	table.check input[type=checkbox] {
+		display : inline;
+	}
+
+	#overview {
+		clear : left;
+	}
+
+	#overview input {
+		float : left;
+	}
+
+	#overview input:not(:first-child) {
+		display : none;
+	}
+
+	#overview.check input {
+		display : block;
+	}
+
+	#overview.check input:first-child {
+		display : none;
+	}
+
+	div.adder, input[type=checkbox] {
 		float : left;
 		font-weight : bold;
 		color : #fff;
