@@ -2107,10 +2107,14 @@ window.addEventListener("load", function(oldDate) {
 	},
 	setCompany = function(company) {
 		stack.addFragment();
+		var colourStr = company.Colour.toString(16);
+		while (colourStr.length < 6) {
+			colourStr = "0" + colourStr;
+		}
 		layer.appendChild(createElement("h1")).setInnerText((company.ID == 0) ? "Add Company" : "Edit Company");
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address")),
-		    color = addFormElement("Company Colour", "color", "company_color", "#" + company.Colour.toString(16));
+		    color = addFormElement("Company Colour", "color", "company_color", "#" + colourStr);
 		addFormSubmit((company.ID == 0) ? "Add Company" : "Edit Company", function() {
 			var parts = [this, companyName[0], address[0]];
 			parts.map(disableElement);
