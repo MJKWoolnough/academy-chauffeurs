@@ -926,7 +926,11 @@ window.addEventListener("load", function(oldDate) {
 			eventDiv.style.width = width + "px";
 			eventDiv.setAttribute("id", "event_" + blockStr);
 			rpc.getCompanyColourFromClient(e.ClientID, function(colour) {
-				eventDiv.style.backgroundColor = "#" + colour.toString(16);
+				var colourStr = colour.toString(16);
+				while (colourStr.length < 6) {
+					colourStr = "0" + colourStr;
+				}
+				eventDiv.style.backgroundColor = "#" + colourStr;
 			});
 			rpc.getClient(e.ClientID, function(c) {
 				var name = eventDiv.appendChild(createElement("div")).setInnerText(c.Name),
