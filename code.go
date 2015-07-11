@@ -926,11 +926,7 @@ window.addEventListener("load", function(oldDate) {
 			eventDiv.style.width = width + "px";
 			eventDiv.setAttribute("id", "event_" + blockStr);
 			rpc.getCompanyColourFromClient(e.ClientID, function(colour) {
-				var colourStr = colour.toString(16);
-				while (colourStr.length < 6) {
-					colourStr = "0" + colourStr;
-				}
-				eventDiv.style.backgroundColor = "#" + colourStr;
+				eventDiv.style.backgroundColor = colour.formatColour();
 			});
 			rpc.getClient(e.ClientID, function(c) {
 				var name = eventDiv.appendChild(createElement("div")).setInnerText(c.Name),
@@ -1451,11 +1447,7 @@ window.addEventListener("load", function(oldDate) {
 					addLister(nameCell, stack.removeLayer.bind(null, company));
 				} else {
 					nameCell.setAttribute("class", "simpleButton");
-					var colourStr = company.Colour.toString(16);
-					while (colourStr.length < 6) {
-						colourStr = "0" + colourStr;
-					}
-					nameCell.style.backgroundColor = "#" + colourStr;
+					nameCell.style.backgroundColor = company.Colour.formatColour();
 					nameCell.addEventListener("click", function() {
 						stack.addLayer("showCompany", function(c) {
 							if (typeof c !== "undefined") {
@@ -1658,11 +1650,7 @@ window.addEventListener("load", function(oldDate) {
 				    companyCell = row.appendChild(createElement("td")),
 				    setCompanyCell = function(company) {
 					companyCell.setInnerText(companies[client.CompanyID].Name);
-					var colourStr = company.Colour.toString(16);
-					while (colourStr.length < 6) {
-						colourStr = "0" + colourStr;
-					}
-					companyCell.style.backgroundColor = "#" + colourStr;
+					companyCell.style.backgroundColor = company.Colour.formatColour();
 					//companyCell.setAttribute("class", "simpleButton");
 					//companyCell.addEventListener("click", showCompany.bind(null, companies[client.CompanyID]));
 					client.CompanyName = companies[client.CompanyID].Name;
@@ -2107,14 +2095,10 @@ window.addEventListener("load", function(oldDate) {
 	},
 	setCompany = function(company) {
 		stack.addFragment();
-		var colourStr = company.Colour.toString(16);
-		while (colourStr.length < 6) {
-			colourStr = "0" + colourStr;
-		}
 		layer.appendChild(createElement("h1")).setInnerText((company.ID == 0) ? "Add Company" : "Edit Company");
 		var companyName = addFormElement("Company Name", "text", "company_name", company.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    address = addFormElement("Company Address", "textarea", "company_address", company.Address, regexpCheck(/.+/, "Please enter a valid address")),
-		    color = addFormElement("Company Colour", "color", "company_color", "#" + colourStr);
+		    color = addFormElement("Company Colour", "color", "company_color", company.Colour.formatColour());
 		addFormSubmit((company.ID == 0) ? "Add Company" : "Edit Company", function() {
 			var parts = [this, companyName[0], address[0]];
 			parts.map(disableElement);
@@ -2818,4 +2802,12 @@ window.addEventListener("load", function(oldDate) {
 		toRet += integer + "." + fract.toFixed(2).substr(2);
 		return toRet;
 	};
+	Number.prototype.formatColour = function(num) {
+		num = num || this;
+		var colourStr = num.toString(16);
+		while (colourStr.length < 6) {
+			colourStr = "0" + colourStr;
+		}
+		return "#" + colourStr;
+	}
 }.bind(null, Date));`)
