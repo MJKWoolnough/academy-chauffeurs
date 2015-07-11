@@ -620,8 +620,8 @@ label:after {
 	float : none;
 	width : auto;
 	margin-left : 260px;
+	min-height : 1.1em;
 }
-
 
 .invoiceTop tr:first-child + tr td:first-child {
 	width : 99%;
