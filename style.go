@@ -133,6 +133,7 @@ var styleCSS = []byte(`@media screen {
 		height : 20px;
 		background-color : #fff;
 		z-index : 4;
+		font-weight : bold;
 	}
 
 	.day {
@@ -144,6 +145,7 @@ var styleCSS = []byte(`@media screen {
 		padding : 0;
 		background-color : #fff;
 		z-index : 4;
+		font-weight : bold;
 	}
 
 	.year > div, .month > div, .day > div {
