@@ -10,20 +10,25 @@ var ErrInvalidMobileNumber = errors.New("Invalid Mobile Phone Number Format")
 type MobileNumber uint64
 
 func (p MobileNumber) String() string {
-	var digits [21]byte
-	pos := 21
+	var digits [22]byte
+	pos := 22
 	for num := uint64(p); num > 0; num /= 10 {
 		pos--
 		digits[pos] = '0' + byte(num%10)
 	}
-	if pos == 11 {
-		pos--
-		digits[pos] = '0'
-	} else if pos == 10 && digits[10] == '4' && digits[11] == '4' {
+	/*
+		if pos == 11 {
+			pos--
+			digits[pos] = '0'
+		} else if pos == 10 && digits[10] == '4' && digits[11] == '4' {
+			pos--
+			digits[pos] = '+'
+		} else {
+			return "Invalid Mobile Phone Number"
+		}*/
+	if digits[pos] != '0' {
 		pos--
 		digits[pos] = '+'
-	} else {
-		return "Invalid Mobile Phone Number"
 	}
 	return string(digits[pos:])
 }

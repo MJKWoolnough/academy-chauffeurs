@@ -2258,7 +2258,7 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText((driver.ID == 0) ? "Add Driver" : "Edit Driver");
 		var driverName = addFormElement("Driver Name", "text", "driver_name", driver.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    regNumber = addFormElement("Registration Number", "text", "driver_reg", driver.RegistrationNumber, regexpCheck(/[a-zA-Z0-9 ]+/, "Please enter a valid Vehicle Registration Number")),
-		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber, regexpCheck(/^(0|\+?44)[0-9 ]{10}$/, "Please enter a valid mobile telephone number"));
+		    phoneNumber = addFormElement("Phone Number", "text", "driver_phone", driver.PhoneNumber);
 		addFormSubmit((driver.ID == 0) ? "Add Driver" : "Edit Driver", function() {
 			var parts = [this, driverName[0], regNumber[0], phoneNumber[0]];
 			parts.map(disableElement);
@@ -2293,7 +2293,7 @@ window.addEventListener("load", function(oldDate) {
 		var clientName = addFormElement("Client Name", "text", "client_name", client.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
 		    companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
-		    clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber, regexpCheck(/^(0|\+)[0-9 ]*$/, "Please enter a valid mobile telephone number")),
+		    clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber),
 		    clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code"));
 		addLister(companyName[1], function() {
 			companyName[1].setInnerText("");
