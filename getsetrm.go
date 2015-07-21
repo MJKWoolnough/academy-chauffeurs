@@ -64,10 +64,10 @@ func (c *Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
 		resp.Errors = true
 		resp.RegError = "Registration Number Required"
 	}
-	if !ValidMobileNumber(d.PhoneNumber) {
+	/*if !ValidMobileNumber(d.PhoneNumber) {
 		resp.Errors = true
 		resp.PhoneError = "Valid Mobile Phone Number Required"
-	}
+	}*/
 	var err error
 	if !resp.Errors {
 		c.mu.Lock()
@@ -110,10 +110,10 @@ func (c *Calls) SetClient(cl Client, resp *SetClientResponse) error {
 			resp.CompanyError = "Valid Company Required"
 		}
 	}
-	if !ValidMobileNumber(cl.PhoneNumber) {
+	/*if !ValidMobileNumber(cl.PhoneNumber) {
 		resp.Errors = true
 		resp.PhoneError = "Valid Mobile Phone Number Required"
-	}
+	}*/
 	if cl.Reference == "" {
 		resp.Errors = true
 		resp.ReferenceError = "Reference Required"
