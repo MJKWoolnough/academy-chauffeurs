@@ -549,7 +549,7 @@ var styleCSS = []byte(`@media screen {
 
 	.tabs + .content {
 		margin-top : 10px;
-		overflow : hidden;
+		overflow-x : scroll;
 		padding : 10px;
 	}
 
