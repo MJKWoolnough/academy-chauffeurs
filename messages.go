@@ -97,7 +97,6 @@ func (c *Calls) SendMessage(md MessageData, e *string) error {
 	var (
 		event  Event
 		client Client
-		fromS  string
 	)
 	err := c.GetEvent(md.ID, &event)
 	if err != nil {
@@ -107,15 +106,14 @@ func (c *Calls) SendMessage(md MessageData, e *string) error {
 	if err != nil {
 		return err
 	}
+	vars := make([]textmagic.Option, 0, 1)
 	if fromNumber {
 		var driver Driver
 		err = c.GetDriver(event.DriverID, &driver)
 		if err != nil {
 			return err
 		}
-		from = driver.PhoneNumber
-	} else {
-		fromS = from
+		vars = append(vars, textmagic.From(driver.PhoneNumber))
 	}
 	var phoneNumber = client.PhoneNumber
 	if phoneNumber[0] == '0' {
@@ -123,7 +121,7 @@ func (c *Calls) SendMessage(md MessageData, e *string) error {
 	} else if phoneNumber[0] == '+' {
 		phoneNumber = phoneNumber[1:]
 	}
-	_, _, _, err = text.Send(md.Message, []string{phoneNumber}, textmagic.From(fromS))
+	_, _, _, err = text.Send(md.Message, []string{phoneNumber}, vars...)
 	if err != nil {
 		*e = err.Error()
 	} else {
