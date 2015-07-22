@@ -2134,7 +2134,8 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(totalWaiting);
 								row.appendChild(createElement("td")).setInnerText(totalMiles);
 								row.appendChild(createElement("td")).setInnerText((new Date(totalTrip)).toTimeString());
-								row.appendChild(createElement("td")).setInnerText((new Date(totalDriverHours)).toTimeString());
+								//row.appendChild(createElement("td")).setInnerText((new Date(totalDriverHours)).toTimeString());
+								row.appendChild(createElement("td")).setInnerText(totalDriverHours / 3600000);
 								row.appendChild(createElement("td")).setInnerText("£" + (totalParking / 100).formatMoney());
 								row.appendChild(createElement("td")).setInnerText("£" + (totalSub / 100).formatMoney());
 								eventTable.appendChild(row).setAttribute("class", "overline");
@@ -2187,7 +2188,8 @@ window.addEventListener("load", function(oldDate) {
 										waitingCell.setInnerText(eventFinals.Waiting).removeAttribute("class");
 										milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
 										tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
-										driverHoursCell.setInnerText((new Date(eventFinals.DriverHours)).toTimeString()).removeAttribute("class");
+										//driverHoursCell.setInnerText((new Date(eventFinals.DriverHours)).toTimeString()).removeAttribute("class");
+										driverHoursCell.setInnerText(eventFinals.DriverHours / 3600000).removeAttribute("class");
 										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney()).removeAttribute("class");
 										subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney()).removeAttribute("class");
 										totalMiles += eventFinals.Miles;
@@ -2224,7 +2226,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Waiting");
 					tableTitles.appendChild(createElement("th")).setInnerText("Miles");
 					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
-					tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours");
+					tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours (h)");
 					tableTitles.appendChild(createElement("th")).setInnerText("Parking");
 					tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
@@ -2423,7 +2425,7 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(miles);
 				toPrint.appendChild(createElement("label")).setInnerText("Trip Time");
 				toPrint.appendChild(tripTime);
-				toPrint.appendChild(createElement("label")).setInnerText("Driver Time");
+				toPrint.appendChild(createElement("label")).setInnerText("Driver Time (h)");
 				toPrint.appendChild(driverHours);
 				toPrint.appendChild(createElement("label")).setInnerText("Parking Costs");
 				toPrint.appendChild(parking);
@@ -2441,7 +2443,8 @@ window.addEventListener("load", function(oldDate) {
 					dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
 					miles.setInnerText(eventFinals.Miles);
 					tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
-					driverHours.setInnerText((new Date(eventFinals.DriverHours)).toTimeString());
+					//driverHours.setInnerText((new Date(eventFinals.DriverHours)).toTimeString());
+					driverHours.setInnerText(eventFinals.DriverHours / 3600000);
 					price.setInnerText("£" + (eventFinals.Price / 100));
 					sub.setInnerText("£" + (eventFinals.Sub / 100));
 				});
@@ -2471,7 +2474,8 @@ window.addEventListener("load", function(oldDate) {
 				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
 				    tripTime = addFormElement("Trip Time", "text", "trip", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
-				    driverHours = addFormElement("Driver Time", "text", "driverHours", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
+				    //driverHours = addFormElement("Driver Time", "text", "driverHours", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
+				    driverHours = addFormElement("Driver Time (h)", "text", "driverHours", "", regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Number format unrecognised (0.00)")),
 				    parking = addFormElement("Parking Costs (£)", "text", "parking", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
 				    sub = addFormElement("Sub Price (£)", "text", "sub", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
 				    price = addFormElement("Total Price To Client (£)", "text", "price", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount"));
@@ -2495,8 +2499,9 @@ window.addEventListener("load", function(oldDate) {
 					eventFinals.Miles = parseInt(miles[0].value);
 					parts = tripTime[0].value.split(":");
 					eventFinals.Trip = (new Date(1970, 0, 1, parseInt(parts[0]), parseInt(parts[1]))).getTime();
-					parts = driverHours[0].value.split(":");
-					eventFinals.DriverHours = (new Date(1970, 0, 1, parseInt(parts[0]), parseInt(parts[1]))).getTime();
+					//parts = driverHours[0].value.split(":");
+					//eventFinals.DriverHours = (new Date(1970, 0, 1, parseInt(parts[0]), parseInt(parts[1]))).getTime();
+					eventFinals.DriverHours = Math.floor(parseFloat(driverHours[0].value) * 3600000);
 					eventFinals.Parking = Math.floor(parseFloat(parking[0].value) * 100);
 					eventFinals.Sub = Math.floor(parseFloat(sub[0].value) * 100);
 					eventFinals.Price = Math.floor(parseFloat(price[0].value) * 100);
@@ -2512,7 +2517,8 @@ window.addEventListener("load", function(oldDate) {
 					dropOff[0].value = (new Date(eventFinals.Drop)).toTimeString();
 					miles[0].value = eventFinals.Miles;
 					tripTime[0].value = (new Date(eventFinals.Trip)).toTimeString();
-					driverHours[0].value = (new Date(eventFinals.DriverHours)).toTimeString();
+					//driverHours[0].value = (new Date(eventFinals.DriverHours)).toTimeString();
+					driverHours[0].value = eventFinals.DriverHours / 3600000
 					parking[0].value = eventFinals.Parking / 100;
 					sub[0].value = eventFinals.Sub / 100;
 					price[0].value = eventFinals.Price / 100;
