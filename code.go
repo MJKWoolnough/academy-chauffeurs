@@ -2453,7 +2453,7 @@ window.addEventListener("load", function(oldDate) {
 			toPrint.appendChild(makeNote(rpc.getEventNote.bind(rpc, e.ID), rpc.setEventNote.bind(rpc, e.ID)));
 			rpc.getClient(e.ClientID, function(client) {
 				clientName.setInnerText(client.Name);
-				clientRef.setInnerText(client.Reference);
+				clientRef.setInnerText(client.Reference + "\u00A0");
 				rpc.getCompany(client.CompanyID, function(company) {
 					companyName.setInnerText(company.Name);
 				});
