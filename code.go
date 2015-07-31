@@ -2128,10 +2128,11 @@ window.addEventListener("load", function(oldDate) {
 							var row,
 							    i = 0,
 							    pT = "Driver Sheet for " + driver.Name + " for " + eventsStartDate.toDateString(),
-							    totalWaiting = 0, totalMiles = 0, totalTrip = 0, totalDriverHours = 0, totalParking = 0, totalSub = 0,
+							    totalWaiting = 0, totalMiles = 0, totalTrip = 0, totalDriverHours = 0, totalParking = 0, totalSub = 0, totalPrice = 0,
 							    wg = new waitGroup(function() {
 								var row = createElement("tr");
-								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "8");
+								//row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "8");
+								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "6");
 								row.appendChild(createElement("td")).setInnerText(totalWaiting);
 								row.appendChild(createElement("td")).setInnerText(totalMiles);
 								row.appendChild(createElement("td")).setInnerText((new Date(totalTrip)).toTimeString());
@@ -2139,6 +2140,7 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(totalDriverHours / 3600000);
 								row.appendChild(createElement("td")).setInnerText("£" + (totalParking / 100).formatMoney());
 								row.appendChild(createElement("td")).setInnerText("£" + (totalSub / 100).formatMoney());
+								row.appendChild(createElement("td")).setInnerText("£" + (totalPrice / 100).formatMoney());
 								eventTable.appendChild(row).setAttribute("class", "overline");
 							    });
 							if (eventsStartDate.getTime() !== eventsEndDate.getTime()) {
@@ -2156,36 +2158,41 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].End).toLocaleString());
 								var clientCell = row.appendChild(createElement("td")),
-								    phoneCell = row.appendChild(createElement("td")),
+								    //phoneCell = row.appendChild(createElement("td")),
 								    companyCell = createElement("td"),
-								    inCarCell = createElement("td").setInnerText("-"),
+								    //inCarCell = createElement("td").setInnerText("-"),
 								    waitingCell = createElement("td").setInnerText("-"),
 								    milesCell = createElement("td").setInnerText("-"),
 								    tripCell = createElement("td").setInnerText("-"),
 								    driverHoursCell = createElement("td").setInnerText("-"),
 								    parkingCell = createElement("td").setInnerText("-"),
-								    subCell = createElement("td").setInnerText("-");
+								    subCell = createElement("td").setInnerText("-"),
+								    priceCell = createElement("td").setInnerText("-");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(companyCell);
-								row.appendChild(inCarCell).setAttribute("class", "noPrint");
+								//row.appendChild(inCarCell).setAttribute("class", "noPrint");
 								row.appendChild(waitingCell).setAttribute("class", "noPrint");
 								row.appendChild(milesCell).setAttribute("class", "noPrint");
 								row.appendChild(tripCell).setAttribute("class", "noPrint");
 								row.appendChild(driverHoursCell).setAttribute("class", "noPrint");
 								row.appendChild(parkingCell).setAttribute("class", "noPrint");
 								row.appendChild(subCell).setAttribute("class", "noPrint");
-								rpc.getClient(events[i].ClientID, function(clientCell, phoneCell, companyCell, client) {
+								row.appendChild(priceCell).setAttribute("class", "noPrint");
+								//rpc.getClient(events[i].ClientID, function(clientCell, phoneCell, companyCell, client) {
+								rpc.getClient(events[i].ClientID, function(clientCell, companyCell, client) {
 									clientCell.setInnerText(client.Name);
-									phoneCell.setInnerText(client.PhoneNumber);
+									//phoneCell.setInnerText(client.PhoneNumber);
 									rpc.getCompany(client.CompanyID, function(company) {
 										companyCell.setInnerText(company.Name);
 									});
-								}.bind(null, clientCell, phoneCell, companyCell));
+								//}.bind(null, clientCell, phoneCell, companyCell));
+								}.bind(null, clientCell, companyCell));
 								wg.add();
-								rpc.getEventFinals(events[i].ID, function(inCarCell, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
+								//rpc.getEventFinals(events[i].ID, function(inCarCell, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
+								rpc.getEventFinals(events[i].ID, function(waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
 									if (eventFinals.FinalsSet) {
-										inCarCell.setInnerText((new Date(eventFinals.InCar)).toTimeString()).removeAttribute("class");
+										//inCarCell.setInnerText((new Date(eventFinals.InCar)).toTimeString()).removeAttribute("class");
 										waitingCell.setInnerText(eventFinals.Waiting).removeAttribute("class");
 										milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
 										tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
@@ -2193,15 +2200,18 @@ window.addEventListener("load", function(oldDate) {
 										driverHoursCell.setInnerText(eventFinals.DriverHours / 3600000).removeAttribute("class");
 										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney()).removeAttribute("class");
 										subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney()).removeAttribute("class");
+										priceCell.setInnerText("£" + (eventFinals.Price / 100).formatMoney()).removeAttribute("class");
 										totalMiles += eventFinals.Miles;
 										totalWaiting += eventFinals.Waiting;
 										totalTrip += eventFinals.Trip;
 										totalDriverHours += eventFinals.DriverHours;
 										totalParking += eventFinals.Parking;
 										totalSub += eventFinals.Sub;
+										totalPrice += eventFinals.Price;
 									}
 									wg.done();
-								}.bind(null, inCarCell, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i));
+								//}.bind(null, inCarCell, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i));
+								}.bind(null, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i));
 								eventTable.appendChild(row);
 							}
 						});
@@ -2219,17 +2229,18 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Start");
 					tableTitles.appendChild(createElement("th")).setInnerText("End");
 					tableTitles.appendChild(createElement("th")).setInnerText("Client");
-					tableTitles.appendChild(createElement("th")).setInnerText("Phone Number");
+					//tableTitles.appendChild(createElement("th")).setInnerText("Phone Number");
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Company");
-					tableTitles.appendChild(createElement("th")).setInnerText("In Car");
+					//tableTitles.appendChild(createElement("th")).setInnerText("In Car");
 					tableTitles.appendChild(createElement("th")).setInnerText("Waiting");
 					tableTitles.appendChild(createElement("th")).setInnerText("Miles");
 					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours (h)");
 					tableTitles.appendChild(createElement("th")).setInnerText("Parking");
 					tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
+					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
 			}()],
