@@ -557,7 +557,7 @@ var styleCSS = []byte(`@media screen {
 		display : none;
 	}
 
-	.invoiceTop td[contenteditable=true], .invoice td[contenteditable=true], .invoiceBottom td[contenteditable=true] {
+	.invoiceTop td[contenteditable=true], .invoice th[contenteditable=true], .invoice td[contenteditable=true], .invoiceBottom td[contenteditable=true] {
 		background-color : #f7f8f8;
 	}
 }

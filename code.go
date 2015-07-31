@@ -1149,6 +1149,7 @@ window.addEventListener("load", function(oldDate) {
 		tableTitles.appendChild(createElement("th")).setInnerText("Date");
 		tableTitles.appendChild(createElement("th")).setInnerText("Name").setAttribute("colspan", 2);
 		tableTitles.appendChild(createElement("th")).setInnerText("Details");
+		tableTitles.appendChild(createElement("th")).setInnerText("Extra").setAttribute("contenteditable", "true");
 		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
 		tableTitles.appendChild(createElement("th")).setInnerText("").setAttribute("colspan", "2");
 		for (; i < events.length; i++) {
@@ -1161,6 +1162,7 @@ window.addEventListener("load", function(oldDate) {
 			details.appendChild(createElement("br"));
 			details.appendChild(document.createTextNode("To: " + events[i].To));
 			details.setAttribute("contenteditable", "true");
+			row.appendChild(createElement("td")).setAttribute("contenteditable", "true");
 			row.appendChild(createElement("td")).setInnerText("£");
 			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney());
 			row.appendChild(createElement("td")).setInnerText("£");
@@ -1197,7 +1199,7 @@ window.addEventListener("load", function(oldDate) {
 		lineOne = costTable.appendChild(createElement("tr"));
 		lineOne.setAttribute("class", "line");
 		lineOne.appendChild(createElement("td"));
-		lineOne.appendChild(createElement("td")).setAttribute("colspan", "3");
+		lineOne.appendChild(createElement("td")).setAttribute("colspan", "4");
 		adminTotal = costTable.appendChild(createElement("tr"));
 		adminTotalPrice = totalPrice + adminPrice;
 		adminTotal.appendChild(createElement("td"));
@@ -1218,7 +1220,7 @@ window.addEventListener("load", function(oldDate) {
 		lineTwo = costTable.appendChild(createElement("tr"));
 		lineTwo.setAttribute("class", "doubleLine");
 		lineTwo.appendChild(createElement("td"));
-		lineTwo.appendChild(createElement("td")).setAttribute("colspan", "3");
+		lineTwo.appendChild(createElement("td")).setAttribute("colspan", "4");
 		total = costTable.appendChild(createElement("tr"));
 		finalTotal = adminTotalPrice + vatPrice + totalParking;
 		total.appendChild(createElement("td"));
