@@ -2438,15 +2438,15 @@ window.addEventListener("load", function(oldDate) {
 						return;
 					}
 					inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
-					parking.setInnerText("£" + (eventFinals.Parking / 100));
+					parking.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
 					waiting.setInnerText(eventFinals.Waiting + " minutes");
 					dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
 					miles.setInnerText(eventFinals.Miles);
 					tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
 					//driverHours.setInnerText((new Date(eventFinals.DriverHours)).toTimeString());
 					driverHours.setInnerText(eventFinals.DriverHours / 3600000);
-					price.setInnerText("£" + (eventFinals.Price / 100));
-					sub.setInnerText("£" + (eventFinals.Sub / 100));
+					price.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
+					sub.setInnerText("£" + (eventFinals.Sub / 100).formatMoney());
 				});
 			}
 			toPrint.appendChild(createElement("label")).setInnerText("Notes");
@@ -2519,9 +2519,9 @@ window.addEventListener("load", function(oldDate) {
 					tripTime[0].value = (new Date(eventFinals.Trip)).toTimeString();
 					//driverHours[0].value = (new Date(eventFinals.DriverHours)).toTimeString();
 					driverHours[0].value = eventFinals.DriverHours / 3600000
-					parking[0].value = eventFinals.Parking / 100;
-					sub[0].value = eventFinals.Sub / 100;
-					price[0].value = eventFinals.Price / 100;
+					parking[0].value = (eventFinals.Parking / 100).formatMoney();
+					sub[0].value = (eventFinals.Sub / 100).formatMoney();
+					price[0].value = (eventFinals.Price / 100).formatMoney();
 				});
 			}];
 		}
