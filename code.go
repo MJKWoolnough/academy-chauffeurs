@@ -501,7 +501,8 @@ window.addEventListener("load", function(oldDate) {
 			init = function() {};
 			stack.addLayer("events");
 			stack.addFragment();
-			var now = new Date(),
+			var n = new Date(),
+			    now = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12),
 			    addToBar = function() {
 				var topBar = layer.appendChild(createElement("div"));
 				topBar.setAttribute("id", "topBar");
