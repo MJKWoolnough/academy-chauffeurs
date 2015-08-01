@@ -416,6 +416,7 @@ var styleCSS = []byte(`@media screen {
 		margin-left : 0;
 		transition : margin-left 1s;
 		white-space : nowrap;
+		margin-bottom : -2px;
 	}
 
 	.event > div.time {

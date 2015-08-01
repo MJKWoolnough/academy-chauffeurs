@@ -935,66 +935,84 @@ window.addEventListener("load", function(oldDate) {
 			rpc.getCompanyColourFromClient(e.ClientID, function(colour) {
 				eventDiv.style.backgroundColor = colour.formatColour();
 			});
-			rpc.getClient(e.ClientID, function(c) {
-				var name = eventDiv.appendChild(createElement("div")).setInnerText(c.Name),
-				    from = eventDiv.appendChild(createElement("div")).setInnerText(e.From),
-				    to = eventDiv.appendChild(createElement("div")).setInnerText(e.To),
-				    startText = (new Date(e.Start)).toLocaleString(),
-				    endText = (new Date(e.End)).toLocaleString(),
-				    start = createElement("div").setInnerText(startText),
-				    end = createElement("div").setInnerText(endText),
-				    nameWidth = c.Name.getWidth("14px Serif"),
-				    fromWidth = e.From.getWidth("14px Serif"),
-				    toWidth = e.To.getWidth("14px Serif"),
-				    startWidth = startText.getWidth("14px Serif"),
-				    endWidth = endText.getWidth("14px Serif"),
-				    maxWidth = nameWidth;
-				start.setAttribute("class", "time");
-				end.setAttribute("class", "time");
-				name.style.width = nameWidth + "px";
-				from.style.width = fromWidth + "px";
-				to.style.width = toWidth + "px";
-				if (fromWidth > maxWidth) {
-					maxWidth = fromWidth;
-				}
-				if (toWidth > maxWidth) {
-					maxWidth = toWidth;
-				}
-				eventDiv.setAttribute("class", "event expandable");
-				eventDiv.appendChild(start);
-				eventDiv.appendChild(end);
-				if (startWidth > maxWidth) {
-					maxWidth = startWidth;
-				}
-				if (endWidth > maxWidth) {
-					maxWidth = endWidth;
-				}
-				var newLeft = Math.floor(parseInt(left) - (((maxWidth + 12) - width) / 2));
-				// 1px left border + 5px left padding + 5px right padding + 1px right border
-				if (maxWidth + 12 > parseInt(width)) {
-					eventDiv.addEventListener("mouseover", function() {
-						name.style.marginLeft = (maxWidth - nameWidth) / 2 + "px";
-						from.style.marginLeft = (maxWidth - fromWidth) / 2 + "px";
-						to.style.marginLeft = (maxWidth - toWidth) / 2 + "px";
-						eventDiv.style.width = maxWidth + 12 + "px";
-						eventDiv.style.left = newLeft + "px";
-						eventMover.style.left = parseInt(left) - newLeft + "px";
-					});
-				} else {
-					eventDiv.addEventListener("mouseover", function() {
-						name.style.marginLeft = (width - nameWidth) / 2 + "px";
-						from.style.marginLeft = (width - fromWidth) / 2 + "px";
-						to.style.marginLeft = (width - toWidth) / 2 + "px";
-					});
-				}
-				eventDiv.addEventListener("mouseout", function() {
-					name.style.marginLeft = "0";
-					from.style.marginLeft = "0";
-					to.style.marginLeft = "0";
-					eventDiv.style.left = left;
-					eventDiv.style.width = width + "px";
-					eventMover.style.left = "0px";
+			rpc.getEventNote(e.ID, function(noteText) {
+				rpc.getClient(e.ClientID, function(c) {
+					var name = eventDiv.appendChild(createElement("div")).setInnerText(c.Name),
+					    from = eventDiv.appendChild(createElement("div")).setInnerText(e.From),
+					    to = eventDiv.appendChild(createElement("div")).setInnerText(e.To),
+					    startText = (new Date(e.Start)).toLocaleString(),
+					    endText = (new Date(e.End)).toLocaleString(),
+					    //startEndText = startText + " -> " + endText,
+					    //startEnd = createElement("div").setInnerText(startEndText),
+					    notes = createElement("div").setInnerText(noteText),
+					    start = createElement("div").setInnerText(startText),
+					    end = createElement("div").setInnerText(endText),
+					    noteWidth = noteText.getWidth("14px Serif"),
+					    nameWidth = c.Name.getWidth("14px Serif"),
+					    fromWidth = e.From.getWidth("14px Serif"),
+					    toWidth = e.To.getWidth("14px Serif"),
+					    //startEndWidth = startEndText.getWidth("14px Serif"),
+					    startWidth = startText.getWidth("14px Serif"),
+					    endWidth = endText.getWidth("14px Serif"),
+					    maxWidth = nameWidth;
+					notes.setAttribute("class", "eventNote");
+					//startEnd.setAttribute("class", "time");
+					start.setAttribute("class", "time");
+					end.setAttribute("class", "time");
+					name.style.width = nameWidth + "px";
+					from.style.width = fromWidth + "px";
+					if (noteWidth > maxWidth) {
+						maxWidth = noteWidth;
+					}
+					to.style.width = toWidth + "px";
+					if (fromWidth > maxWidth) {
+						maxWidth = fromWidth;
+					}
+					if (toWidth > maxWidth) {
+						maxWidth = toWidth;
+					}
+					eventDiv.setAttribute("class", "event expandable");
+					eventDiv.appendChild(notes);
+					//eventDiv.appendChild(startEnd);
+					eventDiv.appendChild(start);
+					eventDiv.appendChild(end);
+					eventDiv.appendChild(notes);
+					//if (startEndWidth > maxWidth) {
+					//	maxWidth = startEndWidth;
+					//}
+					if (startWidth > maxWidth) {
+						maxWidth = startWidth;
+					}
+					if (endWidth > maxWidth) {
+						maxWidth = endWidth;
+					}
+					var newLeft = Math.floor(parseInt(left) - (((maxWidth + 12) - width) / 2));
+					// 1px left border + 5px left padding + 5px right padding + 1px right border
+					if (maxWidth + 12 > parseInt(width)) {
+						eventDiv.addEventListener("mouseover", function() {
+							name.style.marginLeft = (maxWidth - nameWidth) / 2 + "px";
+							from.style.marginLeft = (maxWidth - fromWidth) / 2 + "px";
+							to.style.marginLeft = (maxWidth - toWidth) / 2 + "px";
+							eventDiv.style.width = notes.style.width = maxWidth + 12 + "px";
+							eventDiv.style.left = newLeft + "px";
+							eventMover.style.left = parseInt(left) - newLeft + "px";
+						});
+					} else {
+						eventDiv.addEventListener("mouseover", function() {
+							name.style.marginLeft = (width - nameWidth) / 2 + "px";
+							from.style.marginLeft = (width - fromWidth) / 2 + "px";
+							to.style.marginLeft = (width - toWidth) / 2 + "px";
+						});
+					}
+					eventDiv.addEventListener("mouseout", function() {
+						name.style.marginLeft = "0";
+						from.style.marginLeft = "0";
+						to.style.marginLeft = "0";
+						eventDiv.style.left = left;
+						eventDiv.style.width = notes.style.width = width + "px";
+						eventMover.style.left = "0px";
 
+					});
 				});
 			});
 			if (e.DriverID === 0) {
