@@ -1168,7 +1168,7 @@ window.addEventListener("load", function(oldDate) {
 		tableTitles.appendChild(createElement("th")).setInnerText("Date");
 		tableTitles.appendChild(createElement("th")).setInnerText("Name").setAttribute("colspan", 2);
 		tableTitles.appendChild(createElement("th")).setInnerText("Details");
-		tableTitles.appendChild(createElement("th")).setInnerText("Extra").setAttribute("contenteditable", "true");
+		tableTitles.appendChild(createElement("th")).setInnerText("Additional").setAttribute("contenteditable", "true");
 		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
 		tableTitles.appendChild(createElement("th")).setInnerText("").setAttribute("colspan", "2");
 		for (; i < events.length; i++) {
