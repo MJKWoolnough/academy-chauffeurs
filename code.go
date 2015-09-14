@@ -2538,7 +2538,9 @@ window.addEventListener("load", function(oldDate) {
 			} else {
 				rpc.getDriver(e.DriverID, function(driver) {
 					driverName.setInnerText(driver.Name);
-					driverReg.setInnerText(driver.RegistrationNumber);
+					if (driver.RegistrationNumber !== "" && driver.RegistrationNumber != " ") {
+						driverReg.setInnerText(driver.RegistrationNumber);
+					}
 				});
 			}
 		}];
