@@ -1180,7 +1180,7 @@ window.addEventListener("load", function(oldDate) {
 			details.setAttribute("contenteditable", "true");
 			extra = row.appendChild(createElement("td"));
 			extra.setAttribute("contenteditable", "true");
-			rpc.getEventNote(events[i].ID, function(details, noteText) {
+			rpc.getEventNote(events[i].ID, function(details, extra, noteText) {
 				var data = noteJSON(noteText);
 				if (typeof data.InvoiceNote !== "undefined") {
 					extra.setPreText(data.InvoiceNote);
@@ -1196,7 +1196,7 @@ window.addEventListener("load", function(oldDate) {
 				} else {
 					details.appendChild(document.createTextNode("To: " + data.InvoiceTo));
 				}
-			}.bind(null, details));
+			}.bind(null, details, extra));
 			row.appendChild(createElement("td")).setInnerText("£");
 			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney());
 			row.appendChild(createElement("td")).setInnerText("£");
