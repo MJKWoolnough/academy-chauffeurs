@@ -6,7 +6,6 @@ var styleCSS = []byte(`@media screen {
 		background-color : #fff;
 		width : 100%;
 		overflow-x : hidden;
-		font-family : Arial;
 	}
 
 	h1 {
@@ -615,6 +614,36 @@ var styleCSS = []byte(`@media screen {
 	input[type="text"] {
 		width : 100%;
 	}
+
+	#invoiceCompanyName {
+		font-size : 1.5em;
+		font-weight : bold;
+		padding-bottom : 0.5em;
+		text-align : right;
+		text-transform : lowercase;
+	}
+
+	#invoiceCompanyName span:first-child {
+		color : #0070c0;
+	}
+
+	#invoiceCompanyName span:first-child:after {
+		content : ' ';
+	}
+
+	#invoiceCompanyAddress {
+		font-size : 1.1em;
+		text-align : right;
+	}
+
+	.invoiceBottom {
+		page-break-inside : avoid;
+	}
+
+}
+
+body {
+	font-family : Arial;
 }
 
 table {

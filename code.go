@@ -1146,11 +1146,18 @@ window.addEventListener("load", function(oldDate) {
 		stack.addLayer("invoice");
 		layer.setAttribute("class", "toPrint");
 		stack.addFragment();
-		var topTable = layer.appendChild(createElement("table")),
+		var header = layer.appendChild(createElement("div")),
+		    topTable = layer.appendChild(createElement("table")),
 		    table = layer.appendChild(createElement("table")),
 		    costTable = layer.appendChild(createElement("table")),
 		    addressDate, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0,
-		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput;
+		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput, cn;
+		header.setAttribute("class", "printOnly");
+		cn = header.appendChild(createElement("div"))
+		cn.setAttribute("id", "invoiceCompanyName");
+		cn.appendChild(createElement("span")).setInnerText("Academy");
+		cn.appendChild(createElement("span")).setInnerText("Chauffeurs");
+		header.appendChild(createElement("div")).setPreText("83 The Pastures\nStevenage\nHerts SG2 7DF\nVAT No 830 8068 35").setAttribute("id", "invoiceCompanyAddress");
 		topTable.setAttribute("class", "invoiceTop");
 		topTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("Invoice to:").setAttribute("colspan", "3");
 		addressDate = topTable.appendChild(createElement("tr"));
@@ -1172,16 +1179,20 @@ window.addEventListener("load", function(oldDate) {
 		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
 		tableTitles.appendChild(createElement("th")).setInnerText("").setAttribute("colspan", "2");
 		for (; i < events.length; i++) {
-			var row = table.appendChild(createElement("tr")), details, extra;
+			var row = table.appendChild(createElement("tr")), cr, details, extra;
 			row.appendChild(createElement("td")).setInnerText((new Date(events[i].Start)).toDateString());
-			row.appendChild(createElement("td")).setInnerText(events[i].ClientReference).setAttribute("contenteditable", "true");
+			cr = row.appendChild(createElement("td"));
+			cr.setInnerText(events[i].ClientReference).setAttribute("contenteditable", "true");
 			row.appendChild(createElement("td")).setInnerText(events[i].ClientName).setAttribute("contenteditable", "true");
 			details = row.appendChild(createElement("td"));
 			details.setAttribute("contenteditable", "true");
 			extra = row.appendChild(createElement("td"));
 			extra.setAttribute("contenteditable", "true");
-			rpc.getEventNote(events[i].ID, function(details, extra, noteText) {
+			rpc.getEventNote(events[i].ID, function(cr, details, extra, noteText) {
 				var data = noteJSON(noteText);
+				if (typeof data.ClientRef !== "undefined") {
+					cr.setInnerText(data.ClientRef);
+				}
 				if (typeof data.InvoiceNote !== "undefined") {
 					extra.setPreText(data.InvoiceNote);
 				}
@@ -1196,7 +1207,7 @@ window.addEventListener("load", function(oldDate) {
 				} else {
 					details.appendChild(document.createTextNode("To: " + data.InvoiceTo));
 				}
-			}.bind(null, details, extra));
+			}.bind(null, cr, details, extra));
 			row.appendChild(createElement("td")).setInnerText("£");
 			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney());
 			row.appendChild(createElement("td")).setInnerText("£");
@@ -1205,6 +1216,7 @@ window.addEventListener("load", function(oldDate) {
 			totalPrice += events[i].Price;
 		}
 		costTable.setAttribute("class", "invoiceBottom");
+		costTable.setAttribute("id", "invoiceBottom");
 		subTotal = costTable.appendChild(createElement("tr"));
 		subTotal.setAttribute("class", "totals");
 		subTotal.appendChild(createElement("td"));
@@ -2520,6 +2532,9 @@ window.addEventListener("load", function(oldDate) {
 					if (typeof tmpNote.InvoiceTo !== "undefined") {
 						invoiceTo.setInnerText(tmpNote.InvoiceTo);
 					}
+					if (typeof tmpNote.ClientRef !== "undefined") {
+						clientRef.setInnerText(tmpNote.ClientRef + "\u00A0");
+					}
 					callback(tmpNote.Note);
 				});
 			}, function(noteText) {
@@ -2528,7 +2543,9 @@ window.addEventListener("load", function(oldDate) {
 			}));
 			rpc.getClient(e.ClientID, function(client) {
 				clientName.setInnerText(client.Name);
-				clientRef.setInnerText(client.Reference + "\u00A0");
+				if (clientRef.innerHTML === "-") {
+					clientRef.setInnerText(client.Reference + "\u00A0");
+				}
 				rpc.getCompany(client.CompanyID, function(company) {
 					companyName.setInnerText(company.Name);
 				});
@@ -2546,7 +2563,8 @@ window.addEventListener("load", function(oldDate) {
 		}];
 		if (e.Start < (new Date()).getTime() && e.DriverID > 0) {
 			tabData[tabData.length] = [ "Final Details", function() {
-				var inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
+				var clientRef = addFormElement("Client Reference", "text", "clientRef", "-"),
+				    inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
 				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
@@ -2560,7 +2578,6 @@ window.addEventListener("load", function(oldDate) {
 				    invoiceTo = addFormElement("Invoice To", "text", "invoiceTo", e.To.replace(/\n/g, " ")),
 				    invoiceNotes = addFormElement("Invoice Notes", "textarea", "invoiceNotes", ""),
 				    invoiceNotesJSON = {"Note":""};
-
 				addFormSubmit("Set Details", function() {
 					var errors = false,
 					    eventFinals = {},
@@ -2591,6 +2608,7 @@ window.addEventListener("load", function(oldDate) {
 					invoiceNotesJSON.InvoiceFrom = invoiceFrom[0].value;
 					invoiceNotesJSON.InvoiceTo = invoiceTo[0].value;
 					invoiceNotesJSON.InvoiceNote = invoiceNotes[0].value;
+					invoiceNotesJSON.ClientRef = clientRef[0].value;
 					rpc.setEventNote(e.ID, JSON.stringify(invoiceNotesJSON));
 					rpc.setEventFinals(eventFinals, function() {
 						stack.removeLayer();
@@ -2607,6 +2625,13 @@ window.addEventListener("load", function(oldDate) {
 					}
 					if (typeof invoiceNotesJSON.InvoiceTo !== "undefined") {
 						invoiceTo[0].value = invoiceNotesJSON.InvoiceTo;
+					}
+					if (typeof invoiceNotesJSON.ClientRef !== "undefined") {
+						clientRef[0].value = invoiceNotesJSON.ClientRef;
+					} else {
+						rpc.getClient(e.ClientID, function(client) {
+							clientRef[0].value = client.Reference;
+						});
 					}
 					rpc.getEventFinals(e.ID, function(eventFinals) {
 						inCar[0].value = (new Date(eventFinals.InCar)).toTimeString();
