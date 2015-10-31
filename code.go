@@ -1908,7 +1908,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("In Car");
 					tableTitles.appendChild(createElement("th")).setInnerText("Waiting");
 					tableTitles.appendChild(createElement("th")).setInnerText("Drop Off");
-					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
+					tableTitles.appendChild(createElement("th")).setInnerText("Flight Time");
 					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
@@ -2299,7 +2299,7 @@ window.addEventListener("load", function(oldDate) {
 					//tableTitles.appendChild(createElement("th")).setInnerText("In Car");
 					tableTitles.appendChild(createElement("th")).setInnerText("Waiting");
 					tableTitles.appendChild(createElement("th")).setInnerText("Miles");
-					tableTitles.appendChild(createElement("th")).setInnerText("Trip Time");
+					tableTitles.appendChild(createElement("th")).setInnerText("Flight Time");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours (h)");
 					tableTitles.appendChild(createElement("th")).setInnerText("Parking");
 					tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
@@ -2485,8 +2485,7 @@ window.addEventListener("load", function(oldDate) {
 			toPrint.appendChild(createElement("label")).setInnerText("To");
 			toPrint.appendChild(createElement("div")).setInnerText(e.To);
 			if (e.Start < (new Date()).getTime()) {
-				toPrint.appendChild(createElement("label")).setInnerText("In Car Time");
-				var inCar = toPrint.appendChild(createElement("div")).setInnerText("-"),
+				var inCar = createElement("div").setInnerText("-"),
 				    parking = createElement("div").setInnerText("-"),
 				    waiting = createElement("div").setInnerText("-"),
 				    dropOff = createElement("div").setInnerText("-"),
@@ -2495,18 +2494,20 @@ window.addEventListener("load", function(oldDate) {
 				    driverHours = createElement("div").setInnerText("-"),
 				    price = createElement("div").setInnerText("-"),
 				    sub = createElement("div").setInnerText("-");
-				toPrint.appendChild(createElement("label")).setInnerText("Waiting Time");
-				toPrint.appendChild(waiting);
+				toPrint.appendChild(createElement("label")).setInnerText("Flight Time");
+				toPrint.appendChild(tripTime);
+				toPrint.appendChild(createElement("label")).setInnerText("In Car Time");
+				toPrint.appendChild(inCar);
 				toPrint.appendChild(createElement("label")).setInnerText("Drop Off Time");
 				toPrint.appendChild(dropOff);
-				toPrint.appendChild(createElement("label")).setInnerText("Miles Travelled");
-				toPrint.appendChild(miles);
-				toPrint.appendChild(createElement("label")).setInnerText("Trip Time");
-				toPrint.appendChild(tripTime);
-				toPrint.appendChild(createElement("label")).setInnerText("Driver Time (h)");
-				toPrint.appendChild(driverHours);
+				toPrint.appendChild(createElement("label")).setInnerText("Waiting Time");
+				toPrint.appendChild(waiting);
 				toPrint.appendChild(createElement("label")).setInnerText("Parking Costs");
 				toPrint.appendChild(parking);
+				toPrint.appendChild(createElement("label")).setInnerText("Driver Time (h)");
+				toPrint.appendChild(driverHours);
+				toPrint.appendChild(createElement("label")).setInnerText("Miles Travelled");
+				toPrint.appendChild(miles);
 				toPrint.appendChild(createElement("label")).setInnerText("Sub Price");
 				toPrint.appendChild(sub);
 				toPrint.appendChild(createElement("label")).setInnerText("Total Price");
@@ -2579,14 +2580,14 @@ window.addEventListener("load", function(oldDate) {
 		if (e.Start < (new Date()).getTime() && e.DriverID > 0) {
 			tabData[tabData.length] = [ "Final Details", function() {
 				var clientRef = addFormElement("Client Reference", "text", "clientRef", "-"),
+				    tripTime = addFormElement("Flight Time", "text", "trip", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
-				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
 				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
-				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
-				    tripTime = addFormElement("Trip Time", "text", "trip", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
-				    //driverHours = addFormElement("Driver Time", "text", "driverHours", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
-				    driverHours = addFormElement("Driver Time (h)", "text", "driverHours", "", regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Number format unrecognised (0.00)")),
+				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
 				    parking = addFormElement("Parking Costs (£)", "text", "parking", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
+				    driverHours = addFormElement("Driver Time (h)", "text", "driverHours", "", regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Number format unrecognised (0.00)")),
+				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
+				    //driverHours = addFormElement("Driver Time", "text", "driverHours", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    sub = addFormElement("Sub Price (£)", "text", "sub", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
 				    price = addFormElement("Total Price To Client (£)", "text", "price", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
 				    invoiceFrom = addFormElement("Invoice From", "text", "invoiceFrom", e.From.replace(/\n/g, " ")),
