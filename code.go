@@ -1151,7 +1151,7 @@ window.addEventListener("load", function(oldDate) {
 		    table = layer.appendChild(createElement("table")),
 		    costTable = layer.appendChild(createElement("table")),
 		    addressDate, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0,
-		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput, cn;
+		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput, cn, vatEdit;
 		header.setAttribute("class", "printOnly");
 		cn = header.appendChild(createElement("div"))
 		cn.setAttribute("id", "invoiceCompanyName");
@@ -1233,8 +1233,7 @@ window.addEventListener("load", function(oldDate) {
 		admin.appendChild(createElement("td")).setInnerText("£");
 		adminInput = admin.appendChild(createElement("td")).setInnerText((adminPrice / 100).formatMoney());
 		adminInput.setAttribute("contenteditable", "true");
-		adminInput.addEventListener("blur", function(e) {
-			e = e || event;
+		adminInput.addEventListener("blur", function() {
 			var value = parseFloat(adminInput.textContent);
 			adminInput.setInnerText(value.formatMoney());
 			value *= 100;
@@ -1260,7 +1259,13 @@ window.addEventListener("load", function(oldDate) {
 		vatPrice = adminTotalPrice * vatPercent / 100;
 		vat.appendChild(createElement("td")).setInnerText("Plus VAT @ " + vatPercent + "%");
 		vat.appendChild(createElement("td")).setInnerText("£");
-		vat.appendChild(createElement("td")).setInnerText((vatPrice / 100).formatMoney());
+		vatEdit = vat.appendChild(createElement("td")).setInnerText((vatPrice / 100).formatMoney());
+		vatEdit.setAttribute("contenteditable", "true");
+		vatEdit.addEventListener("blur", function() {
+			vatPrice = parseFloat(vatEdit.textContent) * 100;
+			finalTotal = adminTotalPrice + vatPrice + totalParking;
+			total.lastChild.setInnerText((finalTotal / 100).formatMoney());
+		});
 		parking = costTable.appendChild(createElement("tr"));
 		parking.appendChild(createElement("td"));
 		parking.appendChild(createElement("td")).setInnerText("Parking");
