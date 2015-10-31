@@ -250,7 +250,7 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 			"In Car",
 			"Waiting",
 			"Drop Off",
-			"Trip Time",
+			"Flight Time",
 			"Price (GBP)",
 		},
 	})
