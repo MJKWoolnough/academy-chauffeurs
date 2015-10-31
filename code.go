@@ -2244,7 +2244,7 @@ window.addEventListener("load", function(oldDate) {
 								}.bind(null, clientCell, companyCell));
 								wg.add();
 								//rpc.getEventFinals(events[i].ID, function(inCarCell, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
-								rpc.getEventFinals(events[i].ID, function(waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i, eventFinals) {
+								rpc.getEventFinals(events[i].ID, function(waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, priceCell, i, eventFinals) {
 									if (eventFinals.FinalsSet) {
 										//inCarCell.setInnerText((new Date(eventFinals.InCar)).toTimeString()).removeAttribute("class");
 										waitingCell.setInnerText(eventFinals.Waiting).removeAttribute("class");
@@ -2265,7 +2265,7 @@ window.addEventListener("load", function(oldDate) {
 									}
 									wg.done();
 								//}.bind(null, inCarCell, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i));
-								}.bind(null, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, i));
+								}.bind(null, waitingCell, milesCell, tripCell, driverHoursCell, parkingCell, subCell, priceCell, i));
 								eventTable.appendChild(row);
 							}
 						});
