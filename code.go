@@ -1783,8 +1783,14 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(createElement("label")).setInnerText("Name");
 				toPrint.appendChild(createElement("div")).setInnerText(client.Name);
 				toPrint.appendChild(createElement("label")).setInnerText("Phone Number");
+				if (client.PhoneNumber === "" || client.PhoneNumber === " ") {
+					client.PhoneNumber = "-";
+				}
 				toPrint.appendChild(createElement("div")).setInnerText(client.PhoneNumber);
 				toPrint.appendChild(createElement("label")).setInnerText("Reference");
+				if (client.Reference === "" || client.Reference === " ") {
+					client.Reference = "-";
+				}
 				toPrint.appendChild(createElement("div")).setInnerText(client.Reference);
 				toPrint.appendChild(createElement("label")).setInnerText("Company Name");
 				toPrint.appendChild(createElement("div")).setInnerText(client.CompanyName);
