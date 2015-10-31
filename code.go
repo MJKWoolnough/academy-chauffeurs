@@ -1187,6 +1187,9 @@ window.addEventListener("load", function(oldDate) {
 			details = row.appendChild(createElement("td"));
 			details.setAttribute("contenteditable", "true");
 			extra = row.appendChild(createElement("td"));
+			if (events[i].Waiting !== 0) {
+				extra.setInnerText(events[i].Waiting + " mins waiting");
+			}
 			extra.setAttribute("contenteditable", "true");
 			rpc.getEventNote(events[i].ID, function(cr, details, extra, noteText) {
 				var data = noteJSON(noteText);
@@ -1194,7 +1197,7 @@ window.addEventListener("load", function(oldDate) {
 					cr.setInnerText(data.ClientRef);
 				}
 				if (typeof data.InvoiceNote !== "undefined") {
-					extra.setPreText(data.InvoiceNote);
+					extra.setPreText(extra.innerText + "\n" + data.InvoiceNote);
 				}
 				if (typeof data.InvoiceFrom === "undefined") {
 					details.appendChild(document.createTextNode("From: " + events[i].From));
@@ -1429,6 +1432,7 @@ window.addEventListener("load", function(oldDate) {
 										priceCell.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
 										events[i].Parking = eventFinals.Parking;
 										events[i].Price = eventFinals.Price;
+										events[i].Waiting = eventFinals.Waiting;
 										totalParking += eventFinals.Parking;
 										totalCost += eventFinals.Price;
 									}
