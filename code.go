@@ -1187,18 +1187,22 @@ window.addEventListener("load", function(oldDate) {
 			details = row.appendChild(createElement("td"));
 			details.setAttribute("contenteditable", "true");
 			extra = row.appendChild(createElement("td"));
-			if (events[i].Waiting !== 0) {
-				extra.setInnerText(events[i].Waiting + " mins waiting");
-			}
 			extra.setAttribute("contenteditable", "true");
-			rpc.getEventNote(events[i].ID, function(cr, details, extra, noteText) {
-				var data = noteJSON(noteText);
+			rpc.getEventNote(events[i].ID, function(cr, details, extra, waiting, noteText) {
+				var data = noteJSON(noteText), extraText = "";
 				if (typeof data.ClientRef !== "undefined") {
 					cr.setInnerText(data.ClientRef);
 				}
-				if (typeof data.InvoiceNote !== "undefined") {
-					extra.setPreText(extra.innerText + "\n" + data.InvoiceNote);
+				if (waiting !== 0) {
+					extraText = waiting + " mins waiting";
 				}
+				if (typeof data.InvoiceNote !== "undefined") {
+					if (extraText !== "") {
+						extraText += "\n";
+					}
+					extraText += data.InvoiceNote;
+				}
+				extra.setPreText(extraText);
 				if (typeof data.InvoiceFrom === "undefined") {
 					details.appendChild(document.createTextNode("From: " + events[i].From));
 				} else {
@@ -1210,7 +1214,7 @@ window.addEventListener("load", function(oldDate) {
 				} else {
 					details.appendChild(document.createTextNode("To: " + data.InvoiceTo));
 				}
-			}.bind(null, cr, details, extra));
+			}.bind(null, cr, details, extra, events[i].Waiting));
 			row.appendChild(createElement("td")).setInnerText("£");
 			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney());
 			row.appendChild(createElement("td")).setInnerText("£");
