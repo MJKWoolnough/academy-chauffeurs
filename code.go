@@ -1163,7 +1163,7 @@ window.addEventListener("load", function(oldDate) {
 		addressDate = topTable.appendChild(createElement("tr"));
 		addressDate.appendChild(createElement("td")).setPreText(company.Name + "\n" + company.Address).setAttribute("rowspan", "3");
 		addressDate.appendChild(createElement("td")).setInnerText("Date :");
-		addressDate.appendChild(createElement("td")).setInnerText((new Date()).toOrdinalDate()).setAttribute("contenteditable", "true");
+		addressDate.appendChild(createElement("td")).setInnerText((new Date(events[events.length-1].End)).toOrdinalDate()).setAttribute("contenteditable", "true");
 		invoiceNo = topTable.appendChild(createElement("tr"));
 		invoiceNo.appendChild(createElement("td")).setInnerText("Invoice No:");
 		invoiceNo.appendChild(createElement("td")).setAttribute("contenteditable", "true");
