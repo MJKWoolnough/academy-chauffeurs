@@ -564,15 +564,6 @@ var styleCSS = []byte(`@media screen {
 
 @media print {
 
-	* {
-		visibility : hidden;
-		height : 0;
-		margin : 0;
-		padding : 0;
-		position : absolute;
-		width : 100%;
-	}
-
 	.layer {
 		display : none;
 	}
@@ -639,7 +630,6 @@ var styleCSS = []byte(`@media screen {
 	.invoiceBottom {
 		page-break-inside : avoid;
 	}
-
 }
 
 body {
@@ -750,5 +740,4 @@ label:after {
 
 tr.overline td {
 	border-top : 2px solid #000;
-	cell
 }`)
