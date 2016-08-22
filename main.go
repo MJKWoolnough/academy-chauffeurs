@@ -24,10 +24,10 @@ func main() {
 
 	const port = 8080
 
-	http.Handle("/export", nil)
-	http.Handle("/ics", nil)
+	//http.Handle("/export", nil)
+	//http.Handle("/ics", nil)
 	http.Handle("/rpc", websocket.Handler(rpcHandler))
-	http.Handle("/", dir)
+	http.Handle("/", http.FileServer(dir))
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
