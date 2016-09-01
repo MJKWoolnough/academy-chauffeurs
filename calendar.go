@@ -21,7 +21,7 @@ func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var buf bytes.Buffer
-	err = ics.NewEncoder(&buf).Encode(cal)
+	err = ics.Encode(&buf, cal)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -36,11 +36,11 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		return nil, err
 	}
 	var (
-		a   ics.DisplayAlarm
+		a   ics.AlarmDisplay
 		cal ics.Calendar
 	)
-	a.Trigger.Duration = time.Minute * time.Duration(alarmTime)
-	alarm := []ics.Alarm{a}
+	a.Trigger.Duration = &ics.Duration{Minutes: uint(alarmTime)}
+	alarm := []ics.Alarm{{&a}}
 	cal.ProductID = "Academy Chauffeurs 1.0"
 	n := now()
 	rows, err := c.statements[CalendarData].Query((n - 3600*24*30*6) * 1000)
@@ -48,7 +48,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	cal.Events = make([]ics.Event, 0, 1024)
+	cal.Event = make([]ics.Event, 0, 1024)
 	for rows.Next() {
 		var (
 			id, start, end, created, updated     int64
@@ -66,17 +66,17 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		} else {
 			driverStr = "Unassigned"
 		}
-		ev := ics.NewEvent()
-		ev.UID = time.Unix(created, 0).In(time.UTC).Format("20060102T150405Z") + "-" + pad(strconv.FormatUint(uint64(id), 36)) + "@academy-chauffeurs.co.uk"
-		ev.Created = time.Unix(created, 0).In(time.UTC)
-		ev.LastModified = time.Unix(updated, 0).In(time.UTC)
-		ev.Start.Time = time.Unix(start/1000, start%1000)
-		ev.Duration.Duration = time.Unix(end/1000, end%1000).Sub(ev.Start.Time)
-		ev.Location.String = from
-		ev.Description.String = driverStr + " - " + client + " (" + company + ") - " + from + " -> " + to
-		ev.Summary.String = driverStr + " - " + client + " (" + company + ")"
-		ev.Alarms = alarm
-		cal.Events = append(cal.Events, ev)
+		var ev ics.Event
+		ev.UID = ics.PropUID(time.Unix(created, 0).In(time.UTC).Format("20060102T150405Z") + "-" + pad(strconv.FormatUint(uint64(id), 36)) + "@academy-chauffeurs.co.uk")
+		ev.Created = &ics.PropCreated{time.Unix(created, 0).In(time.UTC)}
+		ev.LastModified = &ics.PropLastModified{time.Unix(updated, 0).In(time.UTC)}
+		ev.DateTimeStart = &ics.PropDateTimeStart{DateTime: &ics.DateTime{time.Unix(start/1000, start%1000)}}
+		ev.Duration = &ics.PropDuration{Minutes: uint(time.Unix(end/1000, end%1000).Sub(ev.DateTimeStart.DateTime.Time).Minutes())}
+		ev.Location = &ics.PropLocation{Text: ics.Text(from)}
+		ev.Description = &ics.PropDescription{Text: ics.Text(driverStr + " - " + client + " (" + company + ") - " + from + " -> " + to)}
+		ev.Summary = &ics.PropSummary{Text: ics.Text(driverStr + " - " + client + " (" + company + ")")}
+		ev.Alarm = alarm
+		cal.Event = append(cal.Event, ev)
 	}
 	return &cal, nil
 }
