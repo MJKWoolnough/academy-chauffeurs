@@ -317,7 +317,7 @@ var styleCSS = []byte(`@media screen {
 		height : 20px;
 		float : left;
 		text-align : center;
-		width : 30%;
+		width : 22.5%;
 	}
 
 	#topBar > div:last-child {

@@ -600,6 +600,9 @@ window.addEventListener("load", function(oldDate) {
 					stack.addLayer("clientList");
 					clientList();
 				});
+				addToBar("Drivers", function() {
+
+				});
 				addToBar("Messages", messageList);
 				checkUnassigned(addToBar("", goToNextUnassigned));
 				dateShift = now.getTime();
