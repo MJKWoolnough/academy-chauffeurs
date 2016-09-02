@@ -346,11 +346,13 @@ window.addEventListener("load", function(oldDate) {
 					var driverIDs = Object.keys(drivers);
 					driverIDs.push(0);
 					for (i = 0; i < driverIDs.length; i++) {
-						rpc.getEventsWithDriver(parseInt(driverIDs[i]), tDate.getTime(), tDate.getTime() + 86400000, function(events) {
-							for(var i = 0; i < events.length; i++) {
-								addEventToTable(events[i]);
-							}
-						});
+						if (driverIDs[i] === 0 || drivers[parseInt(driverIDs[i])].Show !== false) {
+							rpc.getEventsWithDriver(parseInt(driverIDs[i]), tDate.getTime(), tDate.getTime() + 86400000, function(events) {
+								for(var i = 0; i < events.length; i++) {
+									addEventToTable(events[i]);
+								}
+							});
+						}
 					}
 				}
 				toCenter["year_" + year] = true;
@@ -599,7 +601,8 @@ window.addEventListener("load", function(oldDate) {
 					clientList();
 				});
 				addToBar("Drivers", function() {
-
+					stack.addLayer("driverList");
+					driverList();
 				});
 				addToBar("Messages", messageList);
 				checkUnassigned(addToBar("", goToNextUnassigned));
@@ -612,36 +615,58 @@ window.addEventListener("load", function(oldDate) {
 						stack.addLayer("addDriver", this.addDriver.bind(this));
 						addDriver();
 					}.bind(this));
-					for (var i = 0; i < ds.length; i++) {
-						this.addDriver(ds[i]);
-					}
-					var eventsDiv = layer.appendChild(createElement("div"));
-					eventsDiv.setAttribute("class", "dates");
-					driverEvents.setAttribute("class", "driverEvents");
-					eventCells.setAttribute("class", "events slider");
-					layer.appendChild(dates).setAttribute("class", "dates slider");
-					layer.appendChild(driverEvents);
-					for (i = 0; i < 10; i++) {
-						var div = layer.appendChild(createElement("div"));
-						if (i % 2 === 0) {
-							div.appendChild(createElement("div")).setInnerText("<");
-							div.setAttribute("class", "moveLeft simpleButton");
-						} else {
-							div.appendChild(createElement("div")).setInnerText(">");
-							div.setAttribute("class", "moveRight simpleButton");
+					var wg = new waitGroup(function() {
+						ds = ds.sort(function(a, b) {
+							return a.Pos - b.Pos;
+						});
+						for (i = 0; i < ds.length; i++) {
+							this.addDriver(ds[i]);
 						}
-						div.style.top = 20 + Math.floor(i / 2) * 20 + "px";
-						div.addEventListener("click", moveHandler(i));
-						if (i === 4 || i === 5) {
-							div.addEventListener("dblclick", moveHandler(i+6));
+						var eventsDiv = layer.appendChild(createElement("div"));
+						eventsDiv.setAttribute("class", "dates");
+						driverEvents.setAttribute("class", "driverEvents");
+						eventCells.setAttribute("class", "events slider");
+						layer.appendChild(dates).setAttribute("class", "dates slider");
+						layer.appendChild(driverEvents);
+						for (i = 0; i < 10; i++) {
+							var div = layer.appendChild(createElement("div"));
+							if (i % 2 === 0) {
+								div.appendChild(createElement("div")).setInnerText("<");
+								div.setAttribute("class", "moveLeft simpleButton");
+							} else {
+								div.appendChild(createElement("div")).setInnerText(">");
+								div.setAttribute("class", "moveRight simpleButton");
+							}
+							div.style.top = 20 + Math.floor(i / 2) * 20 + "px";
+							div.addEventListener("click", moveHandler(i));
+							if (i === 4 || i === 5) {
+								div.addEventListener("dblclick", moveHandler(i+6));
+							}
 						}
+						stack.setFragment();
+						update(now);
+						for (i = 0; i < toLoad.length; i++) {
+							toLoad[i]();
+						}
+						window.addEventListener("resize", update.bind(this, undefined));
+					}.bind(this)), i;
+					for (i = 0; i < ds.length; i++) {
+						wg.add();
+						rpc.getDriverNote(ds[i].ID, function(i, note)  {
+							var n = noteJSON(note);
+							if (typeof n.Pos === "undefined") {
+								ds[i].Pos = i;
+							} else {
+								ds[i].Pos = n.Pos
+							}
+							if (n.Show === false) {
+								ds[i].Show = false;
+							} else {
+								ds[i].Show = true;
+							}
+							wg.done();
+						}.bind(null, i))
 					}
-					stack.setFragment();
-					update(now);
-					for (i = 0; i < toLoad.length; i++) {
-						toLoad[i]();
-					}
-					window.addEventListener("resize", update.bind(this, undefined));
 				}.bind(this));
 			}.bind(this));
 		    },
@@ -1037,6 +1062,9 @@ window.addEventListener("load", function(oldDate) {
 				return;
 			}
 			drivers[d.ID] = d;
+			if (d.Show === false) {
+				return;
+			}
 			drivers[d.ID].yPos = nextDriverPos;
 			var dDiv = createElement("div"),
 			    t;
@@ -2177,9 +2205,18 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(createElement("label")).setInnerText("Registration Number");
 				toPrint.appendChild(createElement("div")).setInnerText(driver.RegistrationNumber);
 				toPrint.appendChild(createElement("label")).setInnerText("No. of Events");
-				var bookings = toPrint.appendChild(createElement("div")).setInnerText("-");
+				var bookings = toPrint.appendChild(createElement("div")).setInnerText("-"),
+				    tmpNote = {Note:""};
 				toPrint.appendChild(createElement("label")).setInnerText("Notes");
-				toPrint.appendChild(makeNote(rpc.getDriverNote.bind(rpc, driver.ID), rpc.setDriverNote.bind(rpc, driver.ID)));
+				toPrint.appendChild(makeNote(function(callback) {
+					rpc.getDriverNote(driver.ID, function(noteText) {
+						tmpNote = noteJSON(noteText);
+						callback(tmpNote.Note)
+					});
+				}, function(noteText) {
+					tmpNote.Note = noteText;
+					rpc.setDriverNote(driver.ID, JSON.stringify(tmpNote));
+				}));
 				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
 			}],
 			[ "Events", function() {
@@ -2365,6 +2402,9 @@ window.addEventListener("load", function(oldDate) {
 			});
 		});
 		stack.setFragment();
+	},
+	driverList = function() {
+
 	},
 	addDriver = function() {
 		setDriver({
