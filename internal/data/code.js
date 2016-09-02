@@ -632,6 +632,9 @@ window.addEventListener("load", function(oldDate) {
 						}
 						div.style.top = 20 + Math.floor(i / 2) * 20 + "px";
 						div.addEventListener("click", moveHandler(i));
+						if (i === 4 || i === 5) {
+							div.addEventListener("dblclick", moveHandler(i+6));
+						}
 					}
 					stack.setFragment();
 					update(now);
@@ -705,6 +708,12 @@ window.addEventListener("load", function(oldDate) {
 				break;
 			case 9:
 				minuteShift = 15;
+				break;
+			case 10:
+				dayShift = -5;
+				break;
+			case 11:
+				dayShift = 5;
 				break;
 			}
 			return function() {
