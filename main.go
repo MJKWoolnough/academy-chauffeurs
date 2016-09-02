@@ -10,18 +10,10 @@ import (
 	"os/signal"
 	"sync"
 
+	"github.com/MJKWoolnough/httpdir"
+
 	"golang.org/x/net/websocket"
 )
-
-type file struct {
-	data   []byte
-	header string
-}
-
-func (f file) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", f.header)
-	w.Write(f.data)
-}
 
 var (
 	lock sync.Mutex
@@ -46,6 +38,8 @@ func rpcHandler(conn *websocket.Conn) {
 	close(done)
 }
 
+var dir http.FileSystem = httpdir.Default
+
 func main() {
 	const dbFName = "ac.db"
 	err := backupDatabase(dbFName)
@@ -67,12 +61,10 @@ func main() {
 		return
 	}
 
-	http.Handle("/", file{pageHTML, "application/xhtml+xml; charset=utf-8"})
-	http.Handle("/code.js", file{codeJS, "text/javascript; charset=utf-8"})
-	http.Handle("/style.css", file{styleCSS, "text/css; charset=utf-8"})
 	http.Handle("/rpc", websocket.Handler(rpcHandler))
 	http.Handle("/export", http.HandlerFunc(nc.export))
 	http.Handle("/ics", http.HandlerFunc(nc.calendar))
+	http.Handle("/", http.FileServer(dir))
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
