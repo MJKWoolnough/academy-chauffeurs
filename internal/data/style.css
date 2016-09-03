@@ -590,6 +590,15 @@
 	.toggleBox input:checked + label:after {
 		transform: scaleX(0);
 	}
+
+	.rowSwapper {
+		transition : transform 0.5s;
+		transition-timing-function : ease;
+	}
+
+	.rowSwapper.swapping {
+		transform: scale(0);
+	}
 }
 
 @media print {
