@@ -286,7 +286,6 @@ window.addEventListener("load", function(oldDate) {
 			stack.setFragment();
 		});
 	},
-	drivers = [],
 	events = new (function() {
 		var dateTime,
 		    dateShift,
@@ -296,6 +295,7 @@ window.addEventListener("load", function(oldDate) {
 		    eventCells = driverEvents.appendChild(createElement("div")),
 		    dates = createElement("div"),
 		    days = {},
+		    drivers = [],
 		    startEnd = [dateShift, dateShift],
 		    plusDriver = driverEvents.appendChild(createElement("div")),
 		    nextDriverPos = 0,
@@ -608,7 +608,7 @@ window.addEventListener("load", function(oldDate) {
 							this.removeDriver(0);
 						}
 					});
-					driverList();
+					driverList(drivers);
 				});
 				addToBar("Messages", messageList);
 				checkUnassigned(addToBar("", goToNextUnassigned));
@@ -2415,7 +2415,7 @@ window.addEventListener("load", function(oldDate) {
 	swapDrivers = function(a, b) {
 
 	},
-	driverList = function() {
+	driverList = function(drivers) {
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText("Drivers");
 		var table = createElement("table"),
