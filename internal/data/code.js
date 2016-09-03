@@ -2453,16 +2453,16 @@ window.addEventListener("load", function(oldDate) {
 			}
 			pos.setAttribute("class", "noPrint");
 			showHide.setAttribute("type", "checkbox");
-			showHide.setAttribute("checked", driver.Show !== false);
+			showHide.setAttribute("checked", driver.Show !== false ? "checked": "");
 			show.setAttribute("class", "toggleBox noPrint");
-			rpc.getDriverNote(driverIDs[i], function(id, showHide, row, noteText) {
+			rpc.getDriverNote(driver.ID, function(id, showHide, row, noteText) {
 				var tmpNote = noteJSON(noteText);
 				showHide.addEventListener("change", function() {
-					tmpNote.Show = showHide.getAttribute("checked") === "true";
+					tmpNote.Show = showHide.getAttribute("checked") === "checked" ;
 					rpc.setDriverNote(id, JSON.stringify(tmpNote));
 				}, false);
 				row.appendChild(show);
-			}.bind(null, driverIDs[i], showHide, row));
+			}.bind(null, driver.ID, showHide, row));
 		}
 
 		layer.appendChild(table);
