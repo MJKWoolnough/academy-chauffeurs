@@ -286,6 +286,7 @@ window.addEventListener("load", function(oldDate) {
 			stack.setFragment();
 		});
 	},
+	drivers = [],
 	events = new (function() {
 		var dateTime,
 		    dateShift,
@@ -294,7 +295,6 @@ window.addEventListener("load", function(oldDate) {
 		    unassignedNear = 1000 * 3600 * 24 * 7,
 		    eventCells = driverEvents.appendChild(createElement("div")),
 		    dates = createElement("div"),
-		    drivers = [],
 		    days = {},
 		    startEnd = [dateShift, dateShift],
 		    plusDriver = driverEvents.appendChild(createElement("div")),
@@ -601,7 +601,13 @@ window.addEventListener("load", function(oldDate) {
 					clientList();
 				});
 				addToBar("Drivers", function() {
-					stack.addLayer("driverList");
+					var initial = "";
+					stack.addLayer("driverList", function() {
+						var now = "";
+						if (initial !== now) {
+							this.removeDriver(0);
+						}
+					});
 					driverList();
 				});
 				addToBar("Messages", messageList);
@@ -2403,8 +2409,65 @@ window.addEventListener("load", function(oldDate) {
 		});
 		stack.setFragment();
 	},
-	driverList = function() {
+	toggleDriver = function(id) {
 
+	},
+	swapDrivers = function(a, b) {
+
+	},
+	driverList = function() {
+		stack.addFragment();
+		layer.appendChild(createElement("h1")).setInnerText("Drivers");
+		var table = createElement("table"),
+		    headerRow = table.appendChild(createElement("tr")),
+		    driverIDs = Object.keys(drivers);
+		headerRow.appendChild(createElement("th")).setInnerText("Order").setAttribute("class", "noPrint");
+		headerRow.appendChild(createElement("th")).setInnerText("Driver Name");
+		headerRow.appendChild(createElement("th")).setInnerText("Registration Number");
+		headerRow.appendChild(createElement("th")).setInnerText("Phone Number");
+		headerRow.appendChild(createElement("th")).setInnerText("Visible").setAttribute("class", "noPrint");
+
+		driverIDs = driverIDs.sort(function(a, b) {
+			return drivers[a].Pos - drivers[b].Pos;
+		});
+
+		for (var i = 0; i < driverIDs.length; i++) {
+			var driver = drivers[driverIDs[i]],
+			    row = table.appendChild(createElement("tr")),
+			    pos = row.appendChild(createElement("td")),
+			    show = createElement("td"),
+			    up = createElement("button"),
+			    down = createElement("button"),
+			    showHide = show.appendChild(createElement("input")),
+			    showHideLabel = show.appendChild(createElement("label"));
+			row.appendChild(createElement("td")).setInnerText(driver.Name);
+			row.appendChild(createElement("td")).setInnerText(driver.RegistrationNumber);
+			row.appendChild(createElement("td")).setInnerText(driver.PhoneNumber);
+			if (i !== 0) {
+				up.setInnerText("⇑")
+				pos.appendChild(up);
+			}
+			if (i !== driverIDs.length - 1) {
+				down.setInnerText("⇓")
+				pos.appendChild(down);
+			}
+			pos.setAttribute("class", "noPrint");
+			showHide.setAttribute("type", "checkbox");
+			showHide.setAttribute("checked", driver.Show !== false);
+			show.setAttribute("class", "toggleBox noPrint");
+			rpc.getDriverNote(driverIDs[i], function(id, showHide, row, noteText) {
+				var tmpNote = noteJSON(noteText);
+				showHide.addEventListener("change", function() {
+					tmpNote.Show = showHide.getAttribute("checked") === "true";
+					rpc.setDriverNote(id, JSON.stringify(tmpNote));
+				}, false);
+				row.appendChild(show);
+			}.bind(null, driverIDs[i], showHide, row));
+		}
+
+		layer.appendChild(table);
+		stack.setFragment();
+		layer.setAttribute("class", "toPrint");
 	},
 	addDriver = function() {
 		setDriver({
@@ -2412,6 +2475,7 @@ window.addEventListener("load", function(oldDate) {
 			"Name": "",
 			"RegistrationNumber": "",
 			"PhoneNumber": "",
+			"Show": true,
 		});
 	},
 	setClient = function(client) {
