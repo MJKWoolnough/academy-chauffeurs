@@ -601,15 +601,27 @@ window.addEventListener("load", function(oldDate) {
 					clientList();
 				});
 				addToBar("Drivers", function() {
-					var initial = "";
-					stack.addLayer("driverList", function() {
-						var now = "";
-						if (initial !== now) {
-							this.removeDriver(0);
-						}
+					var ps = Object.keys(drivers),
+					    vs = {};
+					ps = ps.sort(function(a, b) {
+						return drivers[a].Pos - drivers[b].Pos;
 					});
+					drivers.forEach(function(d) {
+						vs[d.ID] = d.Show;
+					});
+					stack.addLayer("driverList", function() {
+						var aps = Object.keys(drivers);
+						aps = aps.sort(function(a, b) {
+							return drivers[a].Pos - drivers[b].Pos;
+						});
+						for (var i = 0; i < aps.length; i++) {
+							if (ps[0] != aps[0] || drivers[aps[i]].Show !== vs[drivers[aps[i]].ID]) {
+								this.removeDriver(0);
+							}
+						}
+					}.bind(this));
 					driverList(drivers);
-				});
+				}.bind(this));
 				addToBar("Messages", messageList);
 				checkUnassigned(addToBar("", goToNextUnassigned));
 				dateShift = now.getTime();
@@ -2453,16 +2465,21 @@ window.addEventListener("load", function(oldDate) {
 			}
 			pos.setAttribute("class", "noPrint");
 			showHide.setAttribute("type", "checkbox");
-			showHide.setAttribute("checked", driver.Show !== false ? "checked": "");
+			if (driver.Show !== false) {
+				showHide.setAttribute("checked", "checked");
+			}
+			showHide.setAttribute("id", "driver_showhide_" + driver.ID);
+			showHideLabel.setAttribute("for", "driver_showhide_" + driver.ID);
 			show.setAttribute("class", "toggleBox noPrint");
-			rpc.getDriverNote(driver.ID, function(id, showHide, row, noteText) {
+			rpc.getDriverNote(driver.ID, function(id, show, showHide, row, noteText) {
 				var tmpNote = noteJSON(noteText);
 				showHide.addEventListener("change", function() {
-					tmpNote.Show = showHide.getAttribute("checked") === "checked" ;
+					tmpNote.Show = showHide.checked;
+					drivers[id].Show = showHide.checked;
 					rpc.setDriverNote(id, JSON.stringify(tmpNote));
 				}, false);
 				row.appendChild(show);
-			}.bind(null, driver.ID, showHide, row));
+			}.bind(null, driver.ID, show, showHide, row));
 		}
 
 		layer.appendChild(table);
