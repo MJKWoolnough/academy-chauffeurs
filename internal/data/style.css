@@ -558,6 +558,38 @@
 	.invoiceTop td[contenteditable=true], .invoice th[contenteditable=true], .invoice td[contenteditable=true], .invoiceBottom td[contenteditable=true] {
 		background-color : #f7f8f8;
 	}
+
+	.toggleBox label {
+		margin: auto;
+		background-color : #000;
+		width : auto;
+	}
+
+	.toggleBox label:before, .toggleBox label:after {
+		display: inline-block;
+		transition : transform 0.25s;
+		transition-timing-function : ease;
+	}
+
+	.toggleBox label:before {
+		content: "Visible";
+		background-color : #fff;
+		transform-origin : left;
+	}
+
+	.toggleBox label:after {
+		content: "Invisible";
+		background-color : #fff;
+		transform-origin : right;
+	}
+
+	.toggleBox input:not(:checked) + label:before {
+		transform: scaleX(0);
+	}
+
+	.toggleBox input:checked + label:after {
+		transform: scaleX(0);
+	}
 }
 
 @media print {
@@ -751,34 +783,3 @@ tr.overline td {
 	cell
 }
 
-.toggleBox label {
-	margin: auto;
-	background-color : #000;
-	width : auto;
-}
-
-.toggleBox label:before, .toggleBox label:after {
-	display: inline-block;
-	transition : transform 0.25s;
-	transition-timing-function : ease;
-}
-
-.toggleBox label:before {
-	content: "Visible";
-	background-color : #fff;
-	transform-origin : left;
-}
-
-.toggleBox label:after {
-	content: "Invisible";
-	background-color : #fff;
-	transform-origin : right;
-}
-
-.toggleBox input:not(:checked) + label:before {
-	transform: scaleX(0);
-}
-
-.toggleBox input:checked + label:after {
-	transform: scaleX(0);
-}
