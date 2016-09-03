@@ -96,8 +96,8 @@ window.addEventListener("load", function(oldDate) {
 		this.getEventsWithCompanies = function(companyIDs, start, end, callback) {
 			request("CompaniesEvents", {"IDs": companyIDs, "Start": start, "End": end}, callback);
 		};
-		this.setDriverNote = function(id, note) {
-			request("SetDriverNote", {ID: id, Note: note});
+		this.setDriverNote = function(id, note, callback) {
+			request("SetDriverNote", {ID: id, Note: note}, callback);
 		};
 		this.setClientNote = function(id, note) {
 			request("SetClientNote", {ID: id, Note: note});
@@ -461,6 +461,9 @@ window.addEventListener("load", function(oldDate) {
 			fifteenDiv.setInnerText(formatNum(block * 15));
 			fifteenDiv.style.left = leftPos;
 			dayDiv[0].appendChild(fifteenDiv);
+			driverIDs.sort(function(a, b) {
+				return drivers[a].Pos - drivers[b].Pos;
+			});
 			for (var i = 0; i < driverIDs.length; i++) {
 				cellDiv = createElement("div");
 				cellDiv.setAttribute("class", "eventCell " + (block % 2 === i % 2 ? "cellOdd" : "cellEven"));
@@ -610,13 +613,25 @@ window.addEventListener("load", function(oldDate) {
 						vs[d.ID] = d.Show;
 					});
 					stack.addLayer("driverList", function() {
-						var aps = Object.keys(drivers);
+						var aps = Object.keys(drivers),
+						    wg = new waitGroup(function() {
+							this.removeDriver(0);
+						    }.bind(this));
 						aps = aps.sort(function(a, b) {
 							return drivers[a].Pos - drivers[b].Pos;
 						});
 						for (var i = 0; i < aps.length; i++) {
-							if (ps[0] != aps[0] || drivers[aps[i]].Show !== vs[drivers[aps[i]].ID]) {
-								this.removeDriver(0);
+							if (ps[i] != aps[i] || drivers[aps[i]].Show !== vs[drivers[aps[i]].ID]) {
+								wg.add();
+								var id = parseInt(ps[i]);
+								rpc.getDriverNote(id, function(id, noteText) {
+									var note = noteJSON(noteText);
+									note.Pos = drivers[id].Pos;
+									note.Show = drivers[id].Show;
+									rpc.setDriverNote(id, JSON.stringify(note), function() {
+										wg.done();
+									});
+								}.bind(null, id))
 							}
 						}
 					}.bind(this));
@@ -2432,7 +2447,36 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText("Drivers");
 		var table = createElement("table"),
 		    headerRow = table.appendChild(createElement("tr")),
-		    driverIDs = Object.keys(drivers);
+		    driverIDs = Object.keys(drivers),
+		    swapAnim = function(row, dir) {
+			var toSwap, fromID = row.getAttribute("driverID"), toID, oldPos = drivers[fromID].Pos;
+			if (dir == "up") {
+				toSwap = row.previousSibling;
+			} else {
+				toSwap = row.nextSibling;
+			}
+			toID = toSwap.getAttribute("driverID");
+			drivers[fromID].Pos = drivers[toID].Pos;
+			drivers[toID].Pos = oldPos;
+			Array.slice(row.parentNode.getElementsByTagName("button")).forEach(b=>b.setAttribute("disabled", "disabled"));
+			row.setAttribute("class", "rowSwapper swapping");
+			toSwap.setAttribute("class", "rowSwapper swapping");
+			window.setTimeout(function() {
+				row.parentNode.insertBefore(row, toSwap);
+				window.setTimeout(function() {
+					row.setAttribute("class", "rowSwapper");
+					toSwap.setAttribute("class", "rowSwapper");
+				}, 20);
+				window.setTimeout(function() {
+					var buttons = Array.slice(row.parentNode.getElementsByTagName("button"));
+					buttons.forEach(function(button) {
+						button.removeAttribute("disabled");
+					});
+					buttons[0].setAttribute("disabled", "disabled");
+					buttons[buttons.length-1].setAttribute("disabled", "disabled");
+				}, 500);
+			}, 500);
+		    };
 		headerRow.appendChild(createElement("th")).setInnerText("Order").setAttribute("class", "noPrint");
 		headerRow.appendChild(createElement("th")).setInnerText("Driver Name");
 		headerRow.appendChild(createElement("th")).setInnerText("Registration Number");
@@ -2452,17 +2496,23 @@ window.addEventListener("load", function(oldDate) {
 			    down = createElement("button"),
 			    showHide = show.appendChild(createElement("input")),
 			    showHideLabel = show.appendChild(createElement("label"));
+			row.setAttribute("class", "rowSwapper");
+			row.setAttribute("driverID", driverIDs[i]);
 			row.appendChild(createElement("td")).setInnerText(driver.Name);
 			row.appendChild(createElement("td")).setInnerText(driver.RegistrationNumber);
 			row.appendChild(createElement("td")).setInnerText(driver.PhoneNumber);
-			if (i !== 0) {
-				up.setInnerText("⇑")
-				pos.appendChild(up);
+			if (i == 0) {
+				up.setAttribute("disabled", "disabled");
 			}
-			if (i !== driverIDs.length - 1) {
-				down.setInnerText("⇓")
-				pos.appendChild(down);
+			up.setInnerText("⇑")
+			up.addEventListener("click", swapAnim.bind(null, row, "up"));
+			pos.appendChild(up);
+			if (i == driverIDs.length - 1) {
+				down.setAttribute("disabled", "disabled");
 			}
+			down.setInnerText("⇓")
+			down.addEventListener("click", swapAnim.bind(null, row, "down"));
+			pos.appendChild(down);
 			pos.setAttribute("class", "noPrint");
 			showHide.setAttribute("type", "checkbox");
 			if (driver.Show !== false) {
@@ -2471,15 +2521,10 @@ window.addEventListener("load", function(oldDate) {
 			showHide.setAttribute("id", "driver_showhide_" + driver.ID);
 			showHideLabel.setAttribute("for", "driver_showhide_" + driver.ID);
 			show.setAttribute("class", "toggleBox noPrint");
-			rpc.getDriverNote(driver.ID, function(id, show, showHide, row, noteText) {
-				var tmpNote = noteJSON(noteText);
-				showHide.addEventListener("change", function() {
-					tmpNote.Show = showHide.checked;
-					drivers[id].Show = showHide.checked;
-					rpc.setDriverNote(id, JSON.stringify(tmpNote));
-				}, false);
-				row.appendChild(show);
-			}.bind(null, driver.ID, show, showHide, row));
+			showHide.addEventListener("change", function() {
+				drivers[id].Show = showHide.checked;
+			}, false);
+			row.appendChild(show);
 		}
 
 		layer.appendChild(table);
