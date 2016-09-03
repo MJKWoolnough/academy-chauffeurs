@@ -750,3 +750,35 @@ tr.overline td {
 	border-top : 2px solid #000;
 	cell
 }
+
+.toggleBox label {
+	margin: auto;
+	background-color : #000;
+	width : auto;
+}
+
+.toggleBox label:before, .toggleBox label:after {
+	display: inline-block;
+	transition : transform 0.25s;
+	transition-timing-function : ease;
+}
+
+.toggleBox label:before {
+	content: "Visible";
+	background-color : #fff;
+	transform-origin : left;
+}
+
+.toggleBox label:after {
+	content: "Invisible";
+	background-color : #fff;
+	transform-origin : right;
+}
+
+.toggleBox input:not(:checked) + label:before {
+	transform: scaleX(0);
+}
+
+.toggleBox input:checked + label:after {
+	transform: scaleX(0);
+}
