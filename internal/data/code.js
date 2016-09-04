@@ -1224,7 +1224,7 @@ window.addEventListener("load", function(oldDate) {
 		    addressDate, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0,
 		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput, cn, vatEdit;
 		header.setAttribute("class", "printOnly");
-		cn = header.appendChild(createElement("div"))
+		cn = header.appendChild(createElement("div"));
 		cn.setAttribute("id", "invoiceCompanyName");
 		cn.appendChild(createElement("span")).setInnerText("Academy");
 		cn.appendChild(createElement("span")).setInnerText("Chauffeurs");
