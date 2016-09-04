@@ -455,7 +455,8 @@ window.addEventListener("load", function(oldDate) {
 			    dayDiv = days[year + "_" + month + "_" + day],
 			    driverIDs = Object.keys(drivers),
 			    cellDiv,
-			    leftPos = timeToPos(fifteenDate);
+			    leftPos = timeToPos(fifteenDate),
+			    vDrivers = 0;
 			fifteenDiv.setAttribute("class", "minute");
 			fifteenDiv.setAttribute("id", "minute_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 			fifteenDiv.setInnerText(formatNum(block * 15));
@@ -465,8 +466,11 @@ window.addEventListener("load", function(oldDate) {
 				return drivers[a].Pos - drivers[b].Pos;
 			});
 			for (var i = 0; i < driverIDs.length; i++) {
+				if (drivers[driverIDs[i]].Show !== true) {
+					continue;
+				}
 				cellDiv = createElement("div");
-				cellDiv.setAttribute("class", "eventCell " + (block % 2 === i % 2 ? "cellOdd" : "cellEven"));
+				cellDiv.setAttribute("class", "eventCell " + (block % 2 === vDrivers % 2 ? "cellOdd" : "cellEven"));
 				cellDiv.setAttribute("id", "cell_" + driverIDs[i] + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 				cellDiv.style.left = leftPos;
 				cellDiv.style.top = drivers[driverIDs[i]].yPos + "px";
@@ -476,9 +480,10 @@ window.addEventListener("load", function(oldDate) {
 				cellDiv.addEventListener("mouseout", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute"));
 				cellDiv.addEventListener("click", eventOnClick);
 				dayDiv[1].appendChild(cellDiv);
+				vDrivers++;
 			}
 			cellDiv = createElement("div");
-			cellDiv.setAttribute("class", "eventCell " + (block % 2 === 0 ? "cellOdd" : "cellEven"))
+			cellDiv.setAttribute("class", "eventCell " + (block % 2 === vDrivers % 2 ? "cellOdd" : "cellEven"))
 			cellDiv.setAttribute("id", "cell_0_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 			cellDiv.style.left = leftPos;
 			cellDiv.style.top = "0px";
@@ -1118,7 +1123,7 @@ window.addEventListener("load", function(oldDate) {
 			plusDriver.style.top = nextDriverPos + "px";
 			driverEvents.appendChild(dDiv);
 			var keys = Object.keys(days),
-			    oddEven = Object.keys(drivers).length % 2;
+			    oddEven = (nextDriverPos / 100) % 2;
 			for (var i = 0; i < keys.length; i++) {
 				var parts = keys[i].split("_"),
 				    year = parts[0],
