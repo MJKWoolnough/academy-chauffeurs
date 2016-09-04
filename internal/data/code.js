@@ -2521,9 +2521,9 @@ window.addEventListener("load", function(oldDate) {
 			showHide.setAttribute("id", "driver_showhide_" + driver.ID);
 			showHideLabel.setAttribute("for", "driver_showhide_" + driver.ID);
 			show.setAttribute("class", "toggleBox noPrint");
-			showHide.addEventListener("change", function() {
+			showHide.addEventListener("change", function(showHide, id) {
 				drivers[id].Show = showHide.checked;
-			}, false);
+			}.bind(null, showHide, driverIDs[i]), false);
 			row.appendChild(show);
 		}
 
