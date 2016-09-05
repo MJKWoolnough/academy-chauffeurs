@@ -420,7 +420,7 @@ window.addEventListener("load", function(oldDate) {
 			    dayEnclosure = createElement("div"),
 			    i = 0,
 			    unassigned = eventCells.appendChild(createElement("div"));
-			unassigned.setAttribute("class", "driverUnassigned" + (Object.keys(drivers).length % 2 === 0 ? "Even":"Odd"));
+			unassigned.setAttribute("class", "driverUnassigned");
 			unassigned.style.top = nextDriverPos + "px";
 			dayDiv.appendChild(createElement("div")).setInnerText(dayDate.getDayName() + ", " + day + dayDate.getOrdinalSuffix()).setAttribute("class", "slider");
 			dayDiv.setAttribute("class", "day");
@@ -465,34 +465,29 @@ window.addEventListener("load", function(oldDate) {
 			driverIDs.sort(function(a, b) {
 				return drivers[a].Pos - drivers[b].Pos;
 			});
+			driverIDs.push(0);
 			for (var i = 0; i < driverIDs.length; i++) {
-				if (drivers[driverIDs[i]].Show !== true) {
+				if (driverIDs[i] != 0 && drivers[driverIDs[i]].Show !== true) {
 					continue;
 				}
 				cellDiv = createElement("div");
 				cellDiv.setAttribute("class", "eventCell " + (block % 2 === vDrivers % 2 ? "cellOdd" : "cellEven"));
 				cellDiv.setAttribute("id", "cell_" + driverIDs[i] + "_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
 				cellDiv.style.left = leftPos;
-				cellDiv.style.top = drivers[driverIDs[i]].yPos + "px";
 				cellDiv.addEventListener("mouseover", eventOnMouseOver);
 				cellDiv.addEventListener("mouseover", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute select"));
 				cellDiv.addEventListener("mouseout", eventOnMouseOut);
 				cellDiv.addEventListener("mouseout", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute"));
 				cellDiv.addEventListener("click", eventOnClick);
-				dayDiv[1].appendChild(cellDiv);
+				if (driverIDs[i] === 0) {
+					cellDiv.style.top = "0px";
+					dayDiv[2].appendChild(cellDiv);
+				} else {
+					cellDiv.style.top = drivers[driverIDs[i]].yPos + "px";
+					dayDiv[1].appendChild(cellDiv);
+				}
 				vDrivers++;
 			}
-			cellDiv = createElement("div");
-			cellDiv.setAttribute("class", "eventCell " + (block % 2 === vDrivers % 2 ? "cellOdd" : "cellEven"))
-			cellDiv.setAttribute("id", "cell_0_" + year + "_" + month + "_" + day + "_" + hour + "_" + block);
-			cellDiv.style.left = leftPos;
-			cellDiv.style.top = "0px";
-			cellDiv.addEventListener("mouseover", eventOnMouseOver);
-			cellDiv.addEventListener("mouseover", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute select"));
-			cellDiv.addEventListener("mouseout", eventOnMouseOut);
-			cellDiv.addEventListener("mouseout", fifteenDiv.setAttribute.bind(fifteenDiv, "class", "minute"));
-			cellDiv.addEventListener("click", eventOnClick);
-			dayDiv[2].appendChild(cellDiv);
 		    },
 		    isOnScreen = function(div) {
 			var left = parseInt(eventCells.style.left, 10) + parseInt(div.style.left, 10),
@@ -1131,7 +1126,6 @@ window.addEventListener("load", function(oldDate) {
 				    day = parts[2],
 				    dayDiv = days[keys[i]];
 				dayDiv[2].style.top = nextDriverPos + "px";
-				dayDiv[2].setAttribute("class", "driverUnassigned" + (oddEven ? "Odd":"Even"));
 				for (var hour = 0; hour < 24; hour++) {
 					for (var block = 0; block < 4; block++) {
 						var cellDiv = createElement("div"),

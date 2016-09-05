@@ -251,15 +251,15 @@
 		transition-timing-function : ease;
 	}
 
-	.driverUnassignedEven, .driverUnassignedOdd {
+	.driverUnassigned {
 		position : absolute;
 	}
 
-	.cellOdd, .driverUnassignedOdd .cellEven {
+	.cellOdd {
 		background-color : #ddd;
 	}
 
-	.cellEven, .driverUnassignedOdd .cellOdd {
+	.cellEven {
 		background-color : #aaa;
 	}
 
