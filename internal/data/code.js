@@ -2454,20 +2454,20 @@ window.addEventListener("load", function(oldDate) {
 		    headerRow = table.appendChild(createElement("tr")),
 		    driverIDs = Object.keys(drivers),
 		    swapAnim = function(row, dir) {
-			var toSwap, fromID = row.getAttribute("driverID"), toID, oldPos = drivers[fromID].Pos;
-			if (dir == "up") {
-				toSwap = row.previousSibling;
-			} else {
-				toSwap = row.nextSibling;
+			if (dir === "up") {
+				row = row.previousSibling;
 			}
-			toID = toSwap.getAttribute("driverID");
+			var toSwap = row.nextSibling,
+			    fromID = row.getAttribute("driverID"),
+			    toID = toSwap.getAttribute("driverID"),
+			    oldPos = drivers[fromID].Pos;
 			drivers[fromID].Pos = drivers[toID].Pos;
 			drivers[toID].Pos = oldPos;
 			Array.slice(row.parentNode.getElementsByTagName("button")).forEach(b=>b.setAttribute("disabled", "disabled"));
 			row.setAttribute("class", "rowSwapper swapping");
 			toSwap.setAttribute("class", "rowSwapper swapping");
 			window.setTimeout(function() {
-				row.parentNode.insertBefore(row, toSwap);
+				row.parentNode.insertBefore(toSwap, row);
 				window.setTimeout(function() {
 					row.setAttribute("class", "rowSwapper");
 					toSwap.setAttribute("class", "rowSwapper");
