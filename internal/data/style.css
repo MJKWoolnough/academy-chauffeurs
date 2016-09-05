@@ -592,12 +592,12 @@
 	}
 
 	.rowSwapper {
-		transition : transform 0.5s;
+		transition : opacity 0.5s;
 		transition-timing-function : ease;
 	}
 
 	.rowSwapper.swapping {
-		transform: scale(0);
+		opacity : 0;
 	}
 }
 
