@@ -68,7 +68,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		}
 		var ev ics.Event
 		ev.UID = ics.PropUID(time.Unix(created, 0).In(time.UTC).Format("20060102T150405Z") + "-" + pad(strconv.FormatUint(uint64(id), 36)) + "@academy-chauffeurs.co.uk")
-		ev.Created = &ics.PropCreated{time.Unix(created, 0).In(time.UTC)}
+		ev.DateTimeStamp.Time = time.Unix(created, 0).In(time.UTC)
 		ev.LastModified = &ics.PropLastModified{time.Unix(updated, 0).In(time.UTC)}
 		ev.DateTimeStart = &ics.PropDateTimeStart{DateTime: &ics.DateTime{time.Unix(start/1000, start%1000)}}
 		ev.Duration = &ics.PropDuration{Minutes: uint(time.Unix(end/1000, end%1000).Sub(ev.DateTimeStart.DateTime.Time).Minutes())}
