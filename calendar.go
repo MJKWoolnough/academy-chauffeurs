@@ -42,6 +42,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	a.Trigger.Duration = &ics.Duration{Minutes: uint(alarmTime)}
 	alarm := []ics.Alarm{{&a}}
 	cal.ProductID = "Academy Chauffeurs 1.0"
+	cal.Version = "2.0"
 	n := now()
 	rows, err := c.statements[CalendarData].Query((n - 3600*24*30*6) * 1000)
 	if err != nil {
