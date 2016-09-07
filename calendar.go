@@ -77,9 +77,9 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		ev.UID = ics.PropUID(time.Unix(created, 0).In(time.UTC).Format("20060102T150405Z") + "-" + pad(strconv.FormatUint(uint64(id), 36)) + "@academy-chauffeurs.co.uk")
 		ev.DateTimeStamp.Time = time.Unix(created, 0).In(time.UTC)
 		ev.LastModified = &ics.PropLastModified{time.Unix(updated, 0).In(time.UTC)}
-		ev.DateTimeStart = &ics.PropDateTimeStart{DateTime: &ics.DateTime{time.Unix(start/1000, start%1000)}}
+		ev.DateTimeStart = &ics.PropDateTimeStart{DateTime: &ics.DateTime{time.Unix(start/1000, start%1000).In(time.Local)}}
 		var days, hours uint
-		mins := uint(time.Unix(end/1000, end%1000).Sub(ev.DateTimeStart.DateTime.Time).Minutes())
+		mins := uint(time.Unix(end/1000, end%1000).In(time.Local).Sub(ev.DateTimeStart.DateTime.Time).Minutes())
 		for mins > 60*24 {
 			days++
 			mins -= 60 * 24
