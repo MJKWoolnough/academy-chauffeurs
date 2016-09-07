@@ -27,6 +27,8 @@ func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Add("Content-Length", strconv.Itoa(buf.Len()))
+	w.Header().Add("Content-Type", "text/v-calendar; charset=utf-8")
+	w.Header().Add("Content-Disposition", "attachment; filename=calendar.ics")
 	buf.WriteTo(w)
 }
 
