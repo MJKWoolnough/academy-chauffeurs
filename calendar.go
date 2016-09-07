@@ -78,7 +78,17 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		ev.DateTimeStamp.Time = time.Unix(created, 0).In(time.UTC)
 		ev.LastModified = &ics.PropLastModified{time.Unix(updated, 0).In(time.UTC)}
 		ev.DateTimeStart = &ics.PropDateTimeStart{DateTime: &ics.DateTime{time.Unix(start/1000, start%1000)}}
-		ev.Duration = &ics.PropDuration{Minutes: uint(time.Unix(end/1000, end%1000).Sub(ev.DateTimeStart.DateTime.Time).Minutes())}
+		var days, hours uint
+		mins := uint(time.Unix(end/1000, end%1000).Sub(ev.DateTimeStart.DateTime.Time).Minutes())
+		for mins > 60*24 {
+			days++
+			mins -= 60 * 24
+		}
+		for mins > 60 {
+			hours++
+			mins -= 60
+		}
+		ev.Duration = &ics.PropDuration{Days: days, Hours: hours, Minutes: mins}
 		ev.Location = &ics.PropLocation{Text: ics.Text(from)}
 		ev.Description = &ics.PropDescription{Text: ics.Text(driverStr + " - " + client + " (" + company + ") - " + from + " -> " + to + " - " + phoneNumber)}
 		ev.Summary = &ics.PropSummary{Text: ics.Text(driverStr + " - " + client + " (" + company + ")")}
