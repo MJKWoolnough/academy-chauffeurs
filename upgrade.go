@@ -30,6 +30,11 @@ func upgradeDB(db *sql.DB) error {
 	if version == 0 {
 		if _, err = upgradeQueries(db,
 			"ALTER TABLE [Settings] ADD [Version] INTEGER;",
+			"ALTER TABLE [Settings] ADD [InvoiceHeader] TEXT;",
+			"ALTER TABLE [Settings] ADD [EmailSMTP] TEXT;",
+			"ALTER TABLE [Settings] ADD [EmailUsername] TEXT;",
+			"ALTER TABLE [Settings] ADD [EmailPassword] TEXT;",
+			"ALTER TABLE [Settings] ADD [EmailTemplate] TEXT;",
 			"ALTER TABLE [Event] ADD [ClientRef] TEXT;",
 			"ALTER TABLE [Event] ADD [InvoiceNote] TEXT;",
 			"ALTER TABLE [Event] ADD [InvoiceFrom] TEXT;",
