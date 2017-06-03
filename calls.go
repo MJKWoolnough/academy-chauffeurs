@@ -128,6 +128,10 @@ func newCalls(dbFName string) (*Calls, error) {
 		return nil, err
 	}
 
+	if err := upgradeDB(db); err != nil {
+		return nil, err
+	}
+
 	// Tables
 
 	for _, ct := range []string{
