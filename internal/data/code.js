@@ -84,6 +84,7 @@ window.addEventListener("load", function(oldDate) {
 		this.clientsForCompanies       = request.bind(this, "ClientsForCompanies");    // [ids]      , callback
 		this.getSettings               = request.bind(this, "GetSettings", null);      //              callback
 		this.setSettings               = request.bind(this, "SetSettings");            // settings   , callback
+		this.setDriverPosShow          = request.bind(this, "SetDriverPosShow");       // {ID, Pos, Show}, callback
 		this.getEventsWithDriver = function(driverID, start, end, callback) {
 			request("DriverEvents", {"ID": driverID, "Start": start, "End": end}, callback);
 		};
@@ -616,7 +617,8 @@ window.addEventListener("load", function(oldDate) {
 						var aps = Object.keys(drivers),
 						    wg = new waitGroup(function() {
 							this.removeDriver(0);
-						    }.bind(this));
+						    }.bind(this)),
+						    wgDone = wg.done.bind(wg);
 						aps = aps.sort(function(a, b) {
 							return drivers[a].Pos - drivers[b].Pos;
 						});
@@ -624,6 +626,8 @@ window.addEventListener("load", function(oldDate) {
 							if (ps[i] != aps[i] || drivers[aps[i]].Show !== vs[drivers[aps[i]].ID]) {
 								wg.add();
 								var id = parseInt(ps[i]);
+								rpc.setDriverPosShow({"ID": id, "Pos": drivers[id].Pos, "Show": drivers[id].Show}, wgDone);
+								/*
 								rpc.getDriverNote(id, function(id, noteText) {
 									var note = noteJSON(noteText);
 									note.Pos = drivers[id].Pos;
@@ -632,6 +636,7 @@ window.addEventListener("load", function(oldDate) {
 										wg.done();
 									});
 								}.bind(null, id))
+								*/
 							}
 						}
 					}.bind(this));
@@ -648,7 +653,7 @@ window.addEventListener("load", function(oldDate) {
 						stack.addLayer("addDriver", this.addDriver.bind(this));
 						addDriver();
 					}.bind(this));
-					var wg = new waitGroup(function() {
+					//var wg = new waitGroup(function() {
 						ds = ds.sort(function(a, b) {
 							return a.Pos - b.Pos;
 						});
@@ -682,7 +687,7 @@ window.addEventListener("load", function(oldDate) {
 							toLoad[i]();
 						}
 						window.addEventListener("resize", update.bind(this, undefined));
-					}.bind(this)), i;
+					/*}.bind(this)) , i;
 					for (i = 0; i < ds.length; i++) {
 						wg.add();
 						rpc.getDriverNote(ds[i].ID, function(i, note)  {
@@ -700,6 +705,7 @@ window.addEventListener("load", function(oldDate) {
 							wg.done();
 						}.bind(null, i))
 					}
+					*/
 				}.bind(this));
 			}.bind(this));
 		    },
@@ -1004,7 +1010,7 @@ window.addEventListener("load", function(oldDate) {
 				eventDiv.style.backgroundColor = colour.formatColour();
 			});
 			rpc.getEventNote(e.ID, function(noteText) {
-				noteText = noteJSON(noteText).Note;
+				//noteText = noteJSON(noteText).Note;
 				rpc.getClient(e.ClientID, function(c) {
 					var name = eventDiv.appendChild(createElement("div")).setInnerText(c.Name),
 					    from = eventDiv.appendChild(createElement("div")).setInnerText(e.From),
@@ -1261,6 +1267,20 @@ window.addEventListener("load", function(oldDate) {
 				extra.setInnerText(events[i].Waiting + " mins waiting");
 			}
 			extra.setAttribute("contenteditable", "true");
+			cr.setInnerText(data.ClientRef);
+			extra.setPreText(extra.innerText + "\n" + data.InvoiceNote);
+			if (events[i].InvoiceFrom === "") {
+				details.appendChild(document.createTextNode("From: " + events[i].From));
+			} else {
+				details.appendChild(document.createTextNode("From: " + events[i].InvoiceFrom));
+			}
+			details.appendChild(createElement("br"));
+			if (events[i].InvoiceTo === "") {
+				details.appendChild(document.createTextNode("To: " + events[i].To));
+			} else {
+				details.appendChild(document.createTextNode("To: " + events[i].InvoiceTo));
+			}
+			/*
 			rpc.getEventNote(events[i].ID, function(cr, details, extra, noteText) {
 				var data = noteJSON(noteText);
 				if (typeof data.ClientRef !== "undefined") {
@@ -1281,6 +1301,7 @@ window.addEventListener("load", function(oldDate) {
 					details.appendChild(document.createTextNode("To: " + data.InvoiceTo));
 				}
 			}.bind(null, cr, details, extra));
+			*/
 			row.appendChild(createElement("td")).setInnerText("£");
 			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney());
 			row.appendChild(createElement("td")).setInnerText("£");
@@ -2237,10 +2258,11 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(createElement("label")).setInnerText("Registration Number");
 				toPrint.appendChild(createElement("div")).setInnerText(driver.RegistrationNumber);
 				toPrint.appendChild(createElement("label")).setInnerText("No. of Events");
-				var bookings = toPrint.appendChild(createElement("div")).setInnerText("-"),
-				    tmpNote = {Note:""};
+				var bookings = toPrint.appendChild(createElement("div")).setInnerText("-");
+//				    tmpNote = {Note:""};
 				toPrint.appendChild(createElement("label")).setInnerText("Notes");
-				toPrint.appendChild(makeNote(function(callback) {
+				toPrint.appendChild(makeNote(rpc.getDriverNote.bind(driver.ID), rpc.setDriverNote.bind(driver.ID)));
+/*				toPrint.appendChild(makeNote(function(callback) {
 					rpc.getDriverNote(driver.ID, function(noteText) {
 						tmpNote = noteJSON(noteText);
 						callback(tmpNote.Note)
@@ -2248,7 +2270,7 @@ window.addEventListener("load", function(oldDate) {
 				}, function(noteText) {
 					tmpNote.Note = noteText;
 					rpc.setDriverNote(driver.ID, JSON.stringify(tmpNote));
-				}));
+				}));*/
 				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
 			}],
 			[ "Events", function() {
@@ -2710,7 +2732,14 @@ window.addEventListener("load", function(oldDate) {
 				});
 			}
 			toPrint.appendChild(createElement("label")).setInnerText("Notes");
-			var tmpNote = {"Note":""};
+
+			invoiceNote.setPreText(e.InvoiceNote);
+			invoiceFrom.setInnerText(e.InvoiceFrom);
+			invoiceTo.setInnerText(e.InvoiceTo);
+			clientRef.setInnerText(e.ClientRef + "\u00A0");
+
+			toPrint.appendChild(makeNote(rpc.getEventNote.bind(e.ID), rpc.setEventNote.bind(e.ID)));
+			/*var tmpNote = {"Note":""};
 			toPrint.appendChild(makeNote(function(callback) {
 				rpc.getEventNote(e.ID, function(noteText) {
 					tmpNote = noteJSON(noteText);
@@ -2731,7 +2760,7 @@ window.addEventListener("load", function(oldDate) {
 			}, function(noteText) {
 				tmpNote.Note = noteText;
 				rpc.setEventNote(e.ID, JSON.stringify(tmpNote));
-			}));
+			}));*/
 			rpc.getClient(e.ClientID, function(client) {
 				clientName.setInnerText(client.Name);
 				if (clientRef.innerHTML === "-") {
@@ -2767,8 +2796,8 @@ window.addEventListener("load", function(oldDate) {
 				    price = addFormElement("Total Price To Client (£)", "text", "price", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
 				    invoiceFrom = addFormElement("Invoice From", "text", "invoiceFrom", e.From.replace(/\n/g, " ")),
 				    invoiceTo = addFormElement("Invoice To", "text", "invoiceTo", e.To.replace(/\n/g, " ")),
-				    invoiceNotes = addFormElement("Invoice Notes", "textarea", "invoiceNotes", ""),
-				    invoiceNotesJSON = {"Note":""};
+				    invoiceNotes = addFormElement("Invoice Notes", "textarea", "invoiceNotes", "");
+				    //invoiceNotesJSON = {"Note":""};
 				addFormSubmit("Set Details", function() {
 					var errors = false,
 					    eventFinals = {},
@@ -2796,17 +2825,21 @@ window.addEventListener("load", function(oldDate) {
 					eventFinals.Sub = Math.floor(parseFloat(sub[0].value) * 100);
 					eventFinals.Price = Math.floor(parseFloat(price[0].value) * 100);
 					eventFinals.ID = e.ID;
-					invoiceNotesJSON.InvoiceFrom = invoiceFrom[0].value;
+					eventFinals.InvoiceFrom = invoiceFrom[0].value;
+					eventFinals.InvoiceTo = invoiceTo[0].value;
+					eventFinals.InvoiceNote = invoiceNotes[0].value;
+					eventFinals.ClientRef = clientRef[0].value;
+				/*	invoiceNotesJSON.InvoiceFrom = invoiceFrom[0].value;
 					invoiceNotesJSON.InvoiceTo = invoiceTo[0].value;
 					invoiceNotesJSON.InvoiceNote = invoiceNotes[0].value;
 					invoiceNotesJSON.ClientRef = clientRef[0].value;
-					rpc.setEventNote(e.ID, JSON.stringify(invoiceNotesJSON));
+					rpc.setEventNote(e.ID, JSON.stringify(invoiceNotesJSON));*/
 					rpc.setEventFinals(eventFinals, function() {
 						stack.removeLayer();
 						showEvent(e);
 					});
 				});
-				rpc.getEventNote(e.ID, function(noteText) {
+				/*rpc.getEventNote(e.ID, function(noteText) {
 					invoiceNotesJSON = noteJSON(noteText);
 					if (typeof invoiceNotesJSON.InvoiceNote !== "undefined") {
 						invoiceNotes[0].value = invoiceNotesJSON.InvoiceNote;
@@ -2823,20 +2856,20 @@ window.addEventListener("load", function(oldDate) {
 						rpc.getClient(e.ClientID, function(client) {
 							clientRef[0].value = client.Reference;
 						});
-					}
-					rpc.getEventFinals(e.ID, function(eventFinals) {
-						inCar[0].value = (new Date(eventFinals.InCar)).toTimeString();
-						waiting[0].value = eventFinals.Waiting;
-						dropOff[0].value = (new Date(eventFinals.Drop)).toTimeString();
-						miles[0].value = eventFinals.Miles;
-						tripTime[0].value = (new Date(eventFinals.Trip)).toTimeString();
-						//driverHours[0].value = (new Date(eventFinals.DriverHours)).toTimeString();
-						driverHours[0].value = eventFinals.DriverHours / 3600000
-						parking[0].value = (eventFinals.Parking / 100).formatMoney();
-						sub[0].value = (eventFinals.Sub / 100).formatMoney();
-						price[0].value = (eventFinals.Price / 100).formatMoney();
-					});
+					}*/
+				rpc.getEventFinals(e.ID, function(eventFinals) {
+					inCar[0].value = (new Date(eventFinals.InCar)).toTimeString();
+					waiting[0].value = eventFinals.Waiting;
+					dropOff[0].value = (new Date(eventFinals.Drop)).toTimeString();
+					miles[0].value = eventFinals.Miles;
+					tripTime[0].value = (new Date(eventFinals.Trip)).toTimeString();
+					//driverHours[0].value = (new Date(eventFinals.DriverHours)).toTimeString();
+					driverHours[0].value = eventFinals.DriverHours / 3600000
+					parking[0].value = (eventFinals.Parking / 100).formatMoney();
+					sub[0].value = (eventFinals.Sub / 100).formatMoney();
+					price[0].value = (eventFinals.Price / 100).formatMoney();
 				});
+				//});
 			}];
 		}
 		tabData[tabData.length] = [ "Options", function () {
@@ -3035,7 +3068,7 @@ window.addEventListener("load", function(oldDate) {
 		nameDiv.addEventListener("keyup", activator, true);
 		nameDiv.addEventListener("focus", activator, true);
 	},
-	noteJSON = function(text) {
+	/*noteJSON = function(text) {
 		if (text.length === 0) {
 			return {"Note":""};
 		}
@@ -3047,7 +3080,7 @@ window.addEventListener("load", function(oldDate) {
 			data.Note = "";
 		}
 		return data;
-	},
+	},*/
 	Date;
 	(function() {
 		var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
