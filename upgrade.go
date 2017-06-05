@@ -1,6 +1,9 @@
 package main
 
-import "database/sql"
+import (
+	"database/sql"
+	"encoding/json"
+)
 
 func upgradeQueries(db *sql.DB, queries ...string) error {
 	for _, query := range queries {
@@ -28,7 +31,7 @@ func upgradeDB(db *sql.DB) error {
 		return err
 	}
 	if version == 0 {
-		if _, err = upgradeQueries(db,
+		if err = upgradeQueries(db,
 			"ALTER TABLE [Settings] ADD [Version] INTEGER;",
 			"ALTER TABLE [Settings] ADD [InvoiceHeader] TEXT;",
 			"ALTER TABLE [Settings] ADD [EmailSMTP] TEXT;",
@@ -59,10 +62,10 @@ func upgradeDB(db *sql.DB) error {
 			}
 			if len(note) > 0 && note[0] == '{' {
 				var noteParts eventJSON
-				if err = json.Unmarshall([]byte(note), &noteParts); err != nil {
+				if err = json.Unmarshal([]byte(note), &noteParts); err != nil {
 					continue
 				}
-				if err = db.Exec("UPDATE [Event] SET [Note] = ?, [ClientRef] = ?, [InvoiceNote] = ?, [InvoiceFrom] = ?, [InvoiceTo] = ? WHERE [ID] = ?;", noteParts.Note, noteParts.InvoiceNote, noteParts.InvoiceFrom, noteParts.InvoiceFrom, noteParts.InvoiceTo, id); err != nil {
+				if _, err = db.Exec("UPDATE [Event] SET [Note] = ?, [ClientRef] = ?, [InvoiceNote] = ?, [InvoiceFrom] = ?, [InvoiceTo] = ? WHERE [ID] = ?;", noteParts.Note, noteParts.InvoiceNote, noteParts.InvoiceFrom, noteParts.InvoiceFrom, noteParts.InvoiceTo, id); err != nil {
 					return err
 				}
 			}
@@ -85,10 +88,10 @@ func upgradeDB(db *sql.DB) error {
 			}
 			if len(note) > 0 && note[0] == '{' {
 				var noteParts driverJSON
-				if err = json.Unmarshall([]byte(note), &noteParts); err != nil {
+				if err = json.Unmarshal([]byte(note), &noteParts); err != nil {
 					continue
 				}
-				if err = db.Exec("UPDATE [Driver] SET [Note] = ?, [Pos] = ?, [Show] = ? WHERE [ID] = ?;", noteParts.Note, noteParts.Pos, noteParts.Show, id); err != nil {
+				if _, err = db.Exec("UPDATE [Driver] SET [Note] = ?, [Pos] = ?, [Show] = ? WHERE [ID] = ?;", noteParts.Note, noteParts.Pos, noteParts.Show, id); err != nil {
 					return err
 				}
 			}
