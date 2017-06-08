@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 )
 
 func upgradeQueries(db *sql.DB, queries ...string) error {
@@ -30,6 +31,7 @@ func upgradeDB(db *sql.DB) error {
 	var version int
 	db.QueryRow("SELECT [Version] FROM [Settings];").Scan(&version)
 	if version == 0 {
+		log.Println("Upgrading to database version 1")
 		if err := upgradeQueries(db,
 			"ALTER TABLE [Settings] ADD [Version] INTEGER;",
 			"ALTER TABLE [Settings] ADD [InvoiceHeader] TEXT;",
@@ -46,6 +48,7 @@ func upgradeDB(db *sql.DB) error {
 		); err != nil {
 			return err
 		}
+		log.Println("	Updated Table Structures")
 		r, err := db.Query("SELECT [ID], [Note] FROM [Event];")
 		if err != nil {
 			return err
@@ -72,6 +75,7 @@ func upgradeDB(db *sql.DB) error {
 		if err = r.Close(); err != nil {
 			return err
 		}
+		log.Println("	Updating Event table")
 		eventTx, err := db.Begin()
 		if err != nil {
 			return err
@@ -90,6 +94,9 @@ func upgradeDB(db *sql.DB) error {
 			return err
 		}
 
+		log.Println("	Completed updating Event table")
+
+		log.Println("	Updating Driver table")
 		r, err = db.Query("SELECT [ID], [Note] FROM [Driver];")
 		if err != nil {
 			return err
@@ -134,8 +141,12 @@ func upgradeDB(db *sql.DB) error {
 			return err
 		}
 
+		log.Println("	Completed updating Driver table")
+
 		db.Exec("UPDATE [Settings] SET [Version] = 1;")
 		version = 1
+
+		log.Println("Completed updating to version 1")
 	}
 	return nil
 }
