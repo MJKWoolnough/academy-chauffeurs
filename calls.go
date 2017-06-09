@@ -15,6 +15,8 @@ import (
 type Driver struct {
 	ID                                    int64
 	Name, RegistrationNumber, PhoneNumber string
+	Pos                                   int
+	Show                                  bool
 }
 
 type Company struct {
@@ -128,10 +130,6 @@ func newCalls(dbFName string) (*Calls, error) {
 		return nil, err
 	}
 
-	if err := upgradeDB(db); err != nil {
-		return nil, err
-	}
-
 	// Tables
 
 	for _, ct := range []string{
@@ -146,6 +144,10 @@ func newCalls(dbFName string) (*Calls, error) {
 		if _, err = db.Exec("CREATE TABLE IF NOT EXISTS " + ct); err != nil {
 			return nil, err
 		}
+	}
+
+	if err := upgradeDB(db); err != nil {
+		return nil, err
 	}
 
 	c := &Calls{
@@ -164,7 +166,7 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Read
 
-		"SELECT [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [Name], [RegistrationNumber], [PhoneNumber], [Pos], [Show] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Name], [Address], [Colour] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
@@ -214,7 +216,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		// Searches
 
 		// All Drivers
-		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
+		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber], [Pos], [Show] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
 		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
@@ -567,6 +569,8 @@ func (c *Calls) Drivers(_ struct{}, drivers *[]Driver) error {
 			&(*drivers)[pos].Name,
 			&(*drivers)[pos].RegistrationNumber,
 			&(*drivers)[pos].PhoneNumber,
+			&(*drivers)[pos].Pos,
+			&(*drivers)[pos].Show,
 		}
 	})
 }

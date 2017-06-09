@@ -8,7 +8,7 @@ import (
 func (c *Calls) GetDriver(id int64, d *Driver) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadDriver].QueryRow(id).Scan(&(*d).Name, &(*d).RegistrationNumber, &(*d).PhoneNumber)
+	err := c.statements[ReadDriver].QueryRow(id).Scan(&(*d).Name, &(*d).RegistrationNumber, &(*d).PhoneNumber, &(*d).Pos, &(*d).Show)
 	if err == sql.ErrNoRows {
 		return nil
 	}
