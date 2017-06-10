@@ -41,7 +41,7 @@ func (c *Calls) GetCompany(id int64, cy *Company) error {
 func (c *Calls) GetEvent(id int64, e *Event) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadEvent].QueryRow(id).Scan(&(*e).DriverID, &(*e).ClientID, &(*e).Start, &(*e).End, &(*e).From, &(*e).To)
+	err := c.statements[ReadEvent].QueryRow(id).Scan(&(*e).DriverID, &(*e).ClientID, &(*e).Start, &(*e).End, &(*e).From, &(*e).To, &(*e).ClientRef, &(*e).InvoiceNote, &(*e).InvoiceFrom, &(*e).InvoiceTo)
 	if err == sql.ErrNoRows {
 		return nil
 	}
