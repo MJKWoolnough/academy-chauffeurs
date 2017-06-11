@@ -34,17 +34,17 @@ func upgradeDB(db *sql.DB) error {
 		log.Println("Upgrading to database version 1")
 		if err := upgradeQueries(db,
 			"ALTER TABLE [Settings] ADD [Version] INTEGER;",
-			"ALTER TABLE [Settings] ADD [InvoiceHeader] TEXT;",
-			"ALTER TABLE [Settings] ADD [EmailSMTP] TEXT;",
-			"ALTER TABLE [Settings] ADD [EmailUsername] TEXT;",
-			"ALTER TABLE [Settings] ADD [EmailPassword] TEXT;",
-			"ALTER TABLE [Settings] ADD [EmailTemplate] TEXT;",
-			"ALTER TABLE [Event] ADD [ClientRef] TEXT;",
-			"ALTER TABLE [Event] ADD [InvoiceNote] TEXT;",
-			"ALTER TABLE [Event] ADD [InvoiceFrom] TEXT;",
-			"ALTER TABLE [Event] ADD [InvoiceTo] TEXT;",
+			"ALTER TABLE [Settings] ADD [InvoiceHeader] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Settings] ADD [EmailSMTP] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Settings] ADD [EmailUsername] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Settings] ADD [EmailPassword] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Settings] ADD [EmailTemplate] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Event] ADD [ClientRef] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Event] ADD [InvoiceNote] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Event] ADD [InvoiceFrom] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Event] ADD [InvoiceTo] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Driver] ADD [Pos] INTEGER;",
-			"ALTER TABLE [Driver] ADD [Show] BOOLEAN;",
+			"ALTER TABLE [Driver] ADD [Show] BOOLEAN NOT NULL DEFAULT TRUE;",
 		); err != nil {
 			return err
 		}
