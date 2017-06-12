@@ -211,8 +211,8 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Settings
 
-		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime] FROM [Settings];",
-		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?;",
+		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime], [InvoiceHeader], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate] FROM [Settings];",
+		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?, [AlarmTime] = ?, [InvoiceHeader] = ?, [EmailSMTP] = ?, [EmailUsername] = ?, [EmailPassword] = ?, [EmailTemplate] = ?;",
 
 		// Searches
 
@@ -885,16 +885,18 @@ func (c *Calls) SetEventFinals(e EventFinals, _ *struct{}) error {
 }
 
 type Settings struct {
-	Port, Unassigned                           uint16
-	TMUseNumber                                bool
-	TMUsername, TMPassword, TMTemplate, TMFrom string
-	VATPercent, AdminPercent                   float64
-	UploadCalendar                             bool
-	AlarmTime                                  int
+	Port, Unassigned                                       uint16
+	TMUseNumber                                            bool
+	TMUsername, TMPassword, TMTemplate, TMFrom             string
+	VATPercent, AdminPercent                               float64
+	UploadCalendar                                         bool
+	AlarmTime                                              int
+	InvoiceHeader                                          string
+	EmailSMTP, EmailUsername, EmailPassword, EmailTemplate string
 }
 
 func (c *Calls) GetSettings(_ struct{}, s *Settings) error {
-	return c.statements[GetSettings].QueryRow().Scan(&s.TMUsername, &s.TMPassword, &s.TMTemplate, &s.TMUseNumber, &s.TMFrom, &s.VATPercent, &s.AdminPercent, &s.Port, &s.Unassigned, &s.AlarmTime)
+	return c.statements[GetSettings].QueryRow().Scan(&s.TMUsername, &s.TMPassword, &s.TMTemplate, &s.TMUseNumber, &s.TMFrom, &s.VATPercent, &s.AdminPercent, &s.Port, &s.Unassigned, &s.AlarmTime, &s.InvoiceHeader, &s.EmailSMTP, &s.EmailUsername, &s.EmailPassword, &s.EmailTemplate)
 }
 
 func (c *Calls) SetSettings(s Settings, errStr *string) error {
@@ -902,7 +904,10 @@ func (c *Calls) SetSettings(s Settings, errStr *string) error {
 		*errStr = err.Error()
 		return nil
 	}
-	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.VATPercent, s.AdminPercent, s.Port, s.Unassigned, s.AlarmTime)
+	if err := setEmailVars(s.EmailSMTP, s.EmailUsername, s.EmailPassword, s.EmailTemplate); err != nil {
+		*errStr = err.Error()
+	}
+	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.VATPercent, s.AdminPercent, s.Port, s.Unassigned, s.AlarmTime, s.InvoiceHeader, s.EmailSMTP, s.EmailUsername, s.EmailPassword, s.EmailTemplate)
 	return err
 }
 
