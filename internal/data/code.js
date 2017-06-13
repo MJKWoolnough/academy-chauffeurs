@@ -246,7 +246,13 @@ window.addEventListener("load", function(oldDate) {
 			    admin = addFormElement("Admin Cost (%)", "text", "admin", s.AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
 			    unass = addFormElement("Unassigned events warning (days)", "text", "uass", s.Unassigned, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
 			    alarmTime = addFormElement("Calendar Export Alarm Time (m)", "text", "alarmTime", s.AlarmTime, regexpCheck(/^-?[0-9]+$/, "Please enter a valid integer")),
-			    serverPort = addFormElement("Server Port", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer"));
+			    serverPort = addFormElement("Server Port", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
+			    invoiceHeader = addFormElement("Invoice Header", "text", "invoiceHeader", s.InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header")),
+			    emailSMTP = addFormElement("SMTP Server", "text", "smtpServer", s.EmailSMTP, regexpCheck(/.*/, "Please enter a valid SMTP server")),
+			    emailUsername = addFormElement("Email Username", "text", "invoiceHeader", s.EmailUsername, regexpCheck(/.*/, "Please enter a valid Email Username")),
+			    emailPassword = addFormElement("Email Password", "password", "invoiceHeader", s.EmailPassword, regexpCheck(/.*/, "Please enter a valid Email Password")),
+			    emailTemplate = addFormElement("Email Template", "text", "invoiceHeader", s.EmailTemplate, regexpCheck(/.*/, "Please enter a valid Email Template"));
+
 			useNumber[0].addEventListener("change", function() {
 				if (useNumber[0].checked) {
 					senderID[0].value = s.TMFrom;
@@ -276,6 +282,11 @@ window.addEventListener("load", function(oldDate) {
 				s.Unassigned = parseInt(unass[0].value);
 				s.Port = parseInt(serverPort[0].value);
 				s.AlarmTime = parseInt(alarmTime[0].value);
+				s.InvoiceHeader = invoiceHeader[0].value;
+				s.EmailSMTP = emailSMTP[0].value;
+				s.EmailUsername = emailUsername[0].value;
+				s.EmailPassword = emailPassword[0].value;
+				s.EmailTempalte = emailTemplate[0].value;
 				rpc.setSettings(s, function(templateError) {
 					if (templateError === "") {
 						window.location.search = '';
