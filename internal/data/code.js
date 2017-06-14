@@ -286,7 +286,7 @@ window.addEventListener("load", function(oldDate) {
 				s.EmailSMTP = emailSMTP[0].value;
 				s.EmailUsername = emailUsername[0].value;
 				s.EmailPassword = emailPassword[0].value;
-				s.EmailTempalte = emailTemplate[0].value;
+				s.EmailTemplate = emailTemplate[0].value;
 				rpc.setSettings(s, function(templateError) {
 					if (templateError === "") {
 						window.location.search = '';
