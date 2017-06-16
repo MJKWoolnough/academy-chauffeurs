@@ -45,6 +45,7 @@ func upgradeDB(db *sql.DB) error {
 			"ALTER TABLE [Event] ADD [InvoiceTo] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Driver] ADD [Pos] INTEGER;",
 			"ALTER TABLE [Driver] ADD [Show] BOOLEAN NOT NULL DEFAULT TRUE;",
+			"ALTER TABLE [Client] ADD [Email] TEXT NOT NULL DEFAULT '';",
 		); err != nil {
 			return err
 		}
