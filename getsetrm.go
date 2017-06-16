@@ -19,7 +19,7 @@ func (c *Calls) GetDriver(id int64, d *Driver) error {
 func (c *Calls) GetClient(id int64, cl *Client) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadClient].QueryRow(id).Scan(&(*cl).CompanyID, &(*cl).Name, &(*cl).PhoneNumber, &(*cl).Reference)
+	err := c.statements[ReadClient].QueryRow(id).Scan(&(*cl).CompanyID, &(*cl).Name, &(*cl).PhoneNumber, &(*cl).Reference, &(*cl).Email)
 	if err == sql.ErrNoRows {
 		return nil
 	}
@@ -87,9 +87,9 @@ func (c *Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
 }
 
 type SetClientResponse struct {
-	Errors                                              bool
-	ID                                                  int64
-	NameError, CompanyError, PhoneError, ReferenceError string
+	Errors                                                          bool
+	ID                                                              int64
+	NameError, CompanyError, PhoneError, ReferenceError, EmailError string
 }
 
 func (c *Calls) SetClient(cl Client, resp *SetClientResponse) error {
@@ -123,14 +123,14 @@ func (c *Calls) SetClient(cl Client, resp *SetClientResponse) error {
 		c.mu.Lock()
 		defer c.mu.Unlock()
 		if cl.ID == 0 {
-			r, e := c.statements[CreateClient].Exec(cl.CompanyID, cl.Name, cl.PhoneNumber, cl.Reference)
+			r, e := c.statements[CreateClient].Exec(cl.CompanyID, cl.Name, cl.PhoneNumber, cl.Reference, cl.Email)
 			if e == nil {
 				resp.ID, e = r.LastInsertId()
 			}
 			err = e
 		} else {
 			resp.ID = cl.ID
-			_, err = c.statements[UpdateClient].Exec(cl.CompanyID, cl.Name, cl.PhoneNumber, cl.Reference, cl.ID)
+			_, err = c.statements[UpdateClient].Exec(cl.CompanyID, cl.Name, cl.PhoneNumber, cl.Reference, cl.Email, cl.ID)
 		}
 	}
 	return err
