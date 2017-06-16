@@ -26,8 +26,8 @@ type Company struct {
 }
 
 type Client struct {
-	ID, CompanyID                int64
-	Name, PhoneNumber, Reference string
+	ID, CompanyID                       int64
+	Name, PhoneNumber, Reference, Email string
 }
 
 type Event struct {
@@ -169,7 +169,7 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		"SELECT [Name], [RegistrationNumber], [PhoneNumber], [Pos], [Show] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Name], [Address], [Colour] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
-		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference], [Email] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[ClientRef], [Event].[InvoiceNote], [Event].[InvoiceFrom], [Event].[InvoiceTo], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
 		"SELECT [FinalsSet], [InCar], [Parking], [Waiting], [Drop], [Miles], [Trip], [DriverHours], [Price], [Sub] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [ID] FROM [FromAddresses] WHERE [Address] = ?;",
