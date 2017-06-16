@@ -48,6 +48,10 @@ func setMessageVars(username, password, messageTemplate, fromS string, fromNumbe
 }
 
 func (c *Calls) PrepareMessage(eventID int64, m *MessageData) error {
+	return c.prepareMessage(compiledTemplate, eventID, m)
+}
+
+func (c *Calls) prepareMessage(ct *template.Template, eventID int64, m *MessageData) error {
 	var (
 		event  Event
 		driver Driver
@@ -84,7 +88,7 @@ func (c *Calls) PrepareMessage(eventID int64, m *MessageData) error {
 		driver.PhoneNumber,
 		driver.RegistrationNumber,
 	}
-	err = compiledTemplate.Execute(memio.Create(&buf), data)
+	err = ct.Execute(memio.Create(&buf), data)
 	if err != nil {
 		return err
 	}
