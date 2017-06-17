@@ -1,9 +1,11 @@
 package main
 
 import (
-	"html/template"
+	"crypto/tls"
+	"net"
 	"net/smtp"
 	"net/url"
+	"text/template"
 )
 
 const DefaultEmailTemplate = ``
@@ -15,13 +17,13 @@ var (
 	emailAuth             smtp.Auth
 )
 
-func setEmailVars(server, username, password, template string) error {
+func setEmailVars(server, username, password, templateT string) error {
 	// smtp://host:port or smtps://host:port for TLS
 	u, err := url.Parse(server)
 	if err != nil {
 		return err
 	}
-	t, err := template.New("email").Parse(template)
+	t, err := template.New("email").Parse(templateT)
 	if err != nil {
 		return err
 	}
@@ -30,9 +32,53 @@ func setEmailVars(server, username, password, template string) error {
 	if p := u.Port(); p == "" {
 		emailServer = u.Hostname() + ":25"
 	} else {
-		emailTLS = u.Hostname() + ":" + p
+		emailServer = u.Hostname() + ":" + p
 	}
 	emailTLS = u.Scheme == "smtps"
 	emailAuth = smtp.PlainAuth("", username, password, u.Host)
+	return nil
+}
+
+func (c *Calls) PrepareEmail(eventID int64, md *MessageData) error {
+	return c.prepareMessage(compiledEmailTemplate, eventID, md)
+}
+
+func (c *Calls) SendEmail(md MessageData, e *string) error {
+	var (
+		event  Event
+		client Client
+	)
+	err := c.GetEvent(md.ID, &event)
+	if err != nil {
+		return err
+	}
+	err = c.GetClient(event.ClientID, &client)
+	if err != nil {
+		return err
+	}
+	var conn net.Conn
+	if emailTLS {
+		conn, err = tls.Dial("tcp", emailServer, nil)
+	} else {
+		conn, err = net.Dial("tcp", emailServer)
+	}
+	if err != nil {
+		return err
+	}
+	cl, err := smtp.NewClient(conn, emailServer)
+	err = cl.Auth(emailAuth)
+	err = cl.Mail(client.Email)
+	wr, err := cl.Data()
+	_, err = wr.Write([]byte(md.Message))
+	err = wr.Close()
+	err = cl.Quit()
+	if err != nil {
+		*e = err.Error()
+	} else {
+		_, err = c.statements[MessageSent].Exec(md.ID)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
