@@ -66,12 +66,24 @@ func (c *Calls) SendEmail(md MessageData, e *string) error {
 		return err
 	}
 	cl, err := smtp.NewClient(conn, emailServer)
-	err = cl.Auth(emailAuth)
-	err = cl.Mail(client.Email)
-	wr, err := cl.Data()
-	_, err = wr.Write([]byte(md.Message))
-	err = wr.Close()
-	err = cl.Quit()
+	if err == nil {
+		err = cl.Auth(emailAuth)
+		if err == nil {
+			err = cl.Mail(client.Email)
+			if err == nil {
+				wr, err := cl.Data()
+				if err == nil {
+					_, err = wr.Write([]byte(md.Message))
+					if err == nil {
+						err = wr.Close()
+						if err == nil {
+							err = cl.Quit()
+						}
+					}
+				}
+			}
+		}
+	}
 	if err != nil {
 		*e = err.Error()
 	} else {
