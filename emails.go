@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/smtp"
 	"net/url"
+	"strings"
 	"text/template"
 )
 
@@ -44,6 +45,25 @@ func (c *Calls) PrepareEmail(eventID int64, md *MessageData) error {
 }
 
 func (c *Calls) SendEmail(md MessageData, e *string) error {
+	message := md.Message
+	headers := make([]byte, 0, len(message)+3)
+	for {
+		i := strings.Index(message, "\n")
+		line := message[:i]
+		message = message[i+1:]
+		line = strings.TrimRight(line, "\r")
+		if line == "" {
+			headers = append(headers, "\r\n"...)
+			break
+		}
+		i = strings.Index(line, ":")
+		if i > 0 && len(line) > i+1 && line[:i] == "Subject" {
+			headers = append(headers, "Subject: "...)
+			headers = append(headers, strings.TrimSpace(line[i+1:])...)
+			headers = append(headers, "\r\n"...)
+		}
+	}
+
 	var (
 		event  Event
 		client Client
@@ -73,7 +93,7 @@ func (c *Calls) SendEmail(md MessageData, e *string) error {
 			if err == nil {
 				wr, err := cl.Data()
 				if err == nil {
-					_, err = wr.Write([]byte(md.Message))
+					_, err = wr.Write(append(headers, md.Message...))
 					if err == nil {
 						err = wr.Close()
 						if err == nil {
