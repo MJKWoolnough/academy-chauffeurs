@@ -249,9 +249,9 @@ window.addEventListener("load", function(oldDate) {
 			    serverPort = addFormElement("Server Port", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
 			    invoiceHeader = addFormElement("Invoice Header", "text", "invoiceHeader", s.InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header")),
 			    emailSMTP = addFormElement("SMTP Server", "text", "smtpServer", s.EmailSMTP, regexpCheck(/.*/, "Please enter a valid SMTP server")),
-			    emailUsername = addFormElement("Email Username", "text", "invoiceHeader", s.EmailUsername, regexpCheck(/.*/, "Please enter a valid Email Username")),
-			    emailPassword = addFormElement("Email Password", "password", "invoiceHeader", s.EmailPassword, regexpCheck(/.*/, "Please enter a valid Email Password")),
-			    emailTemplate = addFormElement("Email Template", "text", "invoiceHeader", s.EmailTemplate, regexpCheck(/.*/, "Please enter a valid Email Template"));
+			    emailUsername = addFormElement("Email Username", "text", "emailUsername", s.EmailUsername, regexpCheck(/.*/, "Please enter a valid Email Username")),
+			    emailPassword = addFormElement("Email Password", "password", "emailPassword", s.EmailPassword, regexpCheck(/.*/, "Please enter a valid Email Password")),
+			    emailTemplate = addFormElement("Email Template", "textarea", "emailTemplate", s.EmailTemplate, regexpCheck(/.*/, "Please enter a valid Email Template"));
 
 			useNumber[0].addEventListener("change", function() {
 				if (useNumber[0].checked) {
