@@ -79,6 +79,7 @@ window.addEventListener("load", function(oldDate) {
 		this.clients                   = request.bind(this, "Clients", null);          //              callback
 		this.unsentMessages            = request.bind(this, "UnsentMessages", null);   //              callback
 		this.prepareMessage            = request.bind(this, "PrepareMessage");         // id         , callback
+		this.prepareEmail              = request.bind(this, "PrepareEmail");           // id         , callback
 		this.sendMessage               = request.bind(this, "SendMessage");            // messageData, callback
 		this.clientsForCompany         = request.bind(this, "ClientsForCompany");      // id         , callback
 		this.clientsForCompanies       = request.bind(this, "ClientsForCompanies");    // [ids]      , callback
@@ -2129,7 +2130,7 @@ window.addEventListener("load", function(oldDate) {
 				clientName = row.appendChild(createElement("td")).setInnerText("-");
 				rpc.getClient(events[i].ClientID, function(clientName, eventID, row, client) {
 					clientName.setInnerText(client.Name);
-					row.addEventListener("click", rpc.prepareMessage.bind(null, eventID, makeMessage.bind(null, client)));
+					row.addEventListener("click", prepareMessage.bind(null, eventID, client));
 				}.bind(null, clientName, events[i].ID, row));
 				driverName = row.appendChild(createElement("td")).setInnerText("-");
 				rpc.getDriver(events[i].DriverID, function(driverName, driver) {
@@ -2139,7 +2140,21 @@ window.addEventListener("load", function(oldDate) {
 			stack.setFragment();
 		});
 	},
-	makeMessage = function(client, messageData) {
+	prepareMessage = function(eventID, client) {
+		var textMessageData,
+		    emailMessageData,
+		    wg = new waitGroup(function() {makeMessage(client, textMessageText, emailMessageText);});
+		wg.Add(2);
+		rpc.prepareMessage(eventID, function(messageData) {
+			textMessageData = messageData;
+			wg.Done();
+		});
+		rpc.prepareEmail(eventID, function(messageData) {
+			emailMessageData = messageData;
+			wg.Done();
+		});
+	},
+	makeMessage = function(client, messageData, emailData) {
 		stack.addLayer("makeMessage", function() {
 			stack.removeLayer();
 			messageList();
