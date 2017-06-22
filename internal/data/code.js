@@ -2161,25 +2161,50 @@ window.addEventListener("load", function(oldDate) {
 		});
 		stack.addFragment();
 		layer.appendChild(createElement("h1")).setInnerText("Send Message");
-		addFormElement("Client Name", "text", "", client.Name);
-		addFormElement("Client Number", "text", "", client.PhoneNumber);
-		var message = addFormElement("Message", "textarea", "message", messageData.Message, regexpCheck(/.+/, "Please enter a message")),
-		    submit = addFormSubmit("Send Message", function() {
-			messageData.Message = message[0].value;
-			if (messageData.Message === "") {
-				return;
-			}
-			var elements = [message[0], submit];
-			elements.map(disableElement);
-			rpc.sendMessage(messageData, function(error) {
-				if (typeof error === "string" && error.length > 0) {
-					elements.map(enableElement);
-					message[1].setInnerText(error);
-				} else {
-					stack.removeLayer();
-				}
-			});
-		});
+		layer.appendChild(makeTabs(
+			[ "Text Message", function() {
+				addFormElement("Client Name", "text", "", client.Name);
+				addFormElement("Client Number", "text", "", client.PhoneNumber);
+				var message = addFormElement("Message", "textarea", "message", messageData.Message, regexpCheck(/.+/, "Please enter a message")),
+				    submit = addFormSubmit("Send Message", function() {
+					messageData.Message = message[0].value;
+					if (messageData.Message === "") {
+						return;
+					}
+					var elements = [message[0], submit];
+					elements.map(disableElement);
+					rpc.sendMessage(messageData, function(error) {
+						if (typeof error === "string" && error.length > 0) {
+							elements.map(enableElement);
+							message[1].setInnerText(error);
+						} else {
+							stack.removeLayer();
+						}
+					});
+				});
+			}],
+			[ "Email", function() {
+				addFormElement("Client Name", "text", "", client.Name);
+				addFormElement("Client Email", "text", "", client.Email);
+				var message = addFormElement("Message", "textarea", "message", emailData.Message, regexpCheck(/.+/, "Please enter a message")),
+				    submit = addFormSubmit("Send Message", function() {
+					emailData.Message = message[0].value;
+					if (emailData.Message === "") {
+						return;
+					}
+					var elements = [message[0], submit];
+					elements.map(disableElement);
+					rpc.sendEmail(emailData, function(error) {
+						if (typeof error === "string" && error.length > 0) {
+							elements.map(enableElement);
+							message[1].setInnerText(error);
+						} else {
+							stack.removeLayer();
+						}
+					});
+				});
+			}]
+		));
 		stack.setFragment();
 	},
 	addFormElement = function(name, type, id, contents, onBlur) {
