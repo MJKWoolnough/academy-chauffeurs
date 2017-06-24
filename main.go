@@ -8,34 +8,14 @@ import (
 	"net/rpc/jsonrpc"
 	"os"
 	"os/signal"
-	"sync"
 
 	"github.com/MJKWoolnough/httpdir"
 
 	"golang.org/x/net/websocket"
 )
 
-var (
-	lock sync.Mutex
-	quit = make(chan struct{})
-)
-
 func rpcHandler(conn *websocket.Conn) {
-	lock.Lock()
-	close(quit)
-	quit = make(chan struct{})
-	myQuit := quit
-	lock.Unlock()
-	done := make(chan struct{})
-	go func() {
-		select {
-		case <-myQuit:
-			conn.WriteClose(4000)
-		case <-done:
-		}
-	}()
 	jsonrpc.ServeConn(conn)
-	close(done)
 }
 
 var dir http.FileSystem = httpdir.Default
