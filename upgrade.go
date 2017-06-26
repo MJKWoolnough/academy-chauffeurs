@@ -46,7 +46,7 @@ func upgradeDB(db *sql.DB) error {
 			"ALTER TABLE [Driver] ADD [Pos] INTEGER;",
 			"ALTER TABLE [Driver] ADD [Show] BOOLEAN NOT NULL DEFAULT TRUE;",
 			"ALTER TABLE [Client] ADD [Email] TEXT NOT NULL DEFAULT '';",
-			"CREATE TABLE [Users]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Username] TEXT, [Password] TEXT);",
+			"CREATE TABLE [Users]([Username] TEXT, [Password] TEXT);",
 			"INSERT INTO [Users]([Username], [Password]) VALUES (\"Admin\", \"PASSWORD\");",
 		); err != nil {
 			return err
