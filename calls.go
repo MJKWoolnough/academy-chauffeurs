@@ -899,11 +899,16 @@ type EventFinals struct {
 }
 
 func (c *Calls) GetEventFinals(id int64, e *EventFinals) error {
-	return c.statements[ReadEventFinals].QueryRow(id).Scan(&e.FinalsSet, &e.InCar, &e.Parking, &e.Waiting, &e.Drop, &e.Miles, &e.Trip, &e.DriverHours, &e.Price, &e.Sub)
+	c.mu.Lock()
+	err := c.statements[ReadEventFinals].QueryRow(id).Scan(&e.FinalsSet, &e.InCar, &e.Parking, &e.Waiting, &e.Drop, &e.Miles, &e.Trip, &e.DriverHours, &e.Price, &e.Sub)
+	c.mu.Unlock()
+	return err
 }
 
 func (c *Calls) SetEventFinals(e EventFinals, _ *struct{}) error {
+	c.mu.Lock()
 	_, err := c.statements[UpdateEventFinals].Exec(e.InCar, e.Parking, e.Waiting, e.Drop, e.Miles, e.Trip, e.DriverHours, e.Price, e.Sub, e.ID)
+	c.mu.Unlock()
 	return err
 }
 
@@ -935,11 +940,16 @@ func (c *Calls) SetSettings(s Settings, errStr *string) error {
 }
 
 func (c *Calls) CompanyColour(clientID int64, colour *uint32) error {
-	return c.statements[CompanyColourFromClient].QueryRow(clientID).Scan(colour)
+	c.mu.Lock()
+	err := c.statements[CompanyColourFromClient].QueryRow(clientID).Scan(colour)
+	c.mu.Unlock()
+	return err
 }
 
 func (c *Calls) FirstUnassigned(_ struct{}, t *int64) error {
+	c.mu.Lock()
 	err := c.statements[FirstUnassigned].QueryRow().Scan(t)
+	c.mu.Unlock()
 	if err != sql.ErrNoRows {
 		return err
 	}
@@ -947,12 +957,17 @@ func (c *Calls) FirstUnassigned(_ struct{}, t *int64) error {
 }
 
 func (c *Calls) UnassignedCount(_ struct{}, n *uint64) error {
-	return c.statements[UnassignedCount].QueryRow().Scan(n)
+	c.mu.Lock()
+	err := c.statements[UnassignedCount].QueryRow().Scan(n)
+	c.mu.Unlock()
+	return err
 }
 
 func (c *Calls) getPort() (uint16, error) {
 	var port uint16
+	c.mu.Lock()
 	err := c.db.QueryRow("SELECT [Port] FROM [Settings];").Scan(&port)
+	c.mu.Unlock()
 	return port, err
 }
 
