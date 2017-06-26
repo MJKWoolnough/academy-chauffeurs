@@ -111,6 +111,10 @@ const (
 	UnassignedCount
 	FirstUnassigned
 
+	GetUsers
+	AddUser
+	UpdateUser
+
 	TotalStmts
 )
 
@@ -280,6 +284,11 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT COUNT(1) FROM [Event] WHERE [DriverID] = 0 AND [Deleted] = 0;",
 
 		"SELECT [Start] FROM [Event] WHERE [DriverID] = 0 AND [Deleted] = 0 ORDER BY [Start] ASC LIMIT 1;",
+
+		// Users
+		"SELECT [Username], [Password] FROM [Users];",
+		"INSERT INTO [Users]([Username], [Password]) VALUES (?, ?);",
+		"UPDATE [Users] SET [Password] = ? WHERE [Username] = ?;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
