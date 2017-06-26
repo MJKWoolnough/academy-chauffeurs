@@ -298,7 +298,7 @@ func newCalls(dbFName string) (*Calls, error) {
 	}
 
 	count := 0
-	err = db.QueryRow("SELECT COUNT(1) FROM [Settings]").Scan(&count)
+	err = db.QueryRow("SELECT COUNT(1) FROM [Settings];").Scan(&count)
 	if err != nil {
 		return nil, err
 	} else if count == 0 {
@@ -317,6 +317,20 @@ func newCalls(dbFName string) (*Calls, error) {
 			return nil, err
 		}
 		setMessageVars(username, password, text, from, useNumber)
+	}
+	users, err := c.statements[GetUsers].Query()
+	if err != nil {
+		return nil, err
+	}
+	for users.Next() {
+		var username, password string
+		if err = users.Scan(&username, &password); err != nil {
+			return nil, err
+		}
+		authMap.Set(username, password)
+	}
+	if err = users.Close(); err != nil {
+		return nil, err
 	}
 
 	err = rpc.Register(c)
@@ -940,4 +954,29 @@ func (c *Calls) getPort() (uint16, error) {
 	var port uint16
 	err := c.db.QueryRow("SELECT [Port] FROM [Settings];").Scan(&port)
 	return port, err
+}
+
+func (c *Calls) GetUsers(_ struct{}, u *map[string]uint) error {
+	users := make(map[string]uint)
+	for username, password := range authMap.users {
+		users[username] = uint(len(password))
+	}
+	*u = users
+	return nil
+}
+
+type UsernamePassword struct {
+	Username, Password string
+}
+
+func (c *Calls) SetUser(up UsernamePassword, _ *struct{}) error {
+	var err error
+	c.mu.Lock()
+	if authMap.Set(up.Username, up.Password) {
+		_, err = c.statements[UpdateUser].Exec(up.Password, up.Username)
+	} else {
+		_, err = c.statements[AddUser].Exec(up.Username, up.Password)
+	}
+	c.mu.Unlock()
+	return err
 }
