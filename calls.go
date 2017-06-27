@@ -114,6 +114,7 @@ const (
 	GetUsers
 	AddUser
 	UpdateUser
+	DeleteUser
 
 	TotalStmts
 )
@@ -289,6 +290,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [Username], [Password] FROM [Users];",
 		"INSERT INTO [Users]([Username], [Password]) VALUES (?, ?);",
 		"UPDATE [Users] SET [Password] = ? WHERE [Username] = ?;",
+		"DELETE FROM [Users] WHERE [Username] = ?;",
 	} {
 		stmt, err := db.Prepare(ps)
 		if err != nil {
@@ -992,6 +994,14 @@ func (c *Calls) SetUser(up UsernamePassword, _ *struct{}) error {
 	} else {
 		_, err = c.statements[AddUser].Exec(up.Username, up.Password)
 	}
+	c.mu.Unlock()
+	return err
+}
+
+func (c *Calls) RemoveUser(username string, _ *struct{}) error {
+	authMap.RemoveUser(username)
+	c.mu.Lock()
+	_, err := c.statements[RemoveUser].Exec(username)
 	c.mu.Unlock()
 	return err
 }
