@@ -33,6 +33,12 @@ func (a *AuthMap) Check(username, password string) bool {
 	return ok && password == p
 }
 
+func (a *AuthMap) Remove(username string) {
+	a.Lock()
+	delete(a.users, username)
+	a.Unlock()
+}
+
 type authServeMux struct {
 	http.ServeMux
 }
