@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha1"
 	"database/sql"
 	"errors"
 	"net/rpc"
@@ -114,7 +115,7 @@ const (
 	GetUsers
 	AddUser
 	UpdateUser
-	DeleteUser
+	RemoveUser
 
 	TotalStmts
 )
@@ -325,8 +326,12 @@ func newCalls(dbFName string) (*Calls, error) {
 		return nil, err
 	}
 	for users.Next() {
-		var username, password string
-		if err = users.Scan(&username, &password); err != nil {
+		var (
+			username string
+			password [sha1.Size]byte
+		)
+		pwd := password[:]
+		if err = users.Scan(&username, &pwd); err != nil {
 			return nil, err
 		}
 		authMap.Set(username, password)
@@ -973,11 +978,12 @@ func (c *Calls) getPort() (uint16, error) {
 	return port, err
 }
 
-func (c *Calls) GetUsers(_ struct{}, u *map[string]uint) error {
-	users := make(map[string]uint)
-	for username, password := range authMap.users {
-		users[username] = uint(len(password))
+func (c *Calls) GetUsers(_ struct{}, u *[]string) error {
+	users := make([]string, 0, len(authMap.users))
+	for username := range authMap.users {
+		users = append(users, username)
 	}
+	sort.Strings(users)
 	*u = users
 	return nil
 }
@@ -988,18 +994,19 @@ type UsernamePassword struct {
 
 func (c *Calls) SetUser(up UsernamePassword, _ *struct{}) error {
 	var err error
+	password := sha1.Sum([]byte(up.Password))
 	c.mu.Lock()
-	if authMap.Set(up.Username, up.Password) {
-		_, err = c.statements[UpdateUser].Exec(up.Password, up.Username)
+	if authMap.Set(up.Username, password) {
+		_, err = c.statements[UpdateUser].Exec(password, up.Username)
 	} else {
-		_, err = c.statements[AddUser].Exec(up.Username, up.Password)
+		_, err = c.statements[AddUser].Exec(up.Username, password)
 	}
 	c.mu.Unlock()
 	return err
 }
 
 func (c *Calls) RemoveUser(username string, _ *struct{}) error {
-	authMap.RemoveUser(username)
+	authMap.Remove(username)
 	c.mu.Lock()
 	_, err := c.statements[RemoveUser].Exec(username)
 	c.mu.Unlock()

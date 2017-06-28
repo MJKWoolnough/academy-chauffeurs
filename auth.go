@@ -1,24 +1,25 @@
 package main
 
 import (
+	"crypto/sha1"
 	"net/http"
 	"sync"
 )
 
 type AuthMap struct {
 	sync.RWMutex
-	users map[string]string
+	users map[string][sha1.Size]byte
 }
 
 var authMap AuthMap
 
 func init() {
-	authMap.users = make(map[string]string)
+	authMap.users = make(map[string][sha1.Size]byte)
 }
 
 // Set sets the password for the given username. Returns true if the user
 // already exits.
-func (a *AuthMap) Set(username, password string) bool {
+func (a *AuthMap) Set(username string, password [sha1.Size]byte) bool {
 	a.Lock()
 	_, ok := a.users[username]
 	a.users[username] = password
@@ -27,10 +28,11 @@ func (a *AuthMap) Set(username, password string) bool {
 }
 
 func (a *AuthMap) Check(username, password string) bool {
+	pwd := sha1.Sum([]byte(password))
 	a.RLock()
 	p, ok := a.users[username]
 	a.RUnlock()
-	return ok && password == p
+	return ok && pwd == p
 }
 
 func (a *AuthMap) Remove(username string) {
