@@ -47,7 +47,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		a.Trigger.Duration = &ics.Duration{Minutes: uint(alarmTime)}
 	}
 	alarm := []ics.Alarm{{&a}}
-	cal.ProductID = "Academy Chauffeurs 1.0"
+	cal.ProductID = "Academy Chauffeurs 1.1"
 	cal.Version = "2.0"
 	n := now()
 	rows, err := c.statements[CalendarData].Query((n - 3600*24*30*6) * 1000)
@@ -58,11 +58,11 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	cal.Event = make([]ics.Event, 0, 1024)
 	for rows.Next() {
 		var (
-			id, start, end, created, updated                  int64
-			from, to, client, company, driverStr, phoneNumber string
-			driver                                            sql.NullString
+			id, start, end, created, updated                        int64
+			from, to, client, company, driverStr, phoneNumber, note string
+			driver                                                  sql.NullString
 		)
-		err := rows.Scan(&id, &start, &end, &from, &to, &created, &updated, &driver, &client, &company, &phoneNumber)
+		err := rows.Scan(&id, &start, &end, &from, &to, &created, &updated, &note, &driver, &client, &company, &phoneNumber)
 		if err != nil {
 			return nil, err
 		}
@@ -97,6 +97,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		ev.Summary = &ics.PropSummary{Text: ics.Text(driverStr + " - " + client + " (" + company + ")")}
 		ev.Alarm = alarm
 		ev.Contact = []ics.PropContact{{Text: ics.Text(client + ", " + company + " - " + phoneNumber)}}
+		ev.Comment = []ics.PropComment{{Text: ics.Text(notes)}}
 		cal.Event = append(cal.Event, ev)
 	}
 	return &cal, nil

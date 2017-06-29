@@ -280,7 +280,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [AlarmTime] FROM [Settings];",
 
 		// All event data for calendar output
-		"SELECT [Event].[ID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address], [Event].[Created], [Event].[Updated], [Driver].[Name], [Client].[Name], [Company].[Name], [Client].[PhoneNumber] FROM [Event] LEFT JOIN [Driver] ON ([Driver].[ID] = [Event].[DriverID]) LEFT JOIN [Client] ON ([Client].ID = [Event].[ClientID]) LEFT JOIN [Company] ON ([Company].ID = [Client].[CompanyID]) LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[Start] > ? AND [Event].[Deleted] = 0;",
+		"SELECT [Event].[ID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address], [Event].[Created], [Event].[Updated], [Event].[Note], [Driver].[Name], [Client].[Name], [Company].[Name], [Client].[PhoneNumber] FROM [Event] LEFT JOIN [Driver] ON ([Driver].[ID] = [Event].[DriverID]) LEFT JOIN [Client] ON ([Client].ID = [Event].[ClientID]) LEFT JOIN [Company] ON ([Company].ID = [Client].[CompanyID]) LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[Start] > ? AND [Event].[Deleted] = 0;",
 
 		// Unassigned events
 		"SELECT COUNT(1) FROM [Event] WHERE [DriverID] = 0 AND [Deleted] = 0;",
