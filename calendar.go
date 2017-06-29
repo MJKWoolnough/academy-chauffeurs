@@ -58,13 +58,17 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	cal.Event = make([]ics.Event, 0, 1024)
 	for rows.Next() {
 		var (
-			id, start, end, created, updated                        int64
-			from, to, client, company, driverStr, phoneNumber, note string
-			driver                                                  sql.NullString
+			id, start, end, created, updated                               int64
+			from, to, client, company, driverStr, phoneNumber, note, other string
+			driver                                                         sql.NullString
 		)
-		err := rows.Scan(&id, &start, &end, &from, &to, &created, &updated, &note, &driver, &client, &company, &phoneNumber)
+		err := rows.Scan(&id, &start, &end, &from, &to, &created, &updated, &note, &other, &driver, &client, &company, &phoneNumber)
 		if err != nil {
 			return nil, err
+		}
+		client2 := client
+		if other != "" {
+			client2 += " + " + other
 		}
 		from = strings.Replace(from, "\n", " ", -1)
 		to = strings.Replace(to, "\n", " ", -1)
@@ -93,7 +97,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		}
 		ev.Duration = &ics.PropDuration{Days: days, Hours: hours, Minutes: mins}
 		ev.Location = &ics.PropLocation{Text: ics.Text(from)}
-		ev.Description = &ics.PropDescription{Text: ics.Text(driverStr + " - " + client + " (" + company + ") - " + from + " -> " + to + " - " + phoneNumber)}
+		ev.Description = &ics.PropDescription{Text: ics.Text(driverStr + " - " + client2 + " (" + company + ") - " + from + " -> " + to + " - " + phoneNumber)}
 		ev.Summary = &ics.PropSummary{Text: ics.Text(driverStr + " - " + client + " (" + company + ")")}
 		ev.Alarm = alarm
 		ev.Contact = []ics.PropContact{{Text: ics.Text(client + ", " + company + " - " + phoneNumber)}}

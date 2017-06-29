@@ -34,7 +34,7 @@ type Client struct {
 type Event struct {
 	ID, DriverID, ClientID                         int64
 	Start, End                                     int64
-	From, To                                       string
+	Other, From, To                                string
 	MessageSent                                    bool
 	ClientRef, InvoiceNote, InvoiceFrom, InvoiceTo string
 }
@@ -176,7 +176,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [Name], [RegistrationNumber], [PhoneNumber], [Pos], [Show] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Name], [Address], [Colour] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference], [Email] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
-		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[ClientRef], [Event].[InvoiceNote], [Event].[InvoiceFrom], [Event].[InvoiceTo], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
+		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[ClientRef], [Event].[InvoiceNote], [Event].[InvoiceFrom], [Event].[InvoiceTo], [Event].[Other], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
 		"SELECT [FinalsSet], [InCar], [Parking], [Waiting], [Drop], [Miles], [Trip], [DriverHours], [Price], [Sub] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [ID] FROM [FromAddresses] WHERE [Address] = ?;",
 		"SELECT [ID] FROM [ToAddresses] WHERE [Address] = ?;",
@@ -185,8 +185,8 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		"UPDATE [Driver] SET [Name] = ?, [RegistrationNumber] = ?, [PhoneNumber] = ? WHERE [ID] = ?;",
 		"UPDATE [Company] SET [Name] = ?, [Address] = ?, [Colour] = ? WHERE [ID] = ?;",
-		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ? WHERE [ID] = ?;",
-		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ?, [Updated] = ? WHERE [ID] = ?;",
+		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ?, [Email] = ? WHERE [ID] = ?;",
+		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ?, [Other] = ?, [Updated] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [FinalsSet] = 1, [InCar] = ?, [Parking] = ?, [Waiting] = ?, [Drop] = ?, [Miles] = ?, [Trip] = ?, [DriverHours] = ?, [Price] = ?, [Sub] = ? WHERE [ID] = ?;",
 
 		// Delete (set deleted)
@@ -280,7 +280,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [AlarmTime] FROM [Settings];",
 
 		// All event data for calendar output
-		"SELECT [Event].[ID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address], [Event].[Created], [Event].[Updated], [Event].[Note], [Driver].[Name], [Client].[Name], [Company].[Name], [Client].[PhoneNumber] FROM [Event] LEFT JOIN [Driver] ON ([Driver].[ID] = [Event].[DriverID]) LEFT JOIN [Client] ON ([Client].ID = [Event].[ClientID]) LEFT JOIN [Company] ON ([Company].ID = [Client].[CompanyID]) LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[Start] > ? AND [Event].[Deleted] = 0;",
+		"SELECT [Event].[ID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address], [Event].[Created], [Event].[Updated], [Event].[Note], [Event].[Other], [Driver].[Name], [Client].[Name], [Company].[Name], [Client].[PhoneNumber] FROM [Event] LEFT JOIN [Driver] ON ([Driver].[ID] = [Event].[DriverID]) LEFT JOIN [Client] ON ([Client].ID = [Event].[ClientID]) LEFT JOIN [Company] ON ([Company].ID = [Client].[CompanyID]) LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[Start] > ? AND [Event].[Deleted] = 0;",
 
 		// Unassigned events
 		"SELECT COUNT(1) FROM [Event] WHERE [DriverID] = 0 AND [Deleted] = 0;",
