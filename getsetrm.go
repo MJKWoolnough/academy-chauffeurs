@@ -237,11 +237,15 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 		}
 		t := now()
 		if e.ID == 0 {
-			r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, t, t)
-			if er == nil {
-				resp.ID, er = r.LastInsertId()
+			var note string
+			_, err = c.statements[GetClientNote].Exec(e.ClientID)
+			if err == nil {
+				r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, note, t, t)
+				if er == nil {
+					resp.ID, er = r.LastInsertId()
+				}
+				err = er
 			}
-			err = er
 		} else {
 			resp.ID = e.ID
 			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, t, e.ID)

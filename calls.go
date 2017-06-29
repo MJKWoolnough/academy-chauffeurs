@@ -167,7 +167,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"INSERT INTO [Driver]([Name], [RegistrationNumber], [PhoneNumber]) VALUES (?, ?, ?);",
 		"INSERT INTO [Company]([Name], [Address], [Colour]) VALUES (?, ?, ?);",
 		"INSERT INTO [Client]([CompanyID], [Name], [PhoneNumber], [Reference]) VALUES (?, ?, ?, ?);",
-		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To], [Created], [Updated]) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
+		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To], [Note], [Created], [Updated]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
 		"INSERT INTO [FromAddresses]([Address]) VALUES (?);",
 		"INSERT INTO [ToAddresses]([Address]) VALUES (?);",
 
