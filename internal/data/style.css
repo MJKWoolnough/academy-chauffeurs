@@ -81,6 +81,10 @@
 		display : none;
 	}
 
+	div.adder {
+		font-size: 2em;
+	}
+
 	div.adder, input[type=checkbox] {
 		float : left;
 		font-weight : bold;
