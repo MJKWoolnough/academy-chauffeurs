@@ -235,6 +235,22 @@ window.addEventListener("load", function(oldDate) {
 	dateTimeFormat = function(date) {
 		return (new Date(date)).toLocaleString('en-GB');
 	},
+	users = function() {
+		layer.appendChild(createElement("h1")).setInnerText("Users");
+		rpc.getUsers(function(u) {
+			for (var i = 0; i < u.length; i++) {
+				layer.appendChild(createElement("label").setInnerText(u.Username));
+				var password = layer.appendChild(createElement("input")),
+				    change = layer.appendChild(createElement("button").setInnerText("&#x2714;")),
+				    remove = layer.appendChild(createElement("button").setInnerText("X"));
+				layer.appendChild(createElement("br"));
+				password.setAttribute("type", "text");
+				password.setAttribute("class", "password");
+				change.setAttribute("class", "changeUser");
+				remove.setAttribute("class", "removeUser");
+			}
+		});
+	},
 	settings = function() {
 		layer.appendChild(createElement("h1")).setInnerText("Settings");
 		rpc.getSettings(function(s) {
@@ -535,6 +551,9 @@ window.addEventListener("load", function(oldDate) {
 				paramParts = params[i].split("=");
 				if (params[0] === "settings") {
 					settings();
+					return;
+				} else if (params[0] === "users") {
+					users();
 					return;
 				} else if (paramParts.length === 2) {
 					var id = parseInt(paramParts[1]);
