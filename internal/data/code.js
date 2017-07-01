@@ -118,6 +118,8 @@ window.addEventListener("load", function(oldDate) {
 		this.getCompanyColourFromClient = request.bind(this, "CompanyColour");        // clientID, callback
 		this.getFirstUnassigned = request.bind(this, "FirstUnassigned", null); //callback
 		this.getUnassignedCount = request.bind(this, "UnassignedCount", null); //callback
+		this.setUser = request.bind(this, "SetUser"); // {Username, Password}, callback
+		this.removeUser = request.bind(this, "RemoveUser"); // Username, callback
 	})(function() {
 		events.init();	
 	}),
