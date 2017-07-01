@@ -239,16 +239,31 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText("Users");
 		rpc.getUsers(function(u) {
 			for (var i = 0; i < u.length; i++) {
-				layer.appendChild(createElement("label").setInnerText(u.Username));
-				var password = layer.appendChild(createElement("input")),
-				    change = layer.appendChild(createElement("button").setInnerText("&#x2714;")),
-				    remove = layer.appendChild(createElement("button").setInnerText("X"));
-				layer.appendChild(createElement("br"));
+				var username = layer.appendChild(createElement("label").setInnerText(u.Username)),
+				    password = layer.appendChild(createElement("input"));
+				username.setAttribute("for", "user_"+i);
 				password.setAttribute("type", "text");
 				password.setAttribute("class", "password");
-				change.setAttribute("class", "changeUser");
-				remove.setAttribute("class", "removeUser");
+				password.setAttribute("id", "user_"+i);
+				addFormSubmit("&#x2714;", function(username, password) {
+					if (confirm("Are you sure you wish to modify the password for '" + username + "'?")) {
+						rpc.setUser({Username:username, Password: password.value}, window.location.reload.bind(window.location));
+					}
+				}.bind(null, u[i], password));
+				addFormSubmit("X", function(username) {
+					if (confirm("Are you sure you wish to remove user '" + username + "'?")) {
+						rpc.removeUser(username, window.location.reload.bind(window.location));
+					}
+				}.bind(null, u[i]));
+				layer.appendChild(createElement("br"));
 			}
+			addFormSubmit("Add User", function() {
+				var username = prompt("Please enter a username"),
+				    password = prompt("Please enter a password");
+				if (username != "" && password != "") {
+					rpc.setUser({Username: username, Password: password}, window.location.reload.bind(window.location));
+				}
+			});
 		});
 	},
 	settings = function() {
