@@ -2746,6 +2746,7 @@ window.addEventListener("load", function(oldDate) {
 			toPrint.appendChild(createElement("h2")).setInnerText("Event Details").setAttribute("class", "printOnly");
 			toPrint.appendChild(createElement("label")).setInnerText("Client Name");
 			var clientName = toPrint.appendChild(createElement("div")).setInnerText("-"),
+			    clientPhone = toPrint.appendChild(createElement("div")).setInnerText("-"),
 			    clientRef = createElement("div").setInnerText("-"),
 			    companyName = createElement("div").setInnerText("-"),
 			    driverName = createElement("div").setInnerText("-"),
@@ -2851,6 +2852,7 @@ window.addEventListener("load", function(oldDate) {
 			}));*/
 			rpc.getClient(e.ClientID, function(client) {
 				clientName.setInnerText(client.Name);
+				clientPhone.setInnerText(client.PhoneNumber);
 				if (clientRef.innerHTML === "-") {
 					clientRef.setInnerText(client.Reference + "\u00A0");
 				}
