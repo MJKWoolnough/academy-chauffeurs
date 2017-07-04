@@ -2746,7 +2746,7 @@ window.addEventListener("load", function(oldDate) {
 			toPrint.appendChild(createElement("h2")).setInnerText("Event Details").setAttribute("class", "printOnly");
 			toPrint.appendChild(createElement("label")).setInnerText("Client Name");
 			var clientName = toPrint.appendChild(createElement("div")).setInnerText("-"),
-			    clientPhone = toPrint.appendChild(createElement("div")).setInnerText("-"),
+			    clientPhone = createElement("div").setInnerText("-"),
 			    clientRef = createElement("div").setInnerText("-"),
 			    companyName = createElement("div").setInnerText("-"),
 			    driverName = createElement("div").setInnerText("-"),
@@ -2754,8 +2754,12 @@ window.addEventListener("load", function(oldDate) {
 			    invoiceTo = createElement("div").setInnerText("-"),
 			    invoiceFrom = createElement("div").setInnerText("-"),
 			    invoiceNote = createElement("div").setInnerText("-");
+			toPrint.appendChild(createElement("label")).setInnerText("Client Phone Number");
+			toPrint.appendChild(clientPhone);
 			toPrint.appendChild(createElement("label")).setInnerText("Client Reference");
 			toPrint.appendChild(clientRef);
+			toPrint.appendChild(createElement("label")).setInnerText("Other Passengers");
+			toPrint.appendChild(createElement("div").setInnerText(e.Other));
 			toPrint.appendChild(createElement("label")).setInnerText("Company Name");
 			toPrint.appendChild(companyName);
 			toPrint.appendChild(createElement("label")).setInnerText("Driver Name");
@@ -3004,6 +3008,7 @@ window.addEventListener("load", function(oldDate) {
 		var driverTime = addFormElement("End", "text", "", dateTimeFormat(event.End)),
 		    clientID = addFormElement("", "hidden", "", event.ClientID),
 		    clientName = addFormElement("Client Name", "text", "client_name", event.ClientName, regexpCheck(/.+/, "Client Name Required")),
+		    other = addFormElement("Other Passengers", "text", "other", event.Other),
 		    from = addFormElement("From", "textarea", "from", event.From, regexpCheck(/.+/, "From Address Required")),
 		    to = addFormElement("To", "textarea", "to", event.To, regexpCheck(/.+/, "To Address Required"));
 		addLister(clientName[1], function() {
@@ -3029,6 +3034,7 @@ window.addEventListener("load", function(oldDate) {
 			var parts = [this, clientName[0], to[0], from[0]];
 			parts.map(disableElement);
 			event.ClientID = parseInt(clientID.value);
+			event.Other = other[0].value;
 			event.From = from[0].value;
 			event.To = to[0].value;
 			rpc.setEvent(event, function(resp) {
