@@ -329,11 +329,12 @@ func newCalls(dbFName string) (*Calls, error) {
 		var (
 			username string
 			password [sha1.Size]byte
+			pwd      []byte
 		)
-		pwd := password[:]
 		if err = users.Scan(&username, &pwd); err != nil {
 			return nil, err
 		}
+		copy(password[:], pwd)
 		authMap.Set(username, password)
 	}
 	if err = users.Close(); err != nil {
@@ -997,9 +998,9 @@ func (c *Calls) SetUser(up UsernamePassword, _ *struct{}) error {
 	password := sha1.Sum([]byte(up.Password))
 	c.mu.Lock()
 	if authMap.Set(up.Username, password) {
-		_, err = c.statements[UpdateUser].Exec(password, up.Username)
+		_, err = c.statements[UpdateUser].Exec(password[:], up.Username)
 	} else {
-		_, err = c.statements[AddUser].Exec(up.Username, password)
+		_, err = c.statements[AddUser].Exec(up.Username, password[:])
 	}
 	c.mu.Unlock()
 	return err

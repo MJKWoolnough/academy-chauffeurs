@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/sha1"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -48,7 +50,7 @@ func upgradeDB(db *sql.DB) error {
 			"ALTER TABLE [Driver] ADD [Show] BOOLEAN NOT NULL DEFAULT TRUE;",
 			"ALTER TABLE [Client] ADD [Email] TEXT NOT NULL DEFAULT '';",
 			"CREATE TABLE [Users]([Username] TEXT, [Password] BLOB);",
-			"INSERT INTO [Users]([Username], [Password]) VALUES (\"admin\", x'5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8');",
+			"INSERT INTO [Users]([Username], [Password]) VALUES (\"admin\", x'"+fmt.Sprintf("%x", sha1.Sum([]byte("password")))+"');",
 		); err != nil {
 			return err
 		}
