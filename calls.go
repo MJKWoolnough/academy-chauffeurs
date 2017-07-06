@@ -167,7 +167,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"INSERT INTO [Driver]([Name], [RegistrationNumber], [PhoneNumber]) VALUES (?, ?, ?);",
 		"INSERT INTO [Company]([Name], [Address], [Colour]) VALUES (?, ?, ?);",
 		"INSERT INTO [Client]([CompanyID], [Name], [PhoneNumber], [Reference]) VALUES (?, ?, ?, ?);",
-		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To], [Note], [Created], [Updated]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To], [Other], [Note], [Created], [Updated]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
 		"INSERT INTO [FromAddresses]([Address]) VALUES (?);",
 		"INSERT INTO [ToAddresses]([Address]) VALUES (?);",
 
@@ -226,7 +226,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber], [Pos], [Show] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for client
 		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
@@ -496,6 +496,7 @@ func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 			&(*events)[pos].ClientID,
 			&(*events)[pos].Start,
 			&(*events)[pos].End,
+			&(*events)[pos].Other,
 			&(*events)[pos].From,
 			&(*events)[pos].To,
 		}

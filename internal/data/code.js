@@ -2763,7 +2763,7 @@ window.addEventListener("load", function(oldDate) {
 			toPrint.appendChild(createElement("label")).setInnerText("Client Reference");
 			toPrint.appendChild(clientRef);
 			toPrint.appendChild(createElement("label")).setInnerText("Other Passengers");
-			toPrint.appendChild(createElement("div").setInnerText(e.Other));
+			toPrint.appendChild(createElement("div").setInnerText(e.Other + "\u00A0"));
 			toPrint.appendChild(createElement("label")).setInnerText("Company Name");
 			toPrint.appendChild(companyName);
 			toPrint.appendChild(createElement("label")).setInnerText("Driver Name");
@@ -3035,7 +3035,7 @@ window.addEventListener("load", function(oldDate) {
 			rpc.autocompleteAddress(1, parseInt(clientID.value), partial, callback);
 		}, to[0]);
 		addFormSubmit((event.ID == 0) ? "Add Event" : "Edit Event", function() {
-			var parts = [this, clientName[0], to[0], from[0]];
+			var parts = [this, clientName[0], to[0], from[0], other[0]];
 			parts.map(disableElement);
 			event.ClientID = parseInt(clientID.value);
 			event.Other = other[0].value;
@@ -3068,6 +3068,10 @@ window.addEventListener("load", function(oldDate) {
 			"Other": "",
 			"DriverID": driver.ID,
 			"DriverName": driver.Name,
+			//"ClientRef": "",
+			"InvoiceNote": "",
+			"InvoiceFrom": "",
+			"InvoiceTo": ""
 		});
 	},
 	regexpCheck = function(regexp, error) {

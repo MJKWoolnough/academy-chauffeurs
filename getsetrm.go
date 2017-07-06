@@ -240,7 +240,7 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 			var note string
 			_, err = c.statements[GetClientNote].Exec(e.ClientID)
 			if err == nil {
-				r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, note, t, t)
+				r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, e.Other, note, t, t)
 				if er == nil {
 					resp.ID, er = r.LastInsertId()
 				}
