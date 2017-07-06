@@ -2184,15 +2184,15 @@ window.addEventListener("load", function(oldDate) {
 	prepareMessage = function(eventID, client) {
 		var textMessageData,
 		    emailMessageData,
-		    wg = new waitGroup(function() {makeMessage(client, textMessageText, emailMessageText);});
+		    wg = new waitGroup(function() {makeMessage(client, textMessageData, emailMessageData);});
 		wg.add(2);
 		rpc.prepareMessage(eventID, function(messageData) {
 			textMessageData = messageData;
-			wg.Done();
+			wg.done();
 		});
 		rpc.prepareEmail(eventID, function(messageData) {
 			emailMessageData = messageData;
-			wg.Done();
+			wg.done();
 		});
 	},
 	makeMessage = function(client, messageData, emailData) {
