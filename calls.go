@@ -980,11 +980,14 @@ func (c *Calls) getPort() (uint16, error) {
 }
 
 func (c *Calls) GetUsers(_ struct{}, u *[]string) error {
-	users := make([]string, 0, len(authMap.users))
+	users := make([]string, 1, len(authMap.users))
+	users[0] = "admin"
 	for username := range authMap.users {
-		users = append(users, username)
+		if username != "admin" {
+			users = append(users, username)
+		}
 	}
-	sort.Strings(users)
+	sort.Strings(users[1:])
 	*u = users
 	return nil
 }
@@ -1007,6 +1010,9 @@ func (c *Calls) SetUser(up UsernamePassword, _ *struct{}) error {
 }
 
 func (c *Calls) RemoveUser(username string, _ *struct{}) error {
+	if username == "admin" {
+		return errors.New("cannot remove admin")
+	}
 	authMap.Remove(username)
 	c.mu.Lock()
 	_, err := c.statements[RemoveUser].Exec(username)
