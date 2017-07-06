@@ -2185,7 +2185,7 @@ window.addEventListener("load", function(oldDate) {
 		var textMessageData,
 		    emailMessageData,
 		    wg = new waitGroup(function() {makeMessage(client, textMessageText, emailMessageText);});
-		wg.Add(2);
+		wg.add(2);
 		rpc.prepareMessage(eventID, function(messageData) {
 			textMessageData = messageData;
 			wg.Done();
