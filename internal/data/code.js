@@ -3065,6 +3065,7 @@ window.addEventListener("load", function(oldDate) {
 			"To": "",
 			"ClientID": 0,
 			"ClientName": "",
+			"Other": "",
 			"DriverID": driver.ID,
 			"DriverName": driver.Name,
 		});
