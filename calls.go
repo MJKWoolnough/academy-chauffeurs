@@ -310,16 +310,19 @@ func newCalls(dbFName string) (*Calls, error) {
 			return nil, err
 		}
 		setMessageVars("username", "password", DefaultTemplate, "Academy Chauffeurs", true)
+		setEmailVars("server", "username", "password", DefaultTemplate)
 	} else {
 		var (
-			username, password, text, from string
-			useNumber                      bool
+			username, password, text, from                           string
+			useNumber                                                bool
+			emailServer, emailUsername, emailPassword, emailTemplete string
 		)
-		err := db.QueryRow("SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom] FROM [Settings];").Scan(&username, &password, &text, &useNumber, &from)
+		err := db.QueryRow("SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate] FROM [Settings];").Scan(&username, &password, &text, &useNumber, &from, &emailServer, &emailUsername, &emailPassword, &emailTemplete)
 		if err != nil {
 			return nil, err
 		}
 		setMessageVars(username, password, text, from, useNumber)
+		setEmailVars(emailServer, emailUsername, emailPassword, emailTemplete)
 	}
 	users, err := c.statements[GetUsers].Query()
 	if err != nil {
