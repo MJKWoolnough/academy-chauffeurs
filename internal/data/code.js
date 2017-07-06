@@ -2353,7 +2353,7 @@ window.addEventListener("load", function(oldDate) {
 				var bookings = toPrint.appendChild(createElement("div")).setInnerText("-");
 //				    tmpNote = {Note:""};
 				toPrint.appendChild(createElement("label")).setInnerText("Notes");
-				toPrint.appendChild(makeNote(rpc.getDriverNote.bind(driver.ID), rpc.setDriverNote.bind(driver.ID)));
+				toPrint.appendChild(makeNote(rpc.getDriverNote.bind(rpc, driver.ID), rpc.setDriverNote.bind(rpc, driver.ID)));
 /*				toPrint.appendChild(makeNote(function(callback) {
 					rpc.getDriverNote(driver.ID, function(noteText) {
 						tmpNote = noteJSON(noteText);
@@ -2835,7 +2835,7 @@ window.addEventListener("load", function(oldDate) {
 			invoiceTo.setInnerText(e.InvoiceTo);
 			clientRef.setInnerText(e.ClientRef + "\u00A0");
 
-			toPrint.appendChild(makeNote(rpc.getEventNote.bind(e.ID), rpc.setEventNote.bind(e.ID)));
+			toPrint.appendChild(makeNote(rpc.getEventNote.bind(rpc, e.ID), rpc.setEventNote.bind(rpc, e.ID)));
 			/*var tmpNote = {"Note":""};
 			toPrint.appendChild(makeNote(function(callback) {
 				rpc.getEventNote(e.ID, function(noteText) {
