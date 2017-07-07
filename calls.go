@@ -218,7 +218,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		// Settings
 
 		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime], [InvoiceHeader], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate] FROM [Settings];",
-		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?, [AlarmTime] = ?, [InvoiceHeader] = ?, [EmailSMTP] = ?, [EmailUsername] = ?, [EmailPassword] = ?, [EmailTemplate] = ?;",
+		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?, [InvoiceHeader] = ?, [EmailSMTP] = ?, [EmailUsername] = ?, [EmailPassword] = ?, [EmailTemplate] = ?;",
 
 		// Searches
 
