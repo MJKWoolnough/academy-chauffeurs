@@ -41,7 +41,6 @@ func upgradeDB(db *sql.DB) error {
 			"ALTER TABLE [Settings] ADD [EmailUsername] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Settings] ADD [EmailPassword] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Settings] ADD [EmailTemplate] TEXT NOT NULL DEFAULT '';",
-			"ALTER TABLE [Event] ADD [ClientRef] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Event] ADD [InvoiceNote] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Event] ADD [InvoiceFrom] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Event] ADD [InvoiceTo] TEXT NOT NULL DEFAULT '';",
