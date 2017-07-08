@@ -8,44 +8,44 @@ import (
 func (c *Calls) GetDriver(id int64, d *Driver) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadDriver].QueryRow(id).Scan(&(*d).Name, &(*d).RegistrationNumber, &(*d).PhoneNumber, &(*d).Pos, &(*d).Show)
+	err := c.statements[ReadDriver].QueryRow(id).Scan(&d.Name, &d.RegistrationNumber, &d.PhoneNumber, &d.Pos, &d.Show)
 	if err == sql.ErrNoRows {
 		return nil
 	}
-	(*d).ID = id
+	d.ID = id
 	return err
 }
 
 func (c *Calls) GetClient(id int64, cl *Client) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadClient].QueryRow(id).Scan(&(*cl).CompanyID, &(*cl).Name, &(*cl).PhoneNumber, &(*cl).Reference, &(*cl).Email)
+	err := c.statements[ReadClient].QueryRow(id).Scan(&cl.CompanyID, &cl.Name, &cl.PhoneNumber, &cl.Reference, &cl.Email)
 	if err == sql.ErrNoRows {
 		return nil
 	}
-	(*cl).ID = id
+	cl.ID = id
 	return err
 }
 
 func (c *Calls) GetCompany(id int64, cy *Company) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadCompany].QueryRow(id).Scan(&(*cy).Name, &(*cy).Address, &(*cy).Colour)
+	err := c.statements[ReadCompany].QueryRow(id).Scan(&cy.Name, &cy.Address, &cy.Colour)
 	if err == sql.ErrNoRows {
 		return nil
 	}
-	(*cy).ID = id
+	cy.ID = id
 	return err
 }
 
 func (c *Calls) GetEvent(id int64, e *Event) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadEvent].QueryRow(id).Scan(&(*e).DriverID, &(*e).ClientID, &(*e).Start, &(*e).End, &(*e).ClientRef, &(*e).InvoiceNote, &(*e).InvoiceFrom, &(*e).InvoiceTo, &(*e).Other, &(*e).From, &(*e).To)
+	err := c.statements[ReadEvent].QueryRow(id).Scan(&e.DriverID, &e.ClientID, &e.Start, &e.End, &e.ClientRef, &e.InvoiceNote, &e.InvoiceFrom, &e.InvoiceTo, &e.Other, &e.From, &e.To)
 	if err == sql.ErrNoRows {
 		return nil
 	}
-	(*e).ID = id
+	e.ID = id
 	return err
 }
 
