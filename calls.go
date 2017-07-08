@@ -176,8 +176,8 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [Name], [RegistrationNumber], [PhoneNumber], [Pos], [Show] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Name], [Address], [Colour] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference], [Email] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
-		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[ClientRef], [Event].[InvoiceNote], [Event].[InvoiceFrom], [Event].[InvoiceTo], [Event].[Other], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
-		"SELECT [FinalsSet], [InCar], [Parking], [Waiting], [Drop], [Miles], [Trip], [DriverHours], [Price], [Sub] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
+		"SELECT [FinalsSet], [InCar], [Parking], [Waiting], [Drop], [Miles], [Trip], [DriverHours], [Price], [Sub], [InvoiceNote], [InvoiceFrom], [InvoiceTo] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [ID] FROM [FromAddresses] WHERE [Address] = ?;",
 		"SELECT [ID] FROM [ToAddresses] WHERE [Address] = ?;",
 
@@ -187,7 +187,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Company] SET [Name] = ?, [Address] = ?, [Colour] = ? WHERE [ID] = ?;",
 		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ?, [Email] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ?, [Other] = ?, [Updated] = ? WHERE [ID] = ?;",
-		"UPDATE [Event] SET [FinalsSet] = 1, [InCar] = ?, [Parking] = ?, [Waiting] = ?, [Drop] = ?, [Miles] = ?, [Trip] = ?, [DriverHours] = ?, [Price] = ?, [Sub] = ? WHERE [ID] = ?;",
+		"UPDATE [Event] SET [FinalsSet] = 1, [InCar] = ?, [Parking] = ?, [Waiting] = ?, [Drop] = ?, [Miles] = ?, [Trip] = ?, [DriverHours] = ?, [Price] = ?, [Sub] = ?, [InvoiceNote] = ?, [InvoiceFrom] = ?, [InvoiceTo] = ? WHERE [ID] = ?;",
 
 		// Delete (set deleted)
 
@@ -907,19 +907,20 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 
 type EventFinals struct {
 	ID, InCar, Parking, Waiting, Drop, Miles, Trip, DriverHours, Price, Sub int64
+	InvoiceNote, InvoiceFrom, InvoiceTo                                     string
 	FinalsSet                                                               bool
 }
 
 func (c *Calls) GetEventFinals(id int64, e *EventFinals) error {
 	c.mu.Lock()
-	err := c.statements[ReadEventFinals].QueryRow(id).Scan(&e.FinalsSet, &e.InCar, &e.Parking, &e.Waiting, &e.Drop, &e.Miles, &e.Trip, &e.DriverHours, &e.Price, &e.Sub)
+	err := c.statements[ReadEventFinals].QueryRow(id).Scan(&e.FinalsSet, &e.InCar, &e.Parking, &e.Waiting, &e.Drop, &e.Miles, &e.Trip, &e.DriverHours, &e.Price, &e.Sub, &e.InvoiceNote, &e.InvoiceFrom, &e.InvoiceTo)
 	c.mu.Unlock()
 	return err
 }
 
 func (c *Calls) SetEventFinals(e EventFinals, _ *struct{}) error {
 	c.mu.Lock()
-	_, err := c.statements[UpdateEventFinals].Exec(e.InCar, e.Parking, e.Waiting, e.Drop, e.Miles, e.Trip, e.DriverHours, e.Price, e.Sub, e.ID)
+	_, err := c.statements[UpdateEventFinals].Exec(e.InCar, e.Parking, e.Waiting, e.Drop, e.Miles, e.Trip, e.DriverHours, e.Price, e.Sub, e.InvoiceNote, e.InvoiceFrom, e.InvoiceTo, e.ID)
 	c.mu.Unlock()
 	return err
 }
