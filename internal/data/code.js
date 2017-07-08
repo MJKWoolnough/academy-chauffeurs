@@ -2754,10 +2754,7 @@ window.addEventListener("load", function(oldDate) {
 			    clientRef = createElement("div").setInnerText("-"),
 			    companyName = createElement("div").setInnerText("-"),
 			    driverName = createElement("div").setInnerText("-"),
-			    driverReg = createElement("div").setInnerText("-"),
-			    invoiceTo = createElement("div").setInnerText("-"),
-			    invoiceFrom = createElement("div").setInnerText("-"),
-			    invoiceNote = createElement("div").setInnerText("-");
+			    driverReg = createElement("div").setInnerText("-");
 			toPrint.appendChild(createElement("label")).setInnerText("Client Phone Number");
 			toPrint.appendChild(clientPhone);
 			toPrint.appendChild(createElement("label")).setInnerText("Client Reference");
@@ -2787,7 +2784,10 @@ window.addEventListener("load", function(oldDate) {
 				    tripTime = createElement("div").setInnerText("-"),
 				    driverHours = createElement("div").setInnerText("-"),
 				    price = createElement("div").setInnerText("-"),
-				    sub = createElement("div").setInnerText("-");
+				    sub = createElement("div").setInnerText("-"),
+				    invoiceTo = createElement("div").setInnerText("-"),
+				    invoiceFrom = createElement("div").setInnerText("-"),
+				    invoiceNote = createElement("div").setInnerText("-");
 				toPrint.appendChild(createElement("label")).setInnerText("Flight Time");
 				toPrint.appendChild(tripTime);
 				toPrint.appendChild(createElement("label")).setInnerText("In Car Time");
@@ -2826,14 +2826,13 @@ window.addEventListener("load", function(oldDate) {
 					driverHours.setInnerText(eventFinals.DriverHours / 3600000);
 					price.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
 					sub.setInnerText("£" + (eventFinals.Sub / 100).formatMoney());
+
+					invoiceNote.setPreText(eventFinals.InvoiceNote + "\u00A0");
+					invoiceFrom.setInnerText(eventFinals.InvoiceFrom + "\u00A0");
+					invoiceTo.setInnerText(eventFinals.InvoiceTo + "\u00A0");
 				});
 			}
 			toPrint.appendChild(createElement("label")).setInnerText("Notes");
-
-			invoiceNote.setPreText(e.InvoiceNote);
-			invoiceFrom.setInnerText(e.InvoiceFrom);
-			invoiceTo.setInnerText(e.InvoiceTo);
-			clientRef.setInnerText(e.ClientRef + "\u00A0");
 
 			toPrint.appendChild(makeNote(rpc.getEventNote.bind(rpc, e.ID), rpc.setEventNote.bind(rpc, e.ID)));
 			/*var tmpNote = {"Note":""};
@@ -2879,8 +2878,7 @@ window.addEventListener("load", function(oldDate) {
 		}];
 		if (e.Start < (new Date()).getTime() && e.DriverID > 0) {
 			tabData[tabData.length] = [ "Final Details", function() {
-				var clientRef = addFormElement("Client Reference", "text", "clientRef", "-"),
-				    tripTime = addFormElement("Flight Time", "text", "trip", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
+				var tripTime = addFormElement("Flight Time", "text", "trip", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
@@ -2924,7 +2922,6 @@ window.addEventListener("load", function(oldDate) {
 					eventFinals.InvoiceFrom = invoiceFrom[0].value;
 					eventFinals.InvoiceTo = invoiceTo[0].value;
 					eventFinals.InvoiceNote = invoiceNotes[0].value;
-					eventFinals.ClientRef = clientRef[0].value;
 				/*	invoiceNotesJSON.InvoiceFrom = invoiceFrom[0].value;
 					invoiceNotesJSON.InvoiceTo = invoiceTo[0].value;
 					invoiceNotesJSON.InvoiceNote = invoiceNotes[0].value;
