@@ -488,11 +488,8 @@ type EventsFilter struct {
 func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
 	return c.getList(DriverEvents, is{f.ID, f.Start, f.End}, func() is {
-		var (
-			e   Event
-			pos = len(*events)
-		)
-		*events = append(*events, e)
+		pos := len(*events)
+		*events = append(*events, Event{})
 		return is{
 			&(*events)[pos].ID,
 			&(*events)[pos].DriverID,
@@ -509,11 +506,8 @@ func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 func (c *Calls) ClientEvents(f EventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
 	return c.getList(ClientEvents, is{f.ID, f.Start, f.End}, func() is {
-		var (
-			e   Event
-			pos = len(*events)
-		)
-		*events = append(*events, e)
+		pos := len(*events)
+		*events = append(*events, Event{})
 		return is{
 			&(*events)[pos].ID,
 			&(*events)[pos].DriverID,
@@ -529,11 +523,8 @@ func (c *Calls) ClientEvents(f EventsFilter, events *[]Event) error {
 func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
 	return c.getList(CompanyEvents, is{f.ID, f.Start, f.End}, func() is {
-		var (
-			e   Event
-			pos = len(*events)
-		)
-		*events = append(*events, e)
+		pos := len(*events)
+		*events = append(*events, Event{})
 		return is{
 			&(*events)[pos].ID,
 			&(*events)[pos].DriverID,
@@ -569,11 +560,8 @@ func (c *Calls) CompaniesEvents(f CEventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
 	for _, id := range f.IDs {
 		err := c.getList(CompanyEvents, is{id, f.Start, f.End}, func() is {
-			var (
-				e   Event
-				pos = len(*events)
-			)
-			*events = append(*events, e)
+			pos := len(*events)
+			*events = append(*events, Event{})
 			return is{
 				&(*events)[pos].ID,
 				&(*events)[pos].DriverID,
@@ -595,11 +583,8 @@ func (c *Calls) CompaniesEvents(f CEventsFilter, events *[]Event) error {
 func (c *Calls) Drivers(_ struct{}, drivers *[]Driver) error {
 	*drivers = make([]Driver, 0)
 	return c.getList(DriverList, is{}, func() is {
-		var (
-			d   Driver
-			pos = len(*drivers)
-		)
-		*drivers = append(*drivers, d)
+		pos := len(*drivers)
+		*drivers = append(*drivers, Driver{})
 		return is{
 			&(*drivers)[pos].ID,
 			&(*drivers)[pos].Name,
@@ -614,11 +599,8 @@ func (c *Calls) Drivers(_ struct{}, drivers *[]Driver) error {
 func (c *Calls) Companies(_ struct{}, companies *[]Company) error {
 	*companies = make([]Company, 0)
 	return c.getList(CompanyList, is{}, func() is {
-		var (
-			cy  Company
-			pos = len(*companies)
-		)
-		*companies = append(*companies, cy)
+		pos := len(*companies)
+		*companies = append(*companies, Company{})
 		return is{
 			&(*companies)[pos].ID,
 			&(*companies)[pos].Name,
@@ -631,11 +613,8 @@ func (c *Calls) Companies(_ struct{}, companies *[]Company) error {
 func (c *Calls) Clients(_ struct{}, clients *[]Client) error {
 	*clients = make([]Client, 0)
 	return c.getList(ClientList, is{}, func() is {
-		var (
-			cl  Client
-			pos = len(*clients)
-		)
-		*clients = append(*clients, cl)
+		pos := len(*clients)
+		*clients = append(*clients, Client{})
 		return is{
 			&(*clients)[pos].ID,
 			&(*clients)[pos].CompanyID,
@@ -649,11 +628,8 @@ func (c *Calls) Clients(_ struct{}, clients *[]Client) error {
 func (c *Calls) ClientsForCompany(companyID int64, clients *[]Client) error {
 	*clients = make([]Client, 0)
 	return c.getList(ClientForCompanyList, is{companyID}, func() is {
-		var (
-			cl  Client
-			pos = len(*clients)
-		)
-		*clients = append(*clients, cl)
+		pos := len(*clients)
+		*clients = append(*clients, Client{})
 		return is{
 			&(*clients)[pos].ID,
 			&(*clients)[pos].CompanyID,
@@ -682,11 +658,8 @@ func (c *Calls) ClientsForCompanies(ids []int64, clients *[]Client) error {
 	*clients = make([]Client, 0)
 	for _, companyID := range ids {
 		err := c.getList(ClientForCompanyList, is{companyID}, func() is {
-			var (
-				cl  Client
-				pos = len(*clients)
-			)
-			*clients = append(*clients, cl)
+			pos := len(*clients)
+			*clients = append(*clients, Client{})
 			return is{
 				&(*clients)[pos].ID,
 				&(*clients)[pos].CompanyID,
