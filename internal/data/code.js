@@ -1308,14 +1308,17 @@ window.addEventListener("load", function(oldDate) {
 		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
 		tableTitles.appendChild(createElement("th")).setInnerText("").setAttribute("colspan", "2");
 		for (; i < events.length; i++) {
-			var row = table.appendChild(createElement("tr")), cr, details, extra, thisDate = new Date(events[i].Start);
+			var row = table.appendChild(createElement("tr")), cr, cn = events[i].ClientName, details, extra, thisDate = new Date(events[i].Start);
 			if (thisDate.getTime() > eomDate.getTime()) {
 				eomDate = thisDate;
 			}
 			row.appendChild(createElement("td")).setInnerText(thisDate.toDateString());
 			cr = row.appendChild(createElement("td"));
 			cr.setInnerText(events[i].ClientReference).setAttribute("contenteditable", "true");
-			row.appendChild(createElement("td")).setInnerText(events[i].ClientName).setAttribute("contenteditable", "true");
+			if (events[i].Other != "") {
+				cn += "\n" + events[i].Other;
+			}
+			row.appendChild(createElement("td")).setPreText(cn).setAttribute("contenteditable", "true");
 			details = row.appendChild(createElement("td"));
 			details.setAttribute("contenteditable", "true");
 			extra = row.appendChild(createElement("td"));
@@ -1323,7 +1326,6 @@ window.addEventListener("load", function(oldDate) {
 				extra.setInnerText(events[i].Waiting + " mins waiting");
 			}
 			extra.setAttribute("contenteditable", "true");
-			cr.setInnerText(events[i].ClientRef);
 			extra.setPreText(extra.innerText + "\n" + events[i].InvoiceNote);
 			if (events[i].InvoiceFrom === "") {
 				details.appendChild(document.createTextNode("From: " + events[i].From));
