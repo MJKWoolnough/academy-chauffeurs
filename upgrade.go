@@ -85,12 +85,12 @@ func upgradeDB(db *sql.DB) error {
 		if err != nil {
 			return err
 		}
-		eventUpdate, err := eventTx.Prepare("UPDATE [Event] SET [Note] = ?, [ClientRef] = ?, [InvoiceNote] = ?, [InvoiceFrom] = ?, [InvoiceTo] = ? WHERE [ID] = ?;")
+		eventUpdate, err := eventTx.Prepare("UPDATE [Event] SET [Note] = ?, [InvoiceNote] = ?, [InvoiceFrom] = ?, [InvoiceTo] = ? WHERE [ID] = ?;")
 		if err != nil {
 			return err
 		}
 		for _, noteParts := range eventTodo {
-			if _, err := eventUpdate.Exec(noteParts.Note, noteParts.InvoiceNote, noteParts.InvoiceFrom, noteParts.InvoiceFrom, noteParts.InvoiceTo, noteParts.ID); err != nil {
+			if _, err := eventUpdate.Exec(noteParts.Note, noteParts.InvoiceNote, noteParts.InvoiceFrom, noteParts.InvoiceTo, noteParts.ID); err != nil {
 				return err
 			}
 		}
