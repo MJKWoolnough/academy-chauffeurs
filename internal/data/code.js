@@ -1279,7 +1279,7 @@ window.addEventListener("load", function(oldDate) {
 		    topTable = layer.appendChild(createElement("table")),
 		    table = layer.appendChild(createElement("table")),
 		    costTable = layer.appendChild(createElement("table")),
-		    addressDate, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0,
+		    addressDate, eomDate = new Date(0), eomDateElm, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0,
 		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput, cn, vatEdit;
 		header.setAttribute("class", "printOnly");
 		cn = header.appendChild(createElement("div"));
@@ -1292,7 +1292,7 @@ window.addEventListener("load", function(oldDate) {
 		addressDate = topTable.appendChild(createElement("tr"));
 		addressDate.appendChild(createElement("td")).setPreText(company.Name + "\n" + company.Address).setAttribute("rowspan", "3");
 		addressDate.appendChild(createElement("td")).setInnerText("Date :");
-		addressDate.appendChild(createElement("td")).setInnerText((new Date()).toOrdinalDate()).setAttribute("contenteditable", "true");
+		eomDateElm = addressDate.appendChild(createElement("td"))
 		invoiceNo = topTable.appendChild(createElement("tr"));
 		invoiceNo.appendChild(createElement("td")).setInnerText("Invoice No:");
 		invoiceNo.appendChild(createElement("td")).setAttribute("contenteditable", "true");
@@ -1308,8 +1308,11 @@ window.addEventListener("load", function(oldDate) {
 		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
 		tableTitles.appendChild(createElement("th")).setInnerText("").setAttribute("colspan", "2");
 		for (; i < events.length; i++) {
-			var row = table.appendChild(createElement("tr")), cr, details, extra;
-			row.appendChild(createElement("td")).setInnerText((new Date(events[i].Start)).toDateString());
+			var row = table.appendChild(createElement("tr")), cr, details, extra, thisDate = new Date(events[i].Start);
+			if (thisDate.getTime() > eomDate.getTime()) {
+				eomDate = thisDate;
+			}
+			row.appendChild(createElement("td")).setInnerText(thisDate.toDateString());
 			cr = row.appendChild(createElement("td"));
 			cr.setInnerText(events[i].ClientReference).setAttribute("contenteditable", "true");
 			row.appendChild(createElement("td")).setInnerText(events[i].ClientName).setAttribute("contenteditable", "true");
@@ -1320,8 +1323,8 @@ window.addEventListener("load", function(oldDate) {
 				extra.setInnerText(events[i].Waiting + " mins waiting");
 			}
 			extra.setAttribute("contenteditable", "true");
-			cr.setInnerText(data.ClientRef);
-			extra.setPreText(extra.innerText + "\n" + data.InvoiceNote);
+			cr.setInnerText(events[i].ClientRef);
+			extra.setPreText(extra.innerText + "\n" + events[i].InvoiceNote);
 			if (events[i].InvoiceFrom === "") {
 				details.appendChild(document.createTextNode("From: " + events[i].From));
 			} else {
@@ -1362,6 +1365,7 @@ window.addEventListener("load", function(oldDate) {
 			totalParking += events[i].Parking;
 			totalPrice += events[i].Price;
 		}
+		eomDateElm.setInnerText((new Date(eomDate.getFullYear(), eomDate.getMonth()-1, eomDate.daysInMonth())).toOrdinalDate()).setAttribute("contenteditable", "true");
 		costTable.setAttribute("class", "invoiceBottom");
 		costTable.setAttribute("id", "invoiceBottom");
 		subTotal = costTable.appendChild(createElement("tr"));
