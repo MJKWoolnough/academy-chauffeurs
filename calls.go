@@ -232,7 +232,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for company
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
 
 		// Event Overlaps
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND MAX([Start], ?) < MIN([End], ?);",
@@ -531,6 +531,10 @@ func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
 			&(*events)[pos].ClientID,
 			&(*events)[pos].Start,
 			&(*events)[pos].End,
+			&(*events)[pos].Other,
+			&(*events)[pos].InvoiceTo,
+			&(*events)[pos].InvoiceFrom,
+			&(*events)[pos].InvoiceNote,
 			&(*events)[pos].From,
 			&(*events)[pos].To,
 		}
