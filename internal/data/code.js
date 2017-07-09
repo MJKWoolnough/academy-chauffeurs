@@ -2961,8 +2961,12 @@ window.addEventListener("load", function(oldDate) {
 					parking[0].value = (eventFinals.Parking / 100).formatMoney();
 					sub[0].value = (eventFinals.Sub / 100).formatMoney();
 					price[0].value = (eventFinals.Price / 100).formatMoney();
-					invoiceTo[0].value = eventFinals.InvoiceTo;
-					invoiceFrom[0].value = eventFinals.InvoiceFrom;
+					if (eventFinals.InvoiceTo != "") {
+						invoiceTo[0].value = eventFinals.InvoiceTo;
+					}
+					if (eventFinals.InvoiceFrom != "") {
+						invoiceFrom[0].value = eventFinals.InvoiceFrom;
+					}
 					invoiceNotes[0].value = eventFinals.InvoiceNote;
 				});
 				//});
