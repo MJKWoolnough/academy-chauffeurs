@@ -1942,10 +1942,9 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(createElement("label")).setInnerText("Name");
 				toPrint.appendChild(createElement("div")).setInnerText(client.Name);
 				toPrint.appendChild(createElement("label")).setInnerText("Phone Number");
-				if (client.PhoneNumber === "" || client.PhoneNumber === " ") {
-					client.PhoneNumber = "-";
-				}
-				toPrint.appendChild(createElement("div")).setInnerText(client.PhoneNumber);
+				toPrint.appendChild(createElement("div")).setInnerText(client.PhoneNumber + "\u00A0");
+				toPrint.appendChild(createElement("label")).setInnerText("Email Address");
+				toPrint.appendChild(createElement("div")).setInnerText(client.Email + "\u00A0");
 				toPrint.appendChild(createElement("label")).setInnerText("Reference");
 				if (client.Reference === "" || client.Reference === " ") {
 					client.Reference = "-";
@@ -2666,6 +2665,7 @@ window.addEventListener("load", function(oldDate) {
 		    companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
 		    companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
 		    clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber),
+		    email = addFormElement("Email Address", "text", "email", client.Email),
 		    clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code"));
 		addLister(companyName[1], function() {
 			companyName[1].setInnerText("");
@@ -2681,12 +2681,13 @@ window.addEventListener("load", function(oldDate) {
 		});
 		autocomplete(rpc.autocompleteCompanyName, companyName[0], companyID);
 		addFormSubmit((client.ID == 0) ? "Add Client" : "Edit Client", function() {
-			var parts = [this, clientName[0], companyName[0], clientPhone[0], clientRef[0]];
+			var parts = [this, clientName[0], companyName[0], clientPhone[0], clientRef[0], email[0]];
 			parts.map(disableElement);
 			client.Name = clientName[0].value;
 			client.CompanyID = parseInt(companyID.value);
 			client.PhoneNumber = clientPhone[0].value;
 			client.Reference = clientRef[0].value;
+			client.Email = email[0].value;
 			rpc.setClient(client, function (resp) {
 				if (resp.Errors) {
 					clientName[1].setInnerText(resp.NameError);
