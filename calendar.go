@@ -97,7 +97,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 		}
 		ev.Duration = &ics.PropDuration{Days: days, Hours: hours, Minutes: mins}
 		ev.Location = &ics.PropLocation{Text: ics.Text(from)}
-		ev.Description = &ics.PropDescription{Text: ics.Text(driverStr + " - " + client2 + " (" + company + ") - " + from + " -> " + to + " - " + phoneNumber)}
+		ev.Description = &ics.PropDescription{Text: ics.Text(driverStr + " - " + client2 + " (" + company + ") - " + from + " -> " + to + " - " + phoneNumber + "\n" + note)}
 		ev.Summary = &ics.PropSummary{Text: ics.Text(driverStr + " - " + client + " (" + company + ")")}
 		ev.Alarm = alarm
 		ev.Contact = []ics.PropContact{{Text: ics.Text(client + ", " + company + " - " + phoneNumber)}}
