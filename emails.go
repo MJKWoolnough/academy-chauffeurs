@@ -16,6 +16,7 @@ var (
 	compiledEmailTemplate *template.Template
 	emailServer           string
 	emailTLS              bool
+	emailFrom             string
 	emailAuth             smtp.Auth
 )
 
@@ -42,6 +43,7 @@ func setEmailVars(server, username, password, templateT string) error {
 		emailServer = u.Hostname() + ":" + p
 	}
 	emailAuth = smtp.PlainAuth("", username, password, emailServer)
+	emailFrom = username
 	return nil
 }
 
@@ -102,7 +104,7 @@ func (c *Calls) SendEmail(md MessageData, e *string) error {
 	if err == nil {
 		err = cl.Auth(emailAuth)
 		if err == nil {
-			err = cl.Mail(client.Email)
+			err = cl.Mail(emailFrom)
 			if err == nil {
 				err = cl.Rcpt(client.Email)
 				if err == nil {
