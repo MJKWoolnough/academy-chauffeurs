@@ -81,6 +81,7 @@ window.addEventListener("load", function(oldDate) {
 		this.prepareMessage            = request.bind(this, "PrepareMessage");         // id         , callback
 		this.prepareEmail              = request.bind(this, "PrepareEmail");           // id         , callback
 		this.sendMessage               = request.bind(this, "SendMessage");            // messageData, callback
+		this.sendEmail                 = request.bind(this, "SendEmail");              // messageData, callback
 		this.clientsForCompany         = request.bind(this, "ClientsForCompany");      // id         , callback
 		this.clientsForCompanies       = request.bind(this, "ClientsForCompanies");    // [ids]      , callback
 		this.getSettings               = request.bind(this, "GetSettings", null);      //              callback
