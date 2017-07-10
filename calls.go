@@ -572,6 +572,10 @@ func (c *Calls) CompaniesEvents(f CEventsFilter, events *[]Event) error {
 				&(*events)[pos].ClientID,
 				&(*events)[pos].Start,
 				&(*events)[pos].End,
+				&(*events)[pos].Other,
+				&(*events)[pos].InvoiceTo,
+				&(*events)[pos].InvoiceFrom,
+				&(*events)[pos].InvoiceNote,
 				&(*events)[pos].From,
 				&(*events)[pos].To,
 			}
