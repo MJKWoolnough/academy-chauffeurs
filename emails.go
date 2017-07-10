@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"io"
 	"net"
 	"net/smtp"
 	"net/url"
@@ -30,13 +31,17 @@ func setEmailVars(server, username, password, templateT string) error {
 	}
 	compiledEmailTemplate = t
 	emailServer = u.Hostname()
+	emailTLS = u.Scheme == "smtps"
 	if p := u.Port(); p == "" {
-		emailServer = u.Hostname() + ":25"
+		if emailTLS {
+			emailServer = u.Hostname() + ":465"
+		} else {
+			emailServer = u.Hostname() + ":25"
+		}
 	} else {
 		emailServer = u.Hostname() + ":" + p
 	}
-	emailTLS = u.Scheme == "smtps"
-	emailAuth = smtp.PlainAuth("", username, password, u.Host)
+	emailAuth = smtp.PlainAuth("", username, password, emailServer)
 	return nil
 }
 
@@ -49,6 +54,9 @@ func (c *Calls) SendEmail(md MessageData, e *string) error {
 	headers := make([]byte, 0, len(message)+3)
 	for {
 		i := strings.Index(message, "\n")
+		if i < 0 {
+			break
+		}
 		line := message[:i]
 		message = message[i+1:]
 		line = strings.TrimRight(line, "\r")
@@ -61,8 +69,13 @@ func (c *Calls) SendEmail(md MessageData, e *string) error {
 			headers = append(headers, "Subject: "...)
 			headers = append(headers, strings.TrimSpace(line[i+1:])...)
 			headers = append(headers, "\r\n"...)
+		} else {
+			message = line + "\n" + message
+			break
 		}
 	}
+
+	headers = append(headers, "\r\n"...)
 
 	var (
 		event  Event
@@ -91,13 +104,17 @@ func (c *Calls) SendEmail(md MessageData, e *string) error {
 		if err == nil {
 			err = cl.Mail(client.Email)
 			if err == nil {
-				wr, err := cl.Data()
+				err = cl.Rcpt(client.Email)
 				if err == nil {
-					_, err = wr.Write(append(headers, md.Message...))
+					var wr io.WriteCloser
+					wr, err = cl.Data()
 					if err == nil {
-						err = wr.Close()
+						_, err = wr.Write(append(headers, message...))
 						if err == nil {
-							err = cl.Quit()
+							err = wr.Close()
+							if err == nil {
+								err = cl.Quit()
+							}
 						}
 					}
 				}
