@@ -4,7 +4,12 @@ import (
 	"crypto/sha1"
 	"database/sql"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
 	"net/rpc"
+	"os"
+	"os/exec"
 	"sort"
 	"strings"
 	"sync"
@@ -1004,4 +1009,34 @@ func (c *Calls) RemoveUser(username string, _ *struct{}) error {
 	_, err := c.statements[RemoveUser].Exec(username)
 	c.mu.Unlock()
 	return err
+}
+
+const (
+	updaterURL      = "http://vimagination.zapto.org/updater.exe"
+	updaterFilename = "updater.exe"
+)
+
+func (c *Calls) Update(_ struct{}, _ *struct{}) error {
+	return nil
+	if _, err := os.Stat(updaterFilename); err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("Downloading updater...")
+			f, err := os.Create(updaterFilename)
+			if err != nil {
+				return err
+			}
+			resp, err := http.Get(updaterURL)
+			if err != nil {
+				f.Close()
+				return err
+			}
+			_, err = io.Copy(f, resp.Body)
+			resp.Body.Close()
+			f.Close()
+			fmt.Println("...updater Downloaded")
+		} else {
+			return err
+		}
+	}
+	return exec.Command("updater.exe").Start()
 }
