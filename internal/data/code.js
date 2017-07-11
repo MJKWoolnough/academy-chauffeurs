@@ -122,6 +122,7 @@ window.addEventListener("load", function(oldDate) {
 		this.getUsers = request.bind(this, "GetUsers", null); //callback
 		this.setUser = request.bind(this, "SetUser"); // {Username, Password}, callback
 		this.removeUser = request.bind(this, "RemoveUser"); // Username, callback
+		this.update = request.bind(this, "Update", null); // callback
 	})(function() {
 		events.init();	
 	}),
@@ -238,6 +239,13 @@ window.addEventListener("load", function(oldDate) {
 	},
 	dateTimeFormat = function(date) {
 		return (new Date(date)).toLocaleString('en-GB');
+	},
+	updateProgram = function() {
+		var h = layer.appendChild(createElement("h1")).setInnerText("Update Program");
+		addFormSubmit("Update", rpc.update.bind(rpc, function() {
+			h.setInnerText("Updating Program...");
+		}));
+		stack.setFragment();
 	},
 	users = function() {
 		layer.appendChild(createElement("h1")).setInnerText("Users");
@@ -577,6 +585,9 @@ window.addEventListener("load", function(oldDate) {
 					return;
 				} else if (params[0] === "users") {
 					users();
+					return;
+				} else if (params[0] === "update") {
+					updateProgram();
 					return;
 				} else if (paramParts.length === 2) {
 					var id = parseInt(paramParts[1]);
