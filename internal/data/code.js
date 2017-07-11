@@ -2407,8 +2407,8 @@ window.addEventListener("load", function(oldDate) {
 								//row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "8");
 								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "6");
 								row.appendChild(createElement("td")).setInnerText(totalWaiting);
-								row.appendChild(createElement("td")).setInnerText(totalMiles);
-								row.appendChild(createElement("td")).setInnerText((new Date(totalTrip)).toTimeString());
+								//row.appendChild(createElement("td")).setInnerText(totalMiles);
+								//row.appendChild(createElement("td")).setInnerText((new Date(totalTrip)).toTimeString());
 								//row.appendChild(createElement("td")).setInnerText((new Date(totalDriverHours)).toTimeString());
 								row.appendChild(createElement("td")).setInnerText(totalDriverHours / 3600000);
 								row.appendChild(createElement("td")).setInnerText("£" + (totalParking / 100).formatMoney());
@@ -2446,8 +2446,8 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(companyCell);
 								//row.appendChild(inCarCell).setAttribute("class", "noPrint");
 								row.appendChild(waitingCell).setAttribute("class", "noPrint");
-								row.appendChild(milesCell).setAttribute("class", "noPrint");
-								row.appendChild(tripCell).setAttribute("class", "noPrint");
+								//row.appendChild(milesCell).setAttribute("class", "noPrint");
+								//row.appendChild(tripCell).setAttribute("class", "noPrint");
 								row.appendChild(driverHoursCell).setAttribute("class", "noPrint");
 								row.appendChild(parkingCell).setAttribute("class", "noPrint");
 								row.appendChild(subCell).setAttribute("class", "noPrint");
@@ -2467,8 +2467,8 @@ window.addEventListener("load", function(oldDate) {
 									if (eventFinals.FinalsSet) {
 										//inCarCell.setInnerText((new Date(eventFinals.InCar)).toTimeString()).removeAttribute("class");
 										waitingCell.setInnerText(eventFinals.Waiting).removeAttribute("class");
-										milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
-										tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
+										//milesCell.setInnerText(eventFinals.Miles).removeAttribute("class");
+										//tripCell.setInnerText((new Date(eventFinals.Trip)).toTimeString()).removeAttribute("class");
 										//driverHoursCell.setInnerText((new Date(eventFinals.DriverHours)).toTimeString()).removeAttribute("class");
 										driverHoursCell.setInnerText(eventFinals.DriverHours / 3600000).removeAttribute("class");
 										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney()).removeAttribute("class");
@@ -2508,8 +2508,8 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Company");
 					//tableTitles.appendChild(createElement("th")).setInnerText("In Car");
 					tableTitles.appendChild(createElement("th")).setInnerText("Waiting");
-					tableTitles.appendChild(createElement("th")).setInnerText("Miles");
-					tableTitles.appendChild(createElement("th")).setInnerText("Flight Time");
+					//tableTitles.appendChild(createElement("th")).setInnerText("Miles");
+					//tableTitles.appendChild(createElement("th")).setInnerText("Flight Time");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours (h)");
 					tableTitles.appendChild(createElement("th")).setInnerText("Parking");
 					tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
