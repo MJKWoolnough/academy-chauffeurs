@@ -692,16 +692,6 @@ window.addEventListener("load", function(oldDate) {
 								wg.add();
 								var id = parseInt(ps[i]);
 								rpc.setDriverPosShow({"ID": id, "Pos": drivers[id].Pos, "Show": drivers[id].Show}, wgDone);
-								/*
-								rpc.getDriverNote(id, function(id, noteText) {
-									var note = noteJSON(noteText);
-									note.Pos = drivers[id].Pos;
-									note.Show = drivers[id].Show;
-									rpc.setDriverNote(id, JSON.stringify(note), function() {
-										wg.done();
-									});
-								}.bind(null, id))
-								*/
 							}
 						}
 					}.bind(this));
@@ -718,59 +708,39 @@ window.addEventListener("load", function(oldDate) {
 						stack.addLayer("addDriver", this.addDriver.bind(this));
 						addDriver();
 					}.bind(this));
-					//var wg = new waitGroup(function() {
-						ds = ds.sort(function(a, b) {
-							return a.Pos - b.Pos;
-						});
-						for (i = 0; i < ds.length; i++) {
-							this.addDriver(ds[i]);
-						}
-						var eventsDiv = layer.appendChild(createElement("div"));
-						eventsDiv.setAttribute("class", "dates");
-						driverEvents.setAttribute("class", "driverEvents");
-						eventCells.setAttribute("class", "events slider");
-						layer.appendChild(dates).setAttribute("class", "dates slider");
-						layer.appendChild(driverEvents);
-						for (i = 0; i < 10; i++) {
-							var div = layer.appendChild(createElement("div"));
-							if (i % 2 === 0) {
-								div.appendChild(createElement("div")).setInnerText("<");
-								div.setAttribute("class", "moveLeft simpleButton");
-							} else {
-								div.appendChild(createElement("div")).setInnerText(">");
-								div.setAttribute("class", "moveRight simpleButton");
-							}
-							div.style.top = 20 + Math.floor(i / 2) * 20 + "px";
-							div.addEventListener("click", moveHandler(i));
-							if (i === 4 || i === 5) {
-								div.addEventListener("dblclick", moveHandler(i+6));
-							}
-						}
-						stack.setFragment();
-						update(now);
-						for (i = 0; i < toLoad.length; i++) {
-							toLoad[i]();
-						}
-						window.addEventListener("resize", update.bind(this, undefined));
-					/*}.bind(this)) , i;
+					ds = ds.sort(function(a, b) {
+						return a.Pos - b.Pos;
+					});
 					for (i = 0; i < ds.length; i++) {
-						wg.add();
-						rpc.getDriverNote(ds[i].ID, function(i, note)  {
-							var n = noteJSON(note);
-							if (typeof n.Pos === "undefined") {
-								ds[i].Pos = i;
-							} else {
-								ds[i].Pos = n.Pos
-							}
-							if (n.Show === false) {
-								ds[i].Show = false;
-							} else {
-								ds[i].Show = true;
-							}
-							wg.done();
-						}.bind(null, i))
+						this.addDriver(ds[i]);
 					}
-					*/
+					var eventsDiv = layer.appendChild(createElement("div"));
+					eventsDiv.setAttribute("class", "dates");
+					driverEvents.setAttribute("class", "driverEvents");
+					eventCells.setAttribute("class", "events slider");
+					layer.appendChild(dates).setAttribute("class", "dates slider");
+					layer.appendChild(driverEvents);
+					for (i = 0; i < 10; i++) {
+						var div = layer.appendChild(createElement("div"));
+						if (i % 2 === 0) {
+							div.appendChild(createElement("div")).setInnerText("<");
+							div.setAttribute("class", "moveLeft simpleButton");
+						} else {
+							div.appendChild(createElement("div")).setInnerText(">");
+							div.setAttribute("class", "moveRight simpleButton");
+						}
+						div.style.top = 20 + Math.floor(i / 2) * 20 + "px";
+						div.addEventListener("click", moveHandler(i));
+						if (i === 4 || i === 5) {
+							div.addEventListener("dblclick", moveHandler(i+6));
+						}
+					}
+					stack.setFragment();
+					update(now);
+					for (i = 0; i < toLoad.length; i++) {
+						toLoad[i]();
+					}
+					window.addEventListener("resize", update.bind(this, undefined));
 				}.bind(this));
 			}.bind(this));
 		    },
@@ -1075,7 +1045,6 @@ window.addEventListener("load", function(oldDate) {
 				eventDiv.style.backgroundColor = colour.formatColour();
 			});
 			rpc.getEventNote(e.ID, function(noteText) {
-				//noteText = noteJSON(noteText).Note;
 				rpc.getClient(e.ClientID, function(c) {
 					var name = eventDiv.appendChild(createElement("div")).setInnerText(c.Name),
 					    from = eventDiv.appendChild(createElement("div")).setInnerText(e.From),
@@ -1350,28 +1319,6 @@ window.addEventListener("load", function(oldDate) {
 			} else {
 				details.appendChild(document.createTextNode("To: " + events[i].InvoiceTo));
 			}
-			/*
-			rpc.getEventNote(events[i].ID, function(cr, details, extra, noteText) {
-				var data = noteJSON(noteText);
-				if (typeof data.ClientRef !== "undefined") {
-					cr.setInnerText(data.ClientRef);
-				}
-				if (typeof data.InvoiceNote !== "undefined") {
-					extra.setPreText(extra.innerText + "\n" + data.InvoiceNote);
-				}
-				if (typeof data.InvoiceFrom === "undefined") {
-					details.appendChild(document.createTextNode("From: " + events[i].From));
-				} else {
-					details.appendChild(document.createTextNode("From: " + data.InvoiceFrom));
-				}
-				details.appendChild(createElement("br"));
-				if (typeof data.InvoiceTo === "undefined") {
-					details.appendChild(document.createTextNode("To: " + events[i].To));
-				} else {
-					details.appendChild(document.createTextNode("To: " + data.InvoiceTo));
-				}
-			}.bind(null, cr, details, extra));
-			*/
 			row.appendChild(createElement("td")).setInnerText("£");
 			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney());
 			row.appendChild(createElement("td")).setInnerText("£");
@@ -2368,18 +2315,8 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(createElement("div")).setInnerText(driver.RegistrationNumber);
 				toPrint.appendChild(createElement("label")).setInnerText("No. of Events");
 				var bookings = toPrint.appendChild(createElement("div")).setInnerText("-");
-//				    tmpNote = {Note:""};
 				toPrint.appendChild(createElement("label")).setInnerText("Notes");
 				toPrint.appendChild(makeNote(rpc.getDriverNote.bind(rpc, driver.ID), rpc.setDriverNote.bind(rpc, driver.ID)));
-/*				toPrint.appendChild(makeNote(function(callback) {
-					rpc.getDriverNote(driver.ID, function(noteText) {
-						tmpNote = noteJSON(noteText);
-						callback(tmpNote.Note)
-					});
-				}, function(noteText) {
-					tmpNote.Note = noteText;
-					rpc.setDriverNote(driver.ID, JSON.stringify(tmpNote));
-				}));*/
 				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
 			}],
 			[ "Events", function() {
@@ -2854,28 +2791,6 @@ window.addEventListener("load", function(oldDate) {
 			toPrint.appendChild(createElement("label")).setInnerText("Notes");
 
 			toPrint.appendChild(makeNote(rpc.getEventNote.bind(rpc, e.ID), rpc.setEventNote.bind(rpc, e.ID)));
-			/*var tmpNote = {"Note":""};
-			toPrint.appendChild(makeNote(function(callback) {
-				rpc.getEventNote(e.ID, function(noteText) {
-					tmpNote = noteJSON(noteText);
-					if (typeof tmpNote.InvoiceNote !== "undefined") {
-						invoiceNote.setPreText(tmpNote.InvoiceNote);
-					}
-					if (typeof tmpNote.InvoiceFrom !== "undefined") {
-						invoiceFrom.setInnerText(tmpNote.InvoiceFrom);
-					}
-					if (typeof tmpNote.InvoiceTo !== "undefined") {
-						invoiceTo.setInnerText(tmpNote.InvoiceTo);
-					}
-					if (typeof tmpNote.ClientRef !== "undefined") {
-						clientRef.setInnerText(tmpNote.ClientRef + "\u00A0");
-					}
-					callback(tmpNote.Note);
-				});
-			}, function(noteText) {
-				tmpNote.Note = noteText;
-				rpc.setEventNote(e.ID, JSON.stringify(tmpNote));
-			}));*/
 			rpc.getClient(e.ClientID, function(client) {
 				clientName.setInnerText(client.Name);
 				clientPhone.setInnerText(client.PhoneNumber);
@@ -2941,34 +2856,11 @@ window.addEventListener("load", function(oldDate) {
 					eventFinals.InvoiceFrom = invoiceFrom[0].value;
 					eventFinals.InvoiceTo = invoiceTo[0].value;
 					eventFinals.InvoiceNote = invoiceNotes[0].value;
-				/*	invoiceNotesJSON.InvoiceFrom = invoiceFrom[0].value;
-					invoiceNotesJSON.InvoiceTo = invoiceTo[0].value;
-					invoiceNotesJSON.InvoiceNote = invoiceNotes[0].value;
-					invoiceNotesJSON.ClientRef = clientRef[0].value;
-					rpc.setEventNote(e.ID, JSON.stringify(invoiceNotesJSON));*/
 					rpc.setEventFinals(eventFinals, function() {
 						stack.removeLayer();
 						showEvent(e);
 					});
 				});
-				/*rpc.getEventNote(e.ID, function(noteText) {
-					invoiceNotesJSON = noteJSON(noteText);
-					if (typeof invoiceNotesJSON.InvoiceNote !== "undefined") {
-						invoiceNotes[0].value = invoiceNotesJSON.InvoiceNote;
-					}
-					if (typeof invoiceNotesJSON.InvoiceFrom !== "undefined") {
-						invoiceFrom[0].value = invoiceNotesJSON.InvoiceFrom;
-					}
-					if (typeof invoiceNotesJSON.InvoiceTo !== "undefined") {
-						invoiceTo[0].value = invoiceNotesJSON.InvoiceTo;
-					}
-					if (typeof invoiceNotesJSON.ClientRef !== "undefined") {
-						clientRef[0].value = invoiceNotesJSON.ClientRef;
-					} else {
-						rpc.getClient(e.ClientID, function(client) {
-							clientRef[0].value = client.Reference;
-						});
-					}*/
 				rpc.getEventFinals(e.ID, function(eventFinals) {
 					inCar[0].value = (new Date(eventFinals.InCar)).toTimeString();
 					waiting[0].value = eventFinals.Waiting;
@@ -2988,7 +2880,6 @@ window.addEventListener("load", function(oldDate) {
 					}
 					invoiceNotes[0].value = eventFinals.InvoiceNote;
 				});
-				//});
 			}];
 		}
 		tabData[tabData.length] = [ "Options", function () {
@@ -3194,19 +3085,6 @@ window.addEventListener("load", function(oldDate) {
 		nameDiv.addEventListener("keyup", activator, true);
 		nameDiv.addEventListener("focus", activator, true);
 	},
-	/*noteJSON = function(text) {
-		if (text.length === 0) {
-			return {"Note":""};
-		}
-		if (text.charAt(0) !== "{") {
-			return {"Note":text};
-		}
-		var data = JSON.parse(text);
-		if (typeof data.Note === "undefined") {
-			data.Note = "";
-		}
-		return data;
-	},*/
 	Date;
 	(function() {
 		var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
