@@ -1040,3 +1040,8 @@ func (c *Calls) Update(_ struct{}, _ *struct{}) error {
 	}
 	return exec.Command("updater.exe").Start()
 }
+
+func (c *Calls) UsersOnline(_ struct{}, users *map[string]uint) error {
+	*users = userMap.Copy()
+	return nil
+}

@@ -43,7 +43,7 @@ func main() {
 
 	srv := new(authServeMux)
 
-	srv.Handle("/rpc", websocket.Handler(rpcHandler))
+	srv.Handle("/rpc", &userConn{websocket.Handler(rpcHandler)})
 	srv.Handle("/export", http.HandlerFunc(nc.export))
 	srv.Handle("/ics", http.HandlerFunc(nc.calendar))
 	srv.Handle("/", http.FileServer(dir))

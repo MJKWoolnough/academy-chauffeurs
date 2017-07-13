@@ -123,6 +123,7 @@ window.addEventListener("load", function(oldDate) {
 		this.setUser = request.bind(this, "SetUser"); // {Username, Password}, callback
 		this.removeUser = request.bind(this, "RemoveUser"); // Username, callback
 		this.update = request.bind(this, "Update", null); // callback
+		this.usersOnline = request.bind(this, "UsersOnline", null); // callback
 	})(function() {
 		events.init();	
 	}),
@@ -246,6 +247,24 @@ window.addEventListener("load", function(oldDate) {
 			h.setInnerText("Updating Program...");
 		}));
 		stack.setFragment();
+	},
+	online = function() {
+		layer.appendChild(createElement("h1")).setInnerText("Online");
+		rpc.usersOnline(function(users) {
+			var table = layer.appendChild(createElement("table")),
+			    header = table.appendChild(createElement("thead")).appendChild(createElement("tr")),
+			    tbody = table.appendChild(createElement("tbody"));
+			header.appendChild(createElement("th")).setInnerText("Username");
+			header.appendChild(createElement("th")).setInnerText("Count");
+			for (var user in users) {
+				if (users.hasOwnProperty(user)) {
+					var row = tbody.appendChild(createElement("tr"));
+					row.appendChild(createElement("td")).setInnerText(user);
+					row.appendChild(createElement("td")).setInnerText(users[user]);
+				}
+			}
+			stack.setFragment();
+		});
 	},
 	users = function() {
 		layer.appendChild(createElement("h1")).setInnerText("Users");
@@ -588,6 +607,9 @@ window.addEventListener("load", function(oldDate) {
 					return;
 				} else if (params[0] === "update") {
 					updateProgram();
+					return;
+				} else if (params[0] === "online") {
+					online();
 					return;
 				} else if (paramParts.length === 2) {
 					var id = parseInt(paramParts[1]);

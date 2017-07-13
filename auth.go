@@ -4,7 +4,49 @@ import (
 	"crypto/sha1"
 	"net/http"
 	"sync"
+
+	"golang.org/x/net/websocket"
 )
+
+type UserMap struct {
+	sync.RWMutex
+	users map[string]uint
+}
+
+var userMap UserMap
+
+func (u *UserMap) Add(username string) {
+	u.Lock()
+	u.users[username] = u.users[username] + 1
+	u.Unlock()
+}
+
+func (u *UserMap) Remove(username string) {
+	u.Lock()
+	u.users[username] = u.users[username] - 1
+	u.Unlock()
+}
+
+func (u *UserMap) Copy() map[string]uint {
+	u.RLock()
+	m := make(map[string]uint, len(u.users))
+	for u, c := range u.users {
+		m[u] = c
+	}
+	u.RUnlock()
+	return m
+}
+
+type userConn struct {
+	websocket.Handler
+}
+
+func (u *userConn) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	user, _, _ := r.BasicAuth()
+	userMap.Add(user)
+	u.Handler.ServeHTTP(w, r)
+	userMap.Remove(user)
+}
 
 type AuthMap struct {
 	sync.RWMutex
@@ -14,6 +56,7 @@ type AuthMap struct {
 var authMap AuthMap
 
 func init() {
+	userMap.users = make(map[string]uint)
 	authMap.users = make(map[string][sha1.Size]byte)
 }
 
