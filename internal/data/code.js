@@ -142,6 +142,7 @@ window.addEventListener("load", function(oldDate) {
 	},
 	vatPercent = 20,
 	adminPercent = 10,
+	invoiceHeader = "",
 	createElement = (function(){
 		var ns = document.getElementsByTagName("html")[0].namespaceURI;
 		return function(elementName) {
@@ -314,7 +315,7 @@ window.addEventListener("load", function(oldDate) {
 			    unass = addFormElement("Unassigned events warning (days)", "text", "uass", s.Unassigned, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
 			    alarmTime = addFormElement("Calendar Export Alarm Time (m)", "text", "alarmTime", s.AlarmTime, regexpCheck(/^-?[0-9]+$/, "Please enter a valid integer")),
 			    serverPort = addFormElement("Server Port", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
-			    invoiceHeader = addFormElement("Invoice Header", "text", "invoiceHeader", s.InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header")),
+			    invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", s.InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header")),
 			    emailSMTP = addFormElement("SMTP Server", "text", "smtpServer", s.EmailSMTP, regexpCheck(/.*/, "Please enter a valid SMTP server")),
 			    emailUsername = addFormElement("Email Username", "text", "emailUsername", s.EmailUsername, regexpCheck(/.*/, "Please enter a valid Email Username")),
 			    emailPassword = addFormElement("Email Password", "password", "emailPassword", s.EmailPassword, regexpCheck(/.*/, "Please enter a valid Email Password")),
@@ -683,6 +684,7 @@ window.addEventListener("load", function(oldDate) {
 				unassignedNear = s.Unassigned * 24 * 3600 * 1000;
 				vatPercent = s.VATPercent;
 				adminPercent = s.AdminPercent;
+				invoiceHeader = s.InvoiceHeader;
 				addToBar("Companies", function() {
 					stack.addLayer("companyList");
 					companyList();
@@ -1285,11 +1287,7 @@ window.addEventListener("load", function(oldDate) {
 		    addressDate, eomDate = new Date(0), eomDateElm, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0,
 		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput, cn, vatEdit;
 		header.setAttribute("class", "printOnly");
-		cn = header.appendChild(createElement("div"));
-		cn.setAttribute("id", "invoiceCompanyName");
-		cn.appendChild(createElement("span")).setInnerText("Academy");
-		cn.appendChild(createElement("span")).setInnerText("Chauffeurs");
-		header.appendChild(createElement("div")).setPreText("83 The Pastures\nStevenage\nHerts SG2 7DF\nVAT No 830 8068 35").setAttribute("id", "invoiceCompanyAddress");
+		header.innerHTML = invoiceHeader;
 		topTable.setAttribute("class", "invoiceTop");
 		topTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("Invoice to:").setAttribute("colspan", "3");
 		addressDate = topTable.appendChild(createElement("tr"));
