@@ -679,7 +679,7 @@
 		text-align : right;
 	}
 
-	.invoiceBottom {
+	.invoice tr, .invoiceBottom {
 		page-break-inside : avoid;
 	}
 
@@ -793,6 +793,5 @@ label:after {
 
 tr.overline td {
 	border-top : 2px solid #000;
-	cell
 }
 

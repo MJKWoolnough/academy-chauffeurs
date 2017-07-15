@@ -1284,7 +1284,7 @@ window.addEventListener("load", function(oldDate) {
 		    topTable = layer.appendChild(createElement("table")),
 		    table = layer.appendChild(createElement("table")),
 		    costTable = layer.appendChild(createElement("table")),
-		    addressDate, eomDate = new Date(0), eomDateElm, invoiceNo, ref, tableTitles, i = 0, totalParking = 0, totalPrice = 0,
+		    addressDate, eomDate = new Date(0), eomDateElm, invoiceNo, ref, tableTitles, tbody, i = 0, totalParking = 0, totalPrice = 0,
 		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput, cn, vatEdit;
 		header.setAttribute("class", "printOnly");
 		header.innerHTML = invoiceHeader;
@@ -1301,15 +1301,16 @@ window.addEventListener("load", function(oldDate) {
 		ref.appendChild(createElement("td")).setInnerText("Your Ref:");
 		ref.appendChild(createElement("td")).setAttribute("contenteditable", "true");
 		table.setAttribute("class", "invoice");
-		tableTitles = table.appendChild(createElement("tr"));
+		tableTitles = table.appendChild(createElement("thead")).appendChild(createElement("tr"));
 		tableTitles.appendChild(createElement("th")).setInnerText("Date");
 		tableTitles.appendChild(createElement("th")).setInnerText("Name").setAttribute("colspan", 2);
 		tableTitles.appendChild(createElement("th")).setInnerText("Details");
 		tableTitles.appendChild(createElement("th")).setInnerText("Additional").setAttribute("contenteditable", "true");
 		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
 		tableTitles.appendChild(createElement("th")).setInnerText("").setAttribute("colspan", "2");
+		tbody = table.appendChild(createElement("tbody"));
 		for (; i < events.length; i++) {
-			var row = table.appendChild(createElement("tr")), cr, cn = events[i].ClientName, details, extra, thisDate = new Date(events[i].Start);
+			var row = tbody.appendChild(createElement("tr")), cr, cn = events[i].ClientName, details, extra, thisDate = new Date(events[i].Start);
 			if (thisDate.getTime() > eomDate.getTime()) {
 				eomDate = thisDate;
 			}
