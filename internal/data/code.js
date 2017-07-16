@@ -1474,8 +1474,8 @@ window.addEventListener("load", function(oldDate) {
 				});
 			}],
 			[ "Events", function() {
-				var eventsStartDate = new Date(),
-				    eventsEndDate = new Date();
+				var eventsEndDate = new Date(),
+				    eventsStartDate = new Date(eventsEndDate.getFullYear(), eventsEndDate.getMonth(), 1);
 				return function() {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
@@ -1794,8 +1794,8 @@ window.addEventListener("load", function(oldDate) {
 				});
 			}],
 			[ "Events", function() {
-				var eventsStartDate = new Date(),
-				    eventsEndDate = new Date();
+				var eventsEndDate = new Date(),
+				    eventsStartDate = new Date(eventsEndDate.getFullYear(), eventsEndDate.getMonth(), 1);
 				return function() {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
@@ -1941,8 +1941,8 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(makeNote(rpc.getClientNote.bind(rpc, client.ID), rpc.setClientNote.bind(rpc, client.ID)));
 			}],
 			[ "Events", function () {
-				var eventsStartDate = new Date(),
-				    eventsEndDate = new Date();
+				var eventsEndDate = new Date(),
+				    eventsStartDate = new Date(eventsEndDate.getFullYear(), eventsEndDate.getMonth(), 1);
 				return function() {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
@@ -2343,8 +2343,8 @@ window.addEventListener("load", function(oldDate) {
 				rpc.getNumEventsDriver(driver.ID, bookings.setInnerText.bind(bookings));
 			}],
 			[ "Events", function() {
-				var eventsStartDate = new Date(),
-				    eventsEndDate = new Date();
+				var eventsEndDate = new Date(),
+				    eventsStartDate = new Date(eventsEndDate.getFullYear(), eventsEndDate.getMonth(), 1);
 				return function () {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
