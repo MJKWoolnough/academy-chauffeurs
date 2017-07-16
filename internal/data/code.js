@@ -1283,8 +1283,10 @@ window.addEventListener("load", function(oldDate) {
 		var header = layer.appendChild(createElement("div")),
 		    topTable = layer.appendChild(createElement("table")),
 		    table = layer.appendChild(createElement("table")),
+		    tableTitles = table.appendChild(createElement("thead")).appendChild(createElement("tr")),
+		    tbody = table.appendChild(createElement("tbody")),
 		    costTable = layer.appendChild(createElement("table")),
-		    addressDate, eomDate = new Date(0), eomDateElm, invoiceNo, ref, tableTitles, tbody, i = 0, totalParking = 0, totalPrice = 0,
+		    addressDate, eomDate = new Date(0), eomDateElm, invoiceNo, ref, i = 0, totalParking = 0, totalPrice = 0,
 		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput, cn, vatEdit;
 		header.setAttribute("class", "printOnly");
 		header.innerHTML = invoiceHeader;
@@ -1301,14 +1303,13 @@ window.addEventListener("load", function(oldDate) {
 		ref.appendChild(createElement("td")).setInnerText("Your Ref:");
 		ref.appendChild(createElement("td")).setAttribute("contenteditable", "true");
 		table.setAttribute("class", "invoice");
-		tableTitles = table.appendChild(createElement("thead")).appendChild(createElement("tr"));
 		tableTitles.appendChild(createElement("th")).setInnerText("Date");
 		tableTitles.appendChild(createElement("th")).setInnerText("Name").setAttribute("colspan", 2);
+		tableTitles.appendChild(createElement("th")).setInnerText("Event Ref");
 		tableTitles.appendChild(createElement("th")).setInnerText("Details");
 		tableTitles.appendChild(createElement("th")).setInnerText("Additional").setAttribute("contenteditable", "true");
 		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
 		tableTitles.appendChild(createElement("th")).setInnerText("").setAttribute("colspan", "2");
-		tbody = table.appendChild(createElement("tbody"));
 		for (; i < events.length; i++) {
 			var row = tbody.appendChild(createElement("tr")), cr, cn = events[i].ClientName, details, extra, thisDate = new Date(events[i].Start);
 			if (thisDate.getTime() > eomDate.getTime()) {
@@ -1321,6 +1322,7 @@ window.addEventListener("load", function(oldDate) {
 				cn += "\n" + events[i].Other;
 			}
 			row.appendChild(createElement("td")).setPreText(cn).setAttribute("contenteditable", "true");
+			row.appendChild(createElement("td")).setInnerText(events[i].ID).setAttribute("contenteditable", "true");
 			details = row.appendChild(createElement("td"));
 			details.setAttribute("contenteditable", "true");
 			extra = row.appendChild(createElement("td"));
