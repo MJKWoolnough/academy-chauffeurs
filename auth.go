@@ -23,7 +23,12 @@ func (u *UserMap) Add(username string) {
 
 func (u *UserMap) Remove(username string) {
 	u.Lock()
-	u.users[username] = u.users[username] - 1
+	count := u.users[username] - 1
+	if count == 0 {
+		delete(u.users, username)
+	} else {
+		u.users[username] = count
+	}
 	u.Unlock()
 }
 
