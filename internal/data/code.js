@@ -2727,6 +2727,8 @@ window.addEventListener("load", function(oldDate) {
 			var toPrint = layer.appendChild(createElement("div"));
 			toPrint.setAttribute("class", "toPrint");
 			toPrint.appendChild(createElement("h2")).setInnerText("Event Details").setAttribute("class", "printOnly");
+			toPrint.appendChild(createElement("label")).setInnerText("Event ID");
+			toPrint.appendChild(createElement("div")).setInnerText(e.ID),
 			toPrint.appendChild(createElement("label")).setInnerText("Client Name");
 			var clientName = toPrint.appendChild(createElement("div")).setInnerText("-"),
 			    clientPhone = createElement("div").setInnerText("-"),
