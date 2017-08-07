@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"database/sql"
 	"errors"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -28,18 +27,21 @@ func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	var wr io.Writer = w
 	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
-			wr = gzip.NewWriter(w)
+			var b bytes.Buffer
+			g := gzip.NewWriter(&b)
+			buf.WriteTo(g)
+			g.Close()
+			buf = b
 			break
 		}
 	}
 	w.Header().Add("Content-Length", strconv.Itoa(buf.Len()))
 	w.Header().Add("Content-Type", "text/v-calendar; charset=utf-8")
 	w.Header().Add("Content-Disposition", "attachment; filename=calendar.ics")
-	buf.WriteTo(wr)
+	buf.WriteTo(w)
 }
 
 func (c *Calls) makeCalendar() (*ics.Calendar, error) {

@@ -662,7 +662,9 @@ func (c *Calls) exportClientList(w http.ResponseWriter, r *http.Request) {
 	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
-			gzip.NewWriter(w).Write(buf)
+			g := gzip.NewWriter(w)
+			g.Write(buf)
+			g.Close()
 			return
 		}
 	}
