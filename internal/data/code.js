@@ -1278,7 +1278,7 @@ window.addEventListener("load", function(oldDate) {
 	},
 	makeInvoice = function(company, startDate, endDate, events) {
 		stack.addLayer("invoice");
-		layer.setAttribute("class", "toPrint");
+		layer.setAttribute("class", "toPrint printInvoice");
 		stack.addFragment();
 		var header = layer.appendChild(createElement("div")),
 		    topTable = layer.appendChild(createElement("table")),

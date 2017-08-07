@@ -667,7 +667,7 @@
 	}
 
 	#invoiceCompanyName span:first-child {
-		color : #0070c0;
+		color : #de3163;
 	}
 
 	#invoiceCompanyName span:first-child:after {
@@ -683,6 +683,9 @@
 		page-break-inside : avoid;
 	}
 
+	.printInvoice {
+		font-size: 0.8em;
+	}
 }
 
 body {
