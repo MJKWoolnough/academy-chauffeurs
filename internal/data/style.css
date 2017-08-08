@@ -657,35 +657,6 @@
 	input[type="text"] {
 		width : 100%;
 	}
-
-	#invoiceCompanyName {
-		font-size : 1.5em;
-		font-weight : bold;
-		padding-bottom : 0.5em;
-		text-align : right;
-		text-transform : lowercase;
-	}
-
-	#invoiceCompanyName span:first-child {
-		color : #de3163;
-	}
-
-	#invoiceCompanyName span:first-child:after {
-		content : ' ';
-	}
-
-	#invoiceCompanyAddress {
-		font-size : 1.1em;
-		text-align : right;
-	}
-
-	.invoice tr, .invoiceBottom {
-		page-break-inside : avoid;
-	}
-
-	.printInvoice {
-		font-size: 0.8em;
-	}
 }
 
 body {
