@@ -3342,7 +3342,7 @@ window.addEventListener("load", function(oldDate) {
 			},
 			toOrdinalDate: function() {
 				var year = this.getFullYear(),
-				    month = this.getMonth() + 1,
+				    month = (this.getMonth() + 1) % 12,
 				    date = this.getDate(),
 				    suffix = this.getOrdinalSuffix(date);
 				return date + suffix + " " + monthNames[month] + " " + year;
