@@ -612,6 +612,28 @@ window.addEventListener("load", function(oldDate) {
 				} else if (params[0] === "online") {
 					online();
 					return;
+				} else if (paramParts[0] === "invoice") {
+					rpc.getSettings(function (s) {
+						vatPercent = s.VATPercent;
+						adminPercent = s.AdminPercent;
+						invoiceHeader = s.InvoiceHeader;
+						var events = [], i = 0, todo = parseInt(paramParts[1]);
+						for (; i < todo; i++ ) {
+							var clientID = (Math.random() * 1000 + 1)|0,
+							    start = new Date(2000, 0, (Math.random()*31 + 1)|0).getTime();
+							events[i] = {ClientID : clientID, ClientName : "Client Name " + clientID, ClientReference : clientID, Start: start, End : start + (Math.random()*8 + 1)|0 * 30 * 60, From : "Departure Address", ID : i, InvoiceFrom : "Departure Address", InvoiceNote : "Example", InvoiceTo : "Destination Address", Other : "", Parking : ((Math.random() * 10)|0) * 300, Price : ((Math.random() * 100)|0) * 100, Waiting : 0 };
+						}
+						events.sort(function(a, b) {
+							if (a.Start < b.Start) {
+								return -1;
+							} else if (a.Start > b.Start) {
+								return 1;
+							}
+							return 0;
+						})
+						makeInvoice({ ID: 0, Name: "Example Company", Address: "123 Fakestreet\nLondon\nLW1 1WL", Colour: 65535 }, events);
+					});
+					return;
 				} else if (paramParts.length === 2) {
 					var id = parseInt(paramParts[1]);
 					switch (paramParts[0]){
