@@ -1315,7 +1315,7 @@ window.addEventListener("load", function(oldDate) {
 		topTable.setAttribute("class", "invoiceTop");
 		topTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("Invoice to:").setAttribute("colspan", "3");
 		addressDate = topTable.appendChild(createElement("tr"));
-		addressDate.appendChild(createElement("td")).setPreText(company.Name + "\n" + company.Address).setAttribute("rowspan", "3");
+		addressDate.appendChild(createElement("td")).setAttributeN("rowspan", "3").appendChild(createElement("div")).setPreText(company.Name + "\n" + company.Address).setAttribute("id", "companyAddress");
 		addressDate.appendChild(createElement("td")).setInnerText("Date :");
 		eomDateElm = addressDate.appendChild(createElement("td"))
 		invoiceNo = topTable.appendChild(createElement("tr"));
@@ -3427,6 +3427,10 @@ window.addEventListener("load", function(oldDate) {
 	Element.prototype.setInnerText = function(text) {
 		this.removeChildren();
 		this.appendChild(document.createTextNode(text));
+		return this;
+	};
+	Element.prototype.setAttributeN = function(attr, value) {
+		this.setAttribute(attr, value);
 		return this;
 	};
 	Element.prototype.setPreText = function(text) {
