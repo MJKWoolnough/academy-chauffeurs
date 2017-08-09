@@ -1276,7 +1276,7 @@ window.addEventListener("load", function(oldDate) {
 		});
 		return note;
 	},
-	makeInvoice = function(company, startDate, endDate, events) {
+	makeInvoice = function(company, events) {
 		stack.addLayer("invoice");
 		layer.setAttribute("class", "toPrint printInvoice");
 		stack.addFragment();
@@ -1514,7 +1514,7 @@ window.addEventListener("load", function(oldDate) {
 								invoiceButton.setAttribute("type", "button");
 								invoiceButton.value = "Make Invoice";
 								invoiceButton.addEventListener("click", function() {
-									makeInvoice(company, eventsStartDate, eventsEndDate, events);
+									makeInvoice(company, events);
 								});
 								eventTable.parentNode.appendChild(invoiceButton);
 							    }),
