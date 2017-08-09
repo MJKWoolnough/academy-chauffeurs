@@ -1331,7 +1331,8 @@ window.addEventListener("load", function(oldDate) {
 		tableTitles.appendChild(createElement("th")).setInnerText("Details");
 		tableTitles.appendChild(createElement("th")).setInnerText("Additional").setAttribute("contenteditable", "true");
 		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
-		tableTitles.appendChild(createElement("th")).setInnerText("").setAttribute("colspan", "2");
+		tableTitles.appendChild(createElement("th"));
+		tableTitles.appendChild(createElement("th")).setInnerText("Total");
 		for (; i < events.length; i++) {
 			var row = tbody.appendChild(createElement("tr")), cr, cn = events[i].ClientName, details, extra, thisDate = new Date(events[i].Start);
 			if (thisDate.getTime() > eomDate.getTime()) {
