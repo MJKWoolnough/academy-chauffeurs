@@ -8,6 +8,17 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+type noCache struct {
+	http.Handler
+}
+
+func (n noCache) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" {
+		w.Header().Add("Cache-Control", "no-cache, no-store, must-revalidate")
+	}
+	n.Handler.ServeHTTP(w, r)
+}
+
 type UserMap struct {
 	sync.RWMutex
 	users map[string]uint
