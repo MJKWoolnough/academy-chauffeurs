@@ -755,11 +755,11 @@ window.addEventListener("load", function(oldDate) {
 							return drivers[a].Pos - drivers[b].Pos;
 						});
 						for (var i = 0; i < aps.length; i++) {
-							if (ps[i] != aps[i] || drivers[aps[i]].Show !== vs[drivers[aps[i]].ID]) {
+							//if (ps[i] != aps[i] || drivers[aps[i]].Show !== vs[drivers[aps[i]].ID]) {
 								wg.add();
 								var id = parseInt(ps[i]);
 								rpc.setDriverPosShow({"ID": id, "Pos": drivers[id].Pos, "Show": drivers[id].Show}, wgDone);
-							}
+							//}
 						}
 					}.bind(this));
 					driverList(drivers);
@@ -2632,6 +2632,7 @@ window.addEventListener("load", function(oldDate) {
 		});
 
 		for (var i = 0; i < driverIDs.length; i++) {
+			drivers[driverIDs[i]].Pos = i;
 			var driver = drivers[driverIDs[i]],
 			    row = table.appendChild(createElement("tr")),
 			    pos = row.appendChild(createElement("td")),
