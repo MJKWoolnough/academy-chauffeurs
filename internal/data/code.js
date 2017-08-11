@@ -2203,7 +2203,7 @@ window.addEventListener("load", function(oldDate) {
 			for (var i = 0; i < events.length; i++) {
 				var row = table.appendChild(createElement("tr")),
 				    clientName, driverName;
-				row.setAttribute("class", "simpleButton");
+				row.setAttribute("class", "simpleButton" + (events[i].MessageSent ? " messageSent" : ""));
 				row.appendChild(createElement("td")).setInnerText((new Date(events[i].Start)).toLocaleString());
 				clientName = row.appendChild(createElement("td")).setInnerText("-");
 				rpc.getClient(events[i].ClientID, function(clientName, eventID, row, client) {

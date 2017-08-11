@@ -344,6 +344,10 @@
 		background-color : #eee;
 	}
 
+	.simpleButton.messageSent {
+		background-color : #aaa;
+	}
+
 	.animate .simpleButton {
 		transition : background-color 0.25s, color 0.25s;
 		transition-timing-function : ease;
