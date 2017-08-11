@@ -77,6 +77,7 @@ func (c *Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
 			if e == nil {
 				resp.ID, e = r.LastInsertId()
 			}
+			c.statements[SetDriverShowPos].Exec(true, resp.ID, resp.ID)
 			err = e
 		} else {
 			resp.ID = d.ID
