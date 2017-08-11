@@ -2598,10 +2598,10 @@ window.addEventListener("load", function(oldDate) {
 			    oldPos = drivers[fromID].Pos;
 			drivers[fromID].Pos = drivers[toID].Pos;
 			drivers[toID].Pos = oldPos;
-			Array.slice(row.parentNode.getElementsByTagName("button")).forEach(b=>b.setAttribute("disabled", "disabled"));
-			row.setAttribute("class", "rowSwapper swapping");
-			toSwap.setAttribute("class", "rowSwapper swapping");
 			if (animated) {
+				Array.slice(row.parentNode.getElementsByTagName("button")).forEach(b=>b.setAttribute("disabled", "disabled"));
+				row.setAttribute("class", "rowSwapper swapping");
+				toSwap.setAttribute("class", "rowSwapper swapping");
 				window.setTimeout(function() {
 					row.parentNode.insertBefore(toSwap, row);
 					window.setTimeout(function() {
