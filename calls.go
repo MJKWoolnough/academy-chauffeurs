@@ -86,6 +86,8 @@ const (
 	SetClientNote
 	SetEventNote
 
+	SetDriverShowPos
+
 	GetSettings
 	SetSettings
 
@@ -178,7 +180,7 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Read
 
-		"SELECT [Name], [RegistrationNumber], [PhoneNumber], [Pos], [Show] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
+		"SELECT [Name], [RegistrationNumber], [PhoneNumber], IFNULL([Pos], 0), [Show] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Name], [Address], [Colour] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference], [Email] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[InvoiceNote], [Event].[InvoiceFrom], [Event].[InvoiceTo], [Event].[Other], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
@@ -220,6 +222,10 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Client] SET [Note] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [Note] = ? WHERE [ID] = ?;",
 
+		// Set Driver Show/Pos
+
+		"UPDATE [Driver] SET [Show] = ?, [Pos] = ? WHERE [ID] = ?;",
+
 		// Settings
 
 		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime], [InvoiceHeader], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate] FROM [Settings];",
@@ -228,7 +234,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		// Searches
 
 		// All Drivers
-		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber], [Pos], [Show] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
+		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber], IFNULL([Pos], 0), [Show] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
 		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
@@ -1048,4 +1054,17 @@ func (c *Calls) Update(_ struct{}, _ *struct{}) error {
 func (c *Calls) UsersOnline(_ struct{}, users *map[string]uint) error {
 	*users = userMap.Copy()
 	return nil
+}
+
+type DriverShowPos struct {
+	ID   int
+	Show bool
+	Pos  int
+}
+
+func (c *Calls) SetDriverPosShow(dsp DriverShowPos, _ *struct{}) error {
+	c.mu.Lock()
+	_, err := c.statements[SetDriverShowPos].Exec(dsp.Show, dsp.Pos, dsp.ID)
+	c.mu.Unlock()
+	return err
 }
