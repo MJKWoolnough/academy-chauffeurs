@@ -90,6 +90,8 @@
 		font-weight : bold;
 		color : #fff;
 		text-shadow : #000 -1px -1px 0, #000 1px -1px 0, #000 1px 1px 0, #000 -1px 1px 0, #000 -1px 0 0, #000 1px 0 0, #000 0 -1px 0, #000 0 1px 0;
+	}
+	.animate div.adder, .animate input[type=checkbox] {
 		transition : color 0.25s;
 		transition-timing-function : ease;
 	}
@@ -126,7 +128,7 @@
 		transform : translateY(-50%);
 	}
 
-	.slider {
+	.animate .slider {
 		transition : left 1s;
 		transition-timing-function : ease-out;
 	}
@@ -209,6 +211,9 @@
 		transform: rotate(-90deg);
 		background-color : #fff;
 		z-index : 5;
+	}
+
+	.animate .minute {
 		transition :color 0.2s;
 		transition-timing-function : ease;
 	}
@@ -251,6 +256,9 @@
 		width : 15px;
 		height : 100px;
 		z-index : 1;
+	}
+
+	.animate .eventCell {
 		transition : background-color 0.2s;
 		transition-timing-function : ease;
 	}
@@ -292,6 +300,9 @@
 		padding : 0;
 		margin : 0;
 		transform : translate(-1px, -1px);
+	}
+
+	.animate .eventMover {
 		transition : left 1s, background-color 0.25s !important;
 		transition-timing-function : ease;
 	}
@@ -306,6 +317,9 @@
 		color : #fff;
 		text-shadow : #000 -1px -1px 0, #000 1px -1px 0, #000 1px 1px 0, #000 -1px 1px 0, #000 -1px 0 0, #000 1px 0 0;
 		font-family : serif;
+	}
+
+	.animate .canceller {
 		transition : color 0.25s;
 		transition-timing-function : ease;
 	}
@@ -328,11 +342,18 @@
 
 	.simpleButton {
 		background-color : #eee;
+	}
+
+	.animate .simpleButton {
 		transition : background-color 0.25s, color 0.25s;
 		transition-timing-function : ease;
 	}
 
 	.pulse {
+		background-color : #aaa;
+	}
+
+	.animate .pulse {
 		animation: pulser 2s infinite;
 	}
 
@@ -343,6 +364,10 @@
 	}
 
 	.nearPulse {
+		background-color : #f00;
+	}
+
+	.animate .nearPulse {
 		animation: nearPulser 2s infinite;
 	}
 
@@ -404,27 +429,36 @@
 		display : none;
 	}
 
-	.event.expandable {
+	.animate .event.expandable {
 		transition : z-index 1s step-end, left 1s, width 1s;
 	}
 
 	.event.expandable:hover {
 		z-index : 3;
+	}
+
+	.animate .event.expandable:hover {
 		transition : z-index 0s step-start, left 1s, width 1s;
 	}
 
 	.event > div {
 		margin-left : 0;
-		transition : margin-left 1s;
 		white-space : nowrap;
 		margin-bottom : -2px;
+	}
+
+	.animate .event > div {
+		transition : margin-left 1s;
 	}
 
 	.event > div.time {
 		width : 100%;
 		text-align : center;
-		transition : color 1s;
 		color : transparent;
+	}
+
+	.animate .event > div.time {
+		transition : color 1s;
 	}
 
 	.event:hover > div.time {
@@ -438,14 +472,17 @@
 		position : absolute;
 		overflow : hidden;
 		background-color : transparent;
-		transition : transform 0.5s;
-		transition-timing-function : ease-in-out;
 		transform-origin : 0;
 		-webkit-transform-origin : 0;
 		white-space : nowrap;
 		border-width : 1px 1px 1px 0;
 		border-style : solid;
 		border-color : #000;
+	}
+
+	.animate .disambiguator {
+		transition : transform 0.5s;
+		transition-timing-function : ease-in-out;
 	}
 
 	.autocompleter li:hover .disambiguator {
@@ -571,6 +608,9 @@
 
 	.toggleBox label:before, .toggleBox label:after {
 		display: inline-block;
+	}
+
+	.animate .toggleBox label:before, .animate .toggleBox label:after {
 		transition : transform 0.25s;
 		transition-timing-function : ease;
 	}
@@ -595,7 +635,7 @@
 		transform: scaleX(0);
 	}
 
-	.rowSwapper {
+	.animate .rowSwapper {
 		transition : opacity 0.5s;
 		transition-timing-function : ease;
 	}

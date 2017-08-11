@@ -125,6 +125,9 @@ window.addEventListener("load", function(oldDate) {
 		this.update = request.bind(this, "Update", null); // callback
 		this.usersOnline = request.bind(this, "UsersOnline", null); // callback
 	})(function() {
+		if (animated) {
+			document.body.setAttribute("class", "animate");
+		}
 		events.init();	
 	}),
 	waitGroup = function(callback) {
@@ -140,6 +143,7 @@ window.addEventListener("load", function(oldDate) {
 			}
 		};
 	},
+	animated = window.localStorage.getItem("animated") === "true",
 	vatPercent = 20,
 	adminPercent = 10,
 	invoiceHeader = "",
@@ -247,6 +251,20 @@ window.addEventListener("load", function(oldDate) {
 		addFormSubmit("Update", rpc.update.bind(rpc, function() {
 			h.setInnerText("Updating Program...");
 		}));
+		stack.setFragment();
+	},
+	setAnimation = function() {
+		layer.appendChild(createElement("h1")).setInnerText("Animation");
+		var d = layer.appendChild(createElement("div")).setInnerText("Animation is currently turned " + (animated ? "on":"off") + "."),
+		    s = d.appendChild(createElement("button")).setInnerText(animated ? "Turn Off":"Turn On");
+		s.addEventListener("click", function() {
+			if (animated) {
+				window.localStorage.setItem("animated", "false");
+			} else {
+				window.localStorage.setItem("animated", "true");
+			}
+			window.location.search = "";
+		});
 		stack.setFragment();
 	},
 	online = function() {
@@ -611,6 +629,9 @@ window.addEventListener("load", function(oldDate) {
 					return;
 				} else if (params[0] === "online") {
 					online();
+					return;
+				} else if (params[0] === "animation") {
+					setAnimation();
 					return;
 				} else if (paramParts[0] === "invoice") {
 					rpc.getSettings(function (s) {
@@ -2580,21 +2601,25 @@ window.addEventListener("load", function(oldDate) {
 			Array.slice(row.parentNode.getElementsByTagName("button")).forEach(b=>b.setAttribute("disabled", "disabled"));
 			row.setAttribute("class", "rowSwapper swapping");
 			toSwap.setAttribute("class", "rowSwapper swapping");
-			window.setTimeout(function() {
-				row.parentNode.insertBefore(toSwap, row);
+			if (animated) {
 				window.setTimeout(function() {
-					row.setAttribute("class", "rowSwapper");
-					toSwap.setAttribute("class", "rowSwapper");
-				}, 20);
-				window.setTimeout(function() {
-					var buttons = Array.slice(row.parentNode.getElementsByTagName("button"));
-					buttons.forEach(function(button) {
-						button.removeAttribute("disabled");
-					});
-					buttons[0].setAttribute("disabled", "disabled");
-					buttons[buttons.length-1].setAttribute("disabled", "disabled");
+					row.parentNode.insertBefore(toSwap, row);
+					window.setTimeout(function() {
+						row.setAttribute("class", "rowSwapper");
+						toSwap.setAttribute("class", "rowSwapper");
+					}, 20);
+					window.setTimeout(function() {
+						var buttons = Array.slice(row.parentNode.getElementsByTagName("button"));
+						buttons.forEach(function(button) {
+							button.removeAttribute("disabled");
+						});
+						buttons[0].setAttribute("disabled", "disabled");
+						buttons[buttons.length-1].setAttribute("disabled", "disabled");
+					}, 500);
 				}, 500);
-			}, 500);
+			} else {
+				row.parentNode.insertBefore(toSwap, row);
+			}
 		    };
 		headerRow.appendChild(createElement("th")).setInnerText("Order").setAttribute("class", "noPrint");
 		headerRow.appendChild(createElement("th")).setInnerText("Driver Name");
