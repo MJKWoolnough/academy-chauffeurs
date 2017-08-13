@@ -2619,6 +2619,12 @@ window.addEventListener("load", function(oldDate) {
 				}, 500);
 			} else {
 				row.parentNode.insertBefore(toSwap, row);
+				var buttons = Array.slice(row.parentNode.getElementsByTagName("button"));
+				buttons.forEach(function(button) {
+					button.removeAttribute("disabled");
+				});
+				buttons[0].setAttribute("disabled", "disabled");
+				buttons[buttons.length-1].setAttribute("disabled", "disabled");
 			}
 		    };
 		headerRow.appendChild(createElement("th")).setInnerText("Order").setAttribute("class", "noPrint");
