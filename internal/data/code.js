@@ -87,6 +87,7 @@ window.addEventListener("load", function(oldDate) {
 		this.getSettings               = request.bind(this, "GetSettings", null);      //              callback
 		this.setSettings               = request.bind(this, "SetSettings");            // settings   , callback
 		this.setDriverPosShow          = request.bind(this, "SetDriverPosShow");       // {ID, Pos, Show}, callback
+		this.setDriverPosShows         = request.bind(this, "SetDriverPosShows");      // []{ID, Pos, Show}, callback
 		this.getEventsWithDriver = function(driverID, start, end, callback) {
 			request("DriverEvents", {"ID": driverID, "Start": start, "End": end}, callback);
 		};
@@ -750,17 +751,18 @@ window.addEventListener("load", function(oldDate) {
 						    wg = new waitGroup(function() {
 							this.removeDriver(0);
 						    }.bind(this)),
-						    wgDone = wg.done.bind(wg);
+						    wgDone = wg.done.bind(wg),
+						    newDriverList = [];
 						aps = aps.sort(function(a, b) {
 							return drivers[a].Pos - drivers[b].Pos;
 						});
+
 						for (var i = 0; i < aps.length; i++) {
-							//if (ps[i] != aps[i] || drivers[aps[i]].Show !== vs[drivers[aps[i]].ID]) {
-								wg.add();
-								var id = parseInt(ps[i]);
-								rpc.setDriverPosShow({"ID": id, "Pos": drivers[id].Pos, "Show": drivers[id].Show}, wgDone);
-							//}
+							var id = parseInt(ps[i]);
+							newDriverList[i] = {"ID": id, "Pos": drivers[id].Pos, "Show": drivers[id].Show};
 						}
+						wg.add();
+						rpc.setDriverPosShows(newDriverList, this.removeDriver.bind(this, 0));
 					}.bind(this));
 					driverList(drivers);
 				}.bind(this));

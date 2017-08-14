@@ -1069,3 +1069,17 @@ func (c *Calls) SetDriverPosShow(dsp DriverShowPos, _ *struct{}) error {
 	c.mu.Unlock()
 	return err
 }
+
+func (c *Calls) SetDriverPosShows(dsps []DriverShowPos, _ *struct{}) error {
+	c.mu.Lock()
+	for _, dsp := range dsps {
+		fmt.Println(dsp)
+		_, err := c.statements[SetDriverShowPos].Exec(dsp.Show, dsp.Pos, dsp.ID)
+		if err != nil {
+			c.mu.Unlock()
+			return err
+		}
+	}
+	c.mu.Unlock()
+	return nil
+}
