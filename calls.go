@@ -1072,14 +1072,20 @@ func (c *Calls) SetDriverPosShow(dsp DriverShowPos, _ *struct{}) error {
 
 func (c *Calls) SetDriverPosShows(dsps []DriverShowPos, _ *struct{}) error {
 	c.mu.Lock()
+	defer c.mu.Unlock()
+	tx, err := c.db.Begin()
+	if err != nil {
+		return err
+	}
+	stmt, err := tx.Prepare("UPDATE [Driver] SET [Show] = ?, [Pos] = ? WHERE [ID] = ?;")
+	if err != nil {
+		return err
+	}
 	for _, dsp := range dsps {
-		fmt.Println(dsp)
-		_, err := c.statements[SetDriverShowPos].Exec(dsp.Show, dsp.Pos, dsp.ID)
+		_, err := stmt.Exec(dsp.Show, dsp.Pos, dsp.ID)
 		if err != nil {
-			c.mu.Unlock()
 			return err
 		}
 	}
-	c.mu.Unlock()
-	return nil
+	return tx.Commit()
 }
