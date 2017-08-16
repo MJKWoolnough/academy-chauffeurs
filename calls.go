@@ -1063,13 +1063,6 @@ type DriverShowPos struct {
 	Pos  int
 }
 
-func (c *Calls) SetDriverPosShow(dsp DriverShowPos, _ *struct{}) error {
-	c.mu.Lock()
-	_, err := c.statements[SetDriverShowPos].Exec(dsp.Show, dsp.Pos, dsp.ID)
-	c.mu.Unlock()
-	return err
-}
-
 func (c *Calls) SetDriverPosShows(dsps []DriverShowPos, _ *struct{}) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()

@@ -86,7 +86,6 @@ window.addEventListener("load", function(oldDate) {
 		this.clientsForCompanies       = request.bind(this, "ClientsForCompanies");    // [ids]      , callback
 		this.getSettings               = request.bind(this, "GetSettings", null);      //              callback
 		this.setSettings               = request.bind(this, "SetSettings");            // settings   , callback
-		this.setDriverPosShow          = request.bind(this, "SetDriverPosShow");       // {ID, Pos, Show}, callback
 		this.setDriverPosShows         = request.bind(this, "SetDriverPosShows");      // []{ID, Pos, Show}, callback
 		this.getEventsWithDriver = function(driverID, start, end, callback) {
 			request("DriverEvents", {"ID": driverID, "Start": start, "End": end}, callback);
