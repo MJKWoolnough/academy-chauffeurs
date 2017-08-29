@@ -26,8 +26,8 @@ type MessageData struct {
 }
 
 type MessageVars struct {
-	ID                                                                                                                                                  int64
-	StartDate, StartTime, EndDate, EndTime, From, To, ClientName, ClientFirstName, ClientLastName, DriverName, DriverPhoneNumber, DriverReg, Passengers string
+	ID                                                                                                                                                                     int64
+	StartDate, StartTime, EndDate, EndTime, From, To, ClientName, ClientPhoneNumber, ClientFirstName, ClientLastName, DriverName, DriverPhoneNumber, DriverReg, Passengers string
 }
 
 func setMessageVars(username, password, messageTemplate, fromS string, fromNumberB bool) error {
@@ -84,6 +84,7 @@ func (c *Calls) prepareMessage(ct *template.Template, eventID int64, m *MessageD
 		end.Format("15:04"),
 		event.From, event.To,
 		client.Name,
+		client.PhoneNumber,
 		names[0],
 		names[len(names)-1],
 		driver.Name,
