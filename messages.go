@@ -26,7 +26,8 @@ type MessageData struct {
 }
 
 type MessageVars struct {
-	ID, StartDate, StartTime, EndDate, EndTime, From, To, ClientName, ClientFirstName, ClientLastName, DriverName, DriverPhoneNumber, DriverReg, Passengers string
+	ID                                                                                                                                                  int64
+	StartDate, StartTime, EndDate, EndTime, From, To, ClientName, ClientFirstName, ClientLastName, DriverName, DriverPhoneNumber, DriverReg, Passengers string
 }
 
 func setMessageVars(username, password, messageTemplate, fromS string, fromNumberB bool) error {
