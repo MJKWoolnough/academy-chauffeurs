@@ -26,7 +26,7 @@ type MessageData struct {
 }
 
 type MessageVars struct {
-	StartDate, StartTime, EndDate, EndTime, From, To, ClientName, ClientFirstName, ClientLastName, DriverName, DriverPhoneNumber, DriverReg, Passengers string
+	ID, StartDate, StartTime, EndDate, EndTime, From, To, ClientName, ClientFirstName, ClientLastName, DriverName, DriverPhoneNumber, DriverReg, Passengers string
 }
 
 func setMessageVars(username, password, messageTemplate, fromS string, fromNumberB bool) error {
@@ -76,6 +76,7 @@ func (c *Calls) prepareMessage(ct *template.Template, eventID int64, m *MessageD
 	names := strings.Split(client.Name, " ")
 
 	data := MessageVars{
+		event.ID,
 		start.Format("02/01/06"),
 		start.Format("15:04"),
 		end.Format("02/01/06"),
