@@ -26,7 +26,7 @@ type MessageData struct {
 }
 
 type MessageVars struct {
-	StartDate, StartTime, EndDate, EndTime, From, To, ClientName, ClientFirstName, ClientLastName, DriverName, DriverPhoneNumber, DriverReg string
+	StartDate, StartTime, EndDate, EndTime, From, To, ClientName, ClientFirstName, ClientLastName, DriverName, DriverPhoneNumber, DriverReg, Passengers string
 }
 
 func setMessageVars(username, password, messageTemplate, fromS string, fromNumberB bool) error {
@@ -87,6 +87,7 @@ func (c *Calls) prepareMessage(ct *template.Template, eventID int64, m *MessageD
 		driver.Name,
 		driver.PhoneNumber,
 		driver.RegistrationNumber,
+		event.Other,
 	}
 	err = ct.Execute(memio.Create(&buf), data)
 	if err != nil {
