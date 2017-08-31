@@ -252,7 +252,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [Name], [Address], [Colour] FROM [Company] WHERE [Deleted] = 0 ORDER BY [Name] ASC;",
 
 		// Client List
-		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [Deleted] = 0 ORDER BY [Name] ASC;",
+		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference], [Email] FROM [Client] WHERE [Deleted] = 0 ORDER BY [Name] ASC;",
 
 		// Clients for company
 		"SELECT [ID], [CompanyID], [Name], [PhoneNumber], [Reference] FROM [Client] WHERE [CompanyID] = ? AND [Deleted] = 0 ORDER BY [Name] ASC;",
@@ -640,6 +640,7 @@ func (c *Calls) Clients(_ struct{}, clients *[]Client) error {
 			&(*clients)[pos].Name,
 			&(*clients)[pos].PhoneNumber,
 			&(*clients)[pos].Reference,
+			&(*clients)[pos].Email,
 		}
 	})
 }
