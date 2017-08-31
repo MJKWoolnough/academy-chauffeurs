@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"io"
 	"net"
+	"net/http"
 	"net/smtp"
 	"net/url"
 	"strings"
@@ -67,8 +68,10 @@ func (c *Calls) SendEmail(md MessageData, e *string) error {
 			break
 		}
 		i = strings.Index(line, ":")
-		if i > 0 && len(line) > i+1 && (line[:i] == "Subject" || line[:i] == "MIME-Version" || line[:i] == "Content-Type") {
-			headers = append(headers, (line[:i] + ": ")...)
+		canHeader := http.CanonicalHeaderKey(line[:i])
+		if i > 0 && len(line) > i+1 && (canHeader == "Subject" || canHeader == "MIME-Version" || canHeader == "Content-Type") {
+			headers = append(headers, canHeader...)
+			headers = append(headers, ": "...)
 			headers = append(headers, strings.TrimSpace(line[i+1:])...)
 			headers = append(headers, "\r\n"...)
 		} else {
