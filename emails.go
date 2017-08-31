@@ -69,7 +69,7 @@ func (c *Calls) SendEmail(md MessageData, e *string) error {
 		}
 		i = strings.Index(line, ":")
 		canHeader := http.CanonicalHeaderKey(line[:i])
-		if i > 0 && len(line) > i+1 && (canHeader == "Subject" || canHeader == "MIME-Version" || canHeader == "Content-Type") {
+		if i > 0 && len(line) > i+1 && (canHeader == "Subject" || canHeader == "Mime-Version" || canHeader == "Content-Type") {
 			headers = append(headers, canHeader...)
 			headers = append(headers, ": "...)
 			headers = append(headers, strings.TrimSpace(line[i+1:])...)
