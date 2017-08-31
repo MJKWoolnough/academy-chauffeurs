@@ -67,7 +67,7 @@ func (c *Calls) SendEmail(md MessageData, e *string) error {
 			break
 		}
 		i = strings.Index(line, ":")
-		if i > 0 && len(line) > i+1 && (line[:i] == "Subject" || line[:i] == "MIME-version" || line[:i] == "Content-Type") {
+		if i > 0 && len(line) > i+1 && (line[:i] == "Subject" || line[:i] == "MIME-Version" || line[:i] == "Content-Type") {
 			headers = append(headers, (line[:i] + ": ")...)
 			headers = append(headers, strings.TrimSpace(line[i+1:])...)
 			headers = append(headers, "\r\n"...)
