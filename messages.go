@@ -78,10 +78,10 @@ func (c *Calls) prepareMessage(ct *template.Template, eventID int64, m *MessageD
 
 	data := MessageVars{
 		event.ID,
-		start.Format("02/01/06"),
-		start.Format("15:04"),
-		end.Format("02/01/06"),
-		end.Format("15:04"),
+		start.In(time.UTC).Format("02/01/06"),
+		start.In(time.UTC).Format("15:04"),
+		end.In(time.UTC).Format("02/01/06"),
+		end.In(time.UTC).Format("15:04"),
 		event.From, event.To,
 		client.Name,
 		client.PhoneNumber,
