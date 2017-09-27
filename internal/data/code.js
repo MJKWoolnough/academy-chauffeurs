@@ -652,7 +652,7 @@ window.addEventListener("load", function(oldDate) {
 							}
 							return 0;
 						})
-						makeInvoice({ ID: 0, Name: "Example Company", Address: "123 Fakestreet\nLondon\nLW1 1WL", Colour: 65535 }, events);
+						makeInvoice({ "ID": 0, "Name": "Example Company", "Address": "123 Fakestreet\nLondon\nLW1 1WL", "Colour": 65535 }, events);
 					});
 					return;
 				} else if (paramParts.length === 2) {
@@ -1974,6 +1974,8 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(createElement("h2")).setInnerText("Client Details").setAttribute("class", "printOnly");
 				toPrint.appendChild(createElement("label")).setInnerText("Name");
 				toPrint.appendChild(createElement("div")).setInnerText(client.Name);
+				toPrint.appendChild(createElement("label")).setInnerText("Address");
+				toPrint.appendChild(createElement("div")).setInnerText(client.Address + "\u00A0");
 				toPrint.appendChild(createElement("label")).setInnerText("Phone Number");
 				toPrint.appendChild(createElement("div")).setInnerText(client.PhoneNumber + "\u00A0");
 				toPrint.appendChild(createElement("label")).setInnerText("Email Address");
@@ -2012,8 +2014,23 @@ window.addEventListener("load", function(oldDate) {
 						}
 						printTitle.setInnerText(pT);
 						rpc.getEventsWithClient(client.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
-							var row,
-							    i = 0,
+							exportButton.removeChildren();
+							if (events.length === 0) {
+								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "10");
+								return;
+							}
+							makeExportButton(exportButton, "clientEvents", client.ID, eventsStartDate, eventsEndDate);
+							var loading = new waitGroup(function() {
+								var invoiceButton = createElement("input");
+								invoiceButton.setAttribute("class", "noPrint");
+								invoiceButton.setAttribute("type", "button");
+								invoiceButton.value = "Make Invoice";
+								invoiceButton.addEventListener("click", function() {
+									makeInvoice({"ID": 0, "Name": client.Name, "Address": client.Address, "Colour": 65535}, events);
+								});
+								eventTable.parentNode.appendChild(invoiceButton);
+							    }),
+							    row, i = 0,
 							    totalWaiting = 0, totalTripTime = 0, totalPrice = 0,
 							    wg = new waitGroup(function() {
 								var row = createElement("tr");
@@ -2024,12 +2041,6 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(createElement("td")).setInnerText("£" + (totalPrice / 100).formatMoney());
 								eventTable.appendChild(row).setAttribute("class", "overline");
 							    });
-							exportButton.removeChildren();
-							if (events.length === 0) {
-								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "10");
-								return;
-							}
-							makeExportButton(exportButton, "clientEvents", client.ID, eventsStartDate, eventsEndDate);
 							for (; i < events.length; i++) {
 								row = createElement("tr");
 								var driverCell = row.appendChild(createElement("td")),
@@ -2054,9 +2065,11 @@ window.addEventListener("load", function(oldDate) {
 										driverCell.setInnerText(driver.Name);
 									}.bind(null, driverCell));
 								}
+								loading.add()
 								wg.add();
 								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, price, eventFinals) {
 									if (eventFinals.FinalsSet) {
+										loading.done()
 										inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
 										waiting.setInnerText(eventFinals.Waiting + " mins");
 										dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
@@ -2698,6 +2711,7 @@ window.addEventListener("load", function(oldDate) {
 		var clientName = addFormElement("Client Name", "text", "client_name", client.Name, regexpCheck(/.+/, "Please enter a valid name")),
 		    companyID = addFormElement("", "hidden", "client_company_id", client.CompanyID),
 		    companyName = addFormElement("Company Name", "text", "client_company_name", client.CompanyName, regexpCheck(/.+/, "Please enter a valid name")),
+		    address = addFormElement("Client Address", "textarea", "client_address", client.Address),
 		    clientPhone = addFormElement("Mobile Number", "text", "client_phone", client.PhoneNumber),
 		    email = addFormElement("Email Address", "text", "email", client.Email),
 		    clientRef = addFormElement("Client Ref", "text", "client_ref", client.Reference, regexpCheck(/.+/, "Please enter a reference code"));
@@ -2719,6 +2733,7 @@ window.addEventListener("load", function(oldDate) {
 			parts.map(disableElement);
 			client.Name = clientName[0].value;
 			client.CompanyID = parseInt(companyID.value);
+			client.Address = address[0].value;
 			client.PhoneNumber = clientPhone[0].value;
 			client.Reference = clientRef[0].value;
 			client.Email = email[0].value;
@@ -2728,6 +2743,7 @@ window.addEventListener("load", function(oldDate) {
 					companyName[1].setInnerText(resp.CompanyError);
 					clientPhone[1].setInnerText(resp.PhoneError);
 					clientRef[1].setInnerText(resp.ReferenceError);
+					clientRef[1].setInnerText(resp.AddressError);
 					parts.map(enableElement);
 				} else {
 					client.ID = resp.ID;
@@ -2741,6 +2757,7 @@ window.addEventListener("load", function(oldDate) {
 		setClient({
 			"ID": 0,
 			"Name": "",
+			"Address": "",
 			"CompanyName": "",
 			"CompanyID": 0,
 			"PhoneNumber": "",

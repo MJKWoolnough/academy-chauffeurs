@@ -45,7 +45,7 @@ func upgradeDB(db *sql.DB) error {
 			"ALTER TABLE [Event] ADD [InvoiceFrom] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Event] ADD [InvoiceTo] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Event] ADD [Other] TEXT NOT NULL DEFAULT '';",
-			"ALTER TABLE [Driver] ADD [Pos] INTEGER;",
+			"ALTER TABLE [Driver] ADD [Pos] INTEGER NOT NULL DEFAULT 0;",
 			"ALTER TABLE [Driver] ADD [Show] BOOLEAN NOT NULL DEFAULT TRUE;",
 			"ALTER TABLE [Client] ADD [Email] TEXT NOT NULL DEFAULT '';",
 			"CREATE TABLE [Users]([Username] TEXT, [Password] BLOB);",
@@ -152,6 +152,19 @@ func upgradeDB(db *sql.DB) error {
 		version = 1
 
 		log.Println("Completed updating to version 1")
+	}
+	if version == 1 {
+		log.Println("Upgrading to database version 2")
+		if err := upgradeQueries(db,
+			"ALTER TABLE [Company] ADD [InvoiceNo] INTEGER;",
+			"ALTER TABLE [Client] ADD [Address] TEXT NOT NULL DEFAULT '';",
+		); err != nil {
+			return err
+		}
+		db.Exec("UPDATE [Settings] SET [Version] = 2;")
+		version = 2
+
+		log.Println("Completed updating to version 2")
 	}
 	return nil
 }
