@@ -2001,7 +2001,7 @@ window.addEventListener("load", function(oldDate) {
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
 					    getEvents = addFormSubmit("Show Events", function() {
 						eventTable.removeChildren(function(elm) {
-							return elm !== eventTable;
+							return elm !== tableTitles;
 						});
 						var startParts = startDate[0].value.split("/"),
 						    endParts = endDate[0].value.split("/"),
@@ -2042,6 +2042,8 @@ window.addEventListener("load", function(oldDate) {
 								eventTable.appendChild(row).setAttribute("class", "overline");
 							    });
 							for (; i < events.length; i++) {
+								events[i].ClientName = client.Name;
+								events[i].ClientReference = client.Reference;
 								row = createElement("tr");
 								var driverCell = row.appendChild(createElement("td")),
 								    inCar = createElement("td").setInnerText("-"),
@@ -2067,7 +2069,7 @@ window.addEventListener("load", function(oldDate) {
 								}
 								loading.add()
 								wg.add();
-								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, price, eventFinals) {
+								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, price, i, eventFinals) {
 									if (eventFinals.FinalsSet) {
 										loading.done()
 										inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
@@ -2075,12 +2077,15 @@ window.addEventListener("load", function(oldDate) {
 										dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
 										tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
 										price.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
+										events[i].Parking = eventFinals.Parking;
+										events[i].Price = eventFinals.Price;
+										events[i].Waiting = eventFinals.Waiting;
 										totalWaiting += eventFinals.Waiting;
 										totalTripTime += eventFinals.Trip;
 										totalPrice += eventFinals.Price;
 									}
 									wg.done();
-								}.bind(null, inCar, waiting, dropOff, tripTime, price));
+								}.bind(null, inCar, waiting, dropOff, tripTime, price, i));
 								eventTable.appendChild(row);
 							}
 						});
@@ -2729,7 +2734,7 @@ window.addEventListener("load", function(oldDate) {
 		});
 		autocomplete(rpc.autocompleteCompanyName, companyName[0], companyID);
 		addFormSubmit((client.ID == 0) ? "Add Client" : "Edit Client", function() {
-			var parts = [this, clientName[0], companyName[0], clientPhone[0], clientRef[0], email[0]];
+			var parts = [this, clientName[0], companyName[0], clientPhone[0], clientRef[0], email[0], address[0]];
 			parts.map(disableElement);
 			client.Name = clientName[0].value;
 			client.CompanyID = parseInt(companyID.value);
