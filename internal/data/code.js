@@ -1330,6 +1330,7 @@ window.addEventListener("load", function(oldDate) {
 		    tableTitles = table.appendChild(createElement("thead")).appendChild(createElement("tr")),
 		    tbody = table.appendChild(createElement("tbody")),
 		    costTable = layer.appendChild(createElement("table")),
+		    footer = layer.appendChild(createElement("div")),
 		    addressDate, eomDate = new Date(0), eomDateElm, invoiceNo, ref, i = 0, totalParking = 0, totalPrice = 0,
 		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, adminInput, cn, vatEdit;
 		header.setAttribute("class", "printOnly");
@@ -1458,6 +1459,8 @@ window.addEventListener("load", function(oldDate) {
 		total.appendChild(createElement("td")).setInnerText("Total");
 		total.appendChild(createElement("td")).setInnerText("£");
 		total.appendChild(createElement("td")).setInnerText((finalTotal / 100).formatMoney());
+		footer.setAttribute("contenteditable", "true");
+		footer.setAttribute("id", "invoiceFooter");
 		stack.setFragment();
 	},
 	showCompany = function(company) {

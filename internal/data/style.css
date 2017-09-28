@@ -600,8 +600,8 @@
 		display : none;
 	}
 
-	.invoiceTop td[contenteditable=true], .invoice th[contenteditable=true], .invoice td[contenteditable=true], .invoiceBottom td[contenteditable=true] {
-		background-color : #f7f8f8;
+	.invoiceTop td[contenteditable=true], .invoice th[contenteditable=true], .invoice td[contenteditable=true], .invoiceBottom td[contenteditable=true], #invoiceFooter {
+		background-color : #f7f7f7;
 	}
 
 	.toggleBox label {
@@ -646,6 +646,17 @@
 
 	.rowSwapper.swapping {
 		opacity : 0;
+	}
+
+	#invoiceFooter {
+		min-height : 3em;
+		border-top : 1px dashed #000;
+		border-bottom : 1px solid #000;
+	}
+
+	#invoiceFooter:empty:after {
+		content: "Footer Goes Here";
+		color : #aaa;
 	}
 }
 
