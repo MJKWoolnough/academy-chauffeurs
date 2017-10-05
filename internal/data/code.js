@@ -2906,7 +2906,7 @@ window.addEventListener("load", function(oldDate) {
 			rpc.getClient(e.ClientID, function(client) {
 				clientName.setInnerText(client.Name);
 				if (clientPhone !== "") {
-					clientPhone.setInnerText(client.PhoneNumber);
+					clientPhone.setInnerText(client.PhoneNumber + "\u00A0");
 				}
 				clientRef.setInnerText(client.Reference + "\u00A0");
 				rpc.getCompany(client.CompanyID, function(company) {
