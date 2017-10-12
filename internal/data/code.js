@@ -2968,8 +2968,11 @@ window.addEventListener("load", function(oldDate) {
 				});
 			}
 		}];
-		if (e.Start < (new Date()).getTime() && e.DriverID > 0) {
+		if (e.DriverID > 0) {
 			tabData[tabData.length] = [ "Final Details", function() {
+				if (e.Start > (new Date()).getTime()) {
+					layer.appendChild(createElement("h2")).setInnerText("This event has not yet completed").setAttribute("style", "color:#f00");
+				}
 				var tripTime = addFormElement("Flight Time", "text", "trip", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
