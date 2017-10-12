@@ -881,6 +881,7 @@ func (c *Calls) AutocompleteAddress(req AutocompleteAddressRequest, vals *[]Auto
 	for _, v := range *vals {
 		notIDsOne = append(notIDsOne, v.ID)
 	}
+	filterDupes(vals)
 	preLen := len(*vals)
 	err = c.autocomplete(vals, "Address", second+"Addresses", req.Partial+"%", true)
 	filterDupes(vals)
