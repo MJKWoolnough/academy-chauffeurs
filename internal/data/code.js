@@ -1396,7 +1396,11 @@ window.addEventListener("load", function(oldDate) {
 			totalParking += events[i].Parking;
 			totalPrice += events[i].Price;
 		}
-		eomDateElm.setInnerText((new Date(eomDate.getFullYear(), eomDate.getMonth()-1, eomDate.daysInMonth())).toOrdinalDate()).setAttribute("contenteditable", "true");
+		if (company.ID == 0) {
+			eomDateElm.setInnerText((new Date()).toOrdinalDate()).setAttribute("contenteditable", "true");
+		} else {
+			eomDateElm.setInnerText((new Date(eomDate.getFullYear(), eomDate.getMonth(), eomDate.daysInMonth())).toOrdinalDate()).setAttribute("contenteditable", "true");
+		}
 		costTable.setAttribute("class", "invoiceBottom");
 		costTable.setAttribute("id", "invoiceBottom");
 		subTotal = costTable.appendChild(createElement("tr"));
@@ -3345,11 +3349,12 @@ window.addEventListener("load", function(oldDate) {
 		    },
 		    getMonth = function(ms) {
 			    var ym = getYear(ms),
-			        month = 0;
+			        month = 0,
+			        leapYear = Date.prototype.isLeapYear(ym[0]);
 			    while (true) {
 				var msInMonth;
 				if (month === 1) {
-					if (Date.prototype.isLeapYear(ym[0])) {
+					if (leapYear) {
 						msInMonth = 2505600000;
 					} else {
 						msInMonth = 2419200000;
@@ -3478,7 +3483,7 @@ window.addEventListener("load", function(oldDate) {
 			},
 			toOrdinalDate: function() {
 				var year = this.getFullYear(),
-				    month = (this.getMonth() + 1) % 12,
+				    month = (this.getMonth()) % 12,
 				    date = this.getDate(),
 				    suffix = this.getOrdinalSuffix(date);
 				return date + suffix + " " + monthNames[month] + " " + year;
