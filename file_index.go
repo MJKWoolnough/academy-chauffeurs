@@ -7,6 +7,7 @@ import (
 )
 
 func init() {
+	date := time.Unix(1471785913, 0)
 	httpdir.Default.Create("index.html", httpdir.FileString(`<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
@@ -16,5 +17,5 @@ func init() {
 	</head>
 	<body></body>
 </html>
-`, time.Unix(1471785913, 0)))
+`, date))
 }
