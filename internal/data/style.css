@@ -737,6 +737,10 @@ table tr:last-child td:first-child:last-child {
 	margin-left : 10px;
 }
 
+textarea {
+	min-height: 100px;
+}
+
 label {
 	display : inline-block;
 	float : left;
