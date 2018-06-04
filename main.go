@@ -47,6 +47,7 @@ func main() {
 	srv.Handle("/rpc", &userConn{websocket.Handler(rpcHandler)})
 	srv.Handle("/export", http.HandlerFunc(nc.export))
 	srv.Handle("/ics", http.HandlerFunc(nc.calendar))
+	srv.Handle("/db", http.HandlerFunc(getDatabase))
 	srv.Handle("/", noCache{httpgzip.FileServer(dir)})
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
