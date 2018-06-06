@@ -2333,7 +2333,7 @@ window.addEventListener("load", function(oldDate) {
 			}],
 			[ "Email", function() {
 				addFormElement("Client Name", "text", "", client.Name);
-				addFormElement("Client Email", "text", "", client.Email);
+				addFormElement("Client Email", "text", "email", client.Email);
 				var message = addFormElement("Message", "textarea", "message", emailData.Message, regexpCheck(/.+/, "Please enter a message")),
 				    submit = addFormSubmit("Send Message", function() {
 					emailData.Message = message[0].value;
