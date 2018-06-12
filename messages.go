@@ -6,8 +6,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/MJKWoolnough/memio"
-	"github.com/MJKWoolnough/textmagic"
+	"vimagination.zapto.org/memio"
+	"vimagination.zapto.org/textmagic"
 )
 
 const DefaultTemplate = `Hello {{.ClientName}},

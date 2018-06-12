@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MJKWoolnough/ics"
+	"vimagination.zapto.org/ics"
 )
 
 func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {

@@ -1,4 +1,4 @@
-package main
+package main // import "vimagination.zapto.org/academy-chauffeurs"
 
 import (
 	"fmt"
@@ -9,8 +9,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/MJKWoolnough/httpdir"
-	"github.com/MJKWoolnough/httpgzip"
+	"vimagination.zapto.org/httpdir"
+	"vimagination.zapto.org/httpgzip"
 
 	"golang.org/x/net/websocket"
 )

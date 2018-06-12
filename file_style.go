@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MJKWoolnough/httpdir"
-	"github.com/MJKWoolnough/memio"
+	"vimagination.zapto.org/httpdir"
+	"vimagination.zapto.org/memio"
 )
 
 func init() {
