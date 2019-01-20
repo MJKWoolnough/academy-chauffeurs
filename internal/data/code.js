@@ -3275,7 +3275,7 @@ window.addEventListener("load", function(oldDate) {
 			    milliseconds = 0,
 			    daysInFebruary = 28;
 			while (arguments[1] < 0) {
-				year--;
+				arguments[0]--;
 				arguments[1] += 12;
 			}
 			if (arguments[0] < 1970) {
