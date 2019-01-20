@@ -3095,6 +3095,7 @@ window.addEventListener("load", function(oldDate) {
 		    other = addFormElement("Other Passengers", "text", "other", event.Other),
 		    from = addFormElement("From", "textarea", "from", event.From, regexpCheck(/.+/, "From Address Required")),
 		    to = addFormElement("To", "textarea", "to", event.To, regexpCheck(/.+/, "To Address Required"));
+		addAdder(clientName[1], addClient);
 		addLister(clientName[1], function() {
 			clientName[1].setInnerText("");
 			stack.addLayer("clientList", function(client) {
