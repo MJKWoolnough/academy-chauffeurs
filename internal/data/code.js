@@ -2370,6 +2370,9 @@ window.addEventListener("load", function(oldDate) {
 					input.checked = true;
 				}
 			} else {
+				if (type === "text") {
+					input.setAttribute("autocomplete", "off");
+				}
 				input.setAttribute("value", contents);
 			}
 		}
