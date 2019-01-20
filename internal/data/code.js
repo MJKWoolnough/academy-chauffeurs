@@ -1378,16 +1378,18 @@ window.addEventListener("load", function(oldDate) {
 			}
 			extra.setAttribute("contenteditable", "true");
 			extra.setPreText(extra.innerText + "\n" + events[i].InvoiceNote);
+			details.appendChild(createElement("span")).setInnerText("From: ");
 			if (events[i].InvoiceFrom === "") {
-				details.appendChild(document.createTextNode("From: " + events[i].From));
+				details.appendChild(document.createTextNode(events[i].From));
 			} else {
-				details.appendChild(document.createTextNode("From: " + events[i].InvoiceFrom));
+				details.appendChild(document.createTextNode(events[i].InvoiceFrom));
 			}
 			details.appendChild(createElement("br"));
+			details.appendChild(createElement("span")).setInnerText("To: ");
 			if (events[i].InvoiceTo === "") {
-				details.appendChild(document.createTextNode("To: " + events[i].To));
+				details.appendChild(document.createTextNode(events[i].To));
 			} else {
-				details.appendChild(document.createTextNode("To: " + events[i].InvoiceTo));
+				details.appendChild(document.createTextNode(events[i].InvoiceTo));
 			}
 			row.appendChild(createElement("td")).setInnerText("£");
 			row.appendChild(createElement("td")).setInnerText((0.01 * events[i].Parking).formatMoney());
