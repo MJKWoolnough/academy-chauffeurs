@@ -3108,6 +3108,7 @@ window.addEventListener("load", function(oldDate) {
 			clientList(true);
 		});
 		autocomplete(rpc.autocompleteClientName, clientName[0], clientID);
+		autocomplete(rpc.autocompleteClientName, other[0]);
 		autocomplete(function(partial, callback) {
 			rpc.autocompleteAddress(0, parseInt(clientID.value), partial, callback);
 		}, from[0]);
