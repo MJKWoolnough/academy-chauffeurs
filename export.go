@@ -195,7 +195,9 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
-			gzip.NewWriter(w).Write(buf)
+			gw := gzip.NewWriter(w)
+			gw.Write(buf)
+			gw.Close()
 			return
 		}
 	}
@@ -305,7 +307,9 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
-			gzip.NewWriter(w).Write(buf)
+			gw := gzip.NewWriter(w)
+			gw.Write(buf)
+			gw.Close()
 			return
 		}
 	}
@@ -410,7 +414,9 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
-			gzip.NewWriter(w).Write(buf)
+			gw := gzip.NewWriter(w)
+			gw.Write(buf)
+			gw.Close()
 			return
 		}
 	}
@@ -526,7 +532,9 @@ func (c *Calls) exportOverview(w http.ResponseWriter, r *http.Request, drivers b
 	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
-			gzip.NewWriter(w).Write(buf)
+			gw := gzip.NewWriter(w)
+			gw.Write(buf)
+			gw.Close()
 			return
 		}
 	}
@@ -585,7 +593,9 @@ func (c *Calls) exportCompanyClients(w http.ResponseWriter, r *http.Request) {
 	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
-			gzip.NewWriter(w).Write(buf)
+			gw := gzip.NewWriter(w)
+			gw.Write(buf)
+			gw.Close()
 			return
 		}
 	}
@@ -628,7 +638,9 @@ func (c *Calls) exportCompanyList(w http.ResponseWriter, r *http.Request) {
 	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
-			gzip.NewWriter(w).Write(buf)
+			gw := gzip.NewWriter(w)
+			gw.Write(buf)
+			gw.Close()
 			return
 		}
 	}
@@ -674,9 +686,9 @@ func (c *Calls) exportClientList(w http.ResponseWriter, r *http.Request) {
 	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
-			g := gzip.NewWriter(w)
-			g.Write(buf)
-			g.Close()
+			gw := gzip.NewWriter(w)
+			gw.Write(buf)
+			gw.Close()
 			return
 		}
 	}
