@@ -2395,6 +2395,7 @@ window.addEventListener("load", function(oldDate) {
 		if (type === "textarea") {
 			input = createElement("textarea");
 			input.setAttribute("spellcheck", "false");
+			input.setAttribute("autocomplete", "new-password");
 			input.value = contents;
 		} else {
 			input = createElement("input");
