@@ -2034,6 +2034,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
 					tableTitles.appendChild(createElement("th")).setInnerText("Parking/Toll Cost");
+					tableTitles.appendChild(createElement("th")).setInnerText("Subs Price");
 					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
