@@ -1360,7 +1360,7 @@ window.addEventListener("load", function(oldDate) {
 		tableTitles.appendChild(createElement("th")).setInnerText("Event Ref");
 		tableTitles.appendChild(createElement("th")).setInnerText("Details");
 		tableTitles.appendChild(createElement("th")).setInnerText("Additional").setAttribute("contenteditable", "true");
-		tableTitles.appendChild(createElement("th")).setInnerText("Parking").setAttribute("colspan", "2");
+		tableTitles.appendChild(createElement("th")).setInnerText("Parking/Toll").setAttribute("colspan", "2");
 		tableTitles.appendChild(createElement("th"));
 		tableTitles.appendChild(createElement("th")).setInnerText("Total");
 		for (; i < events.length; i++) {
@@ -1474,7 +1474,7 @@ window.addEventListener("load", function(oldDate) {
 		}());
 		parking = costTable.appendChild(createElement("tr"));
 		parking.appendChild(createElement("td"));
-		parking.appendChild(createElement("td")).setInnerText("Parking");
+		parking.appendChild(createElement("td")).setInnerText("Parking/Toll");
 		parking.appendChild(createElement("td")).setInnerText("£");
 		parking.appendChild(createElement("td")).setInnerText((totalParking / 100).formatMoney());
 		cc = costTable.appendChild(createElement("tr"));
@@ -1708,7 +1708,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
 					tableTitles.appendChild(createElement("th")).setInnerText("Hours");
-					tableTitles.appendChild(createElement("th")).setInnerText("Parking Cost");
+					tableTitles.appendChild(createElement("th")).setInnerText("Parking/Toll Cost");
 					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
@@ -2020,7 +2020,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("From");
 					tableTitles.appendChild(createElement("th")).setInnerText("To");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
-					tableTitles.appendChild(createElement("th")).setInnerText("Parking Cost");
+					tableTitles.appendChild(createElement("th")).setInnerText("Parking/Toll Cost");
 					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
@@ -2608,7 +2608,7 @@ window.addEventListener("load", function(oldDate) {
 					//tableTitles.appendChild(createElement("th")).setInnerText("Miles");
 					//tableTitles.appendChild(createElement("th")).setInnerText("Flight Time");
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver Hours (h)");
-					tableTitles.appendChild(createElement("th")).setInnerText("Parking");
+					tableTitles.appendChild(createElement("th")).setInnerText("Parking/Toll");
 					tableTitles.appendChild(createElement("th")).setInnerText("Sub Price");
 					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
@@ -2982,7 +2982,7 @@ window.addEventListener("load", function(oldDate) {
 				toPrint.appendChild(dropOff);
 				toPrint.appendChild(createElement("label")).setInnerText("Waiting Time");
 				toPrint.appendChild(waiting);
-				toPrint.appendChild(createElement("label")).setInnerText("Parking Costs");
+				toPrint.appendChild(createElement("label")).setInnerText("Parking/Toll Costs");
 				toPrint.appendChild(parking);
 				toPrint.appendChild(createElement("label")).setInnerText("Driver Time (h)");
 				toPrint.appendChild(driverHours);
@@ -3051,7 +3051,7 @@ window.addEventListener("load", function(oldDate) {
 				    inCar = addFormElement("In Car Time", "text", "inCar", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    dropOff = addFormElement("Drop Off Time", "text", "dropOff", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
 				    waiting = addFormElement("Waiting Time (minutes)", "text", "waiting", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
-				    parking = addFormElement("Parking Costs (£)", "text", "parking", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
+				    parking = addFormElement("Parking/Toll Costs (£)", "text", "parking", "", regexpCheck(/^[0-9]+(\.[0-9][0-9])?$/, "Please enter a valid amount")),
 				    driverHours = addFormElement("Driver Time (h)", "text", "driverHours", "", regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Number format unrecognised (0.00)")),
 				    miles = addFormElement("Miles Travelled", "text", "miles", "", regexpCheck(/^[0-9]+$/, "Please insert a number (or 0)")),
 				    //driverHours = addFormElement("Driver Time", "text", "driverHours", "", regexpCheck(/^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/, "Time format unrecognised (HH:MM)")),
