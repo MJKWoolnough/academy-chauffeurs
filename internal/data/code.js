@@ -2385,7 +2385,7 @@ window.addEventListener("load", function(oldDate) {
 				}
 			} else {
 				if (type === "text") {
-					input.setAttribute("autocomplete", "off");
+					input.setAttribute("autocomplete", "false");
 				}
 				input.setAttribute("value", contents);
 			}
