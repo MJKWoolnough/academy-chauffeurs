@@ -2405,7 +2405,7 @@ window.addEventListener("load", function(oldDate) {
 				}
 			} else {
 				if (type === "text") {
-					input.setAttribute("autocomplete", "false");
+					input.setAttribute("autocomplete", "new-password");
 				}
 				input.setAttribute("value", contents);
 			}
