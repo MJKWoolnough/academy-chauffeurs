@@ -1623,12 +1623,13 @@ window.addEventListener("load", function(oldDate) {
 								eventTable.parentNode.appendChild(invoiceButton);
 							    }),
 							    row, i = 0,
-							    totalParking = 0, totalCost = 0, totalHours = 0,
+							    totalParking = 0, totalSubs = 0, totalCost = 0, totalHours = 0,
 							    wg = new waitGroup(function() {
 								var row = createElement("tr");
 								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "7");
 								row.appendChild(createElement("td")).setInnerText((totalHours / 3600000));
 								row.appendChild(createElement("td")).setInnerText("£" + (totalParking / 100).formatMoney());
+								row.appendChild(createElement("td")).setInnerText("£" + (totalSubs / 100).formatMoney());
 								row.appendChild(createElement("td")).setInnerText("£" + (totalCost / 100).formatMoney());
 								eventTable.appendChild(row).setAttribute("class", "overline");
 							    });
@@ -1641,12 +1642,14 @@ window.addEventListener("load", function(oldDate) {
 								    driverCell = createElement("td").setInnerText("-"),
 								    hoursCell = createElement("td").setInnerText("-"),
 								    parkingCell = createElement("td").setInnerText("-"),
+								    subCell = createElement("td").setInnerText("-"),
 								    priceCell = createElement("td").setInnerText("-");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(driverCell);
 								row.appendChild(hoursCell);
 								row.appendChild(parkingCell);
+								row.appendChild(subCell);
 								row.appendChild(priceCell);
 								loading.add();
 								rpc.getClient(events[i].ClientID, function(clientCell, refCell, i, client) {
@@ -1675,12 +1678,15 @@ window.addEventListener("load", function(oldDate) {
 										hoursCell.setInnerText(eventFinals.DriverHours / 3600000)
 										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
 										priceCell.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
+										subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney());
 										events[i].Parking = eventFinals.Parking;
 										events[i].Price = eventFinals.Price;
+										events[i].Sub = eventFinals.Sub;
 										events[i].Waiting = eventFinals.Waiting;
 										totalHours += eventFinals.DriverHours;
 										totalParking += eventFinals.Parking;
 										totalCost += eventFinals.Price;
+										totalSubs += eventFinals.Sub;
 									}
 									wg.done();
 								}.bind(null, hoursCell, parkingCell, priceCell, i));
@@ -1709,6 +1715,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Driver");
 					tableTitles.appendChild(createElement("th")).setInnerText("Hours");
 					tableTitles.appendChild(createElement("th")).setInnerText("Parking/Toll Cost");
+					tableTitles.appendChild(createElement("th")).setInnerText("Subs Price");
 					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
@@ -1943,11 +1950,12 @@ window.addEventListener("load", function(oldDate) {
 							}
 							makeExportButton(exportButton, drivers ? "driversOverview" : "companiesOverview", ids, eventsStartDate, eventsEndDate);
 							var row, i = 0,
-							    totalParking = 0, totalCost = 0,
+							    totalParking = 0, totalSubs = 0, totalCost = 0,
 							    wg = new waitGroup(function() {
 								var row = createElement("tr");
 								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "8");
 								row.appendChild(createElement("td")).setInnerText("£" + (totalParking / 100).formatMoney());
+								row.appendChild(createElement("td")).setInnerText("£" + (totalSubs / 100).formatMoney());
 								row.appendChild(createElement("td")).setInnerText("£" + (totalCost / 100).formatMoney());
 								eventTable.appendChild(row).setAttribute("class", "overline");
 							    });
@@ -1960,11 +1968,13 @@ window.addEventListener("load", function(oldDate) {
 								    refCell = row.appendChild(createElement("td")),
 								    driverCell = createElement("td").setInnerText("-"),
 								    parkingCell = createElement("td").setInnerText("-"),
+								    subCell = createElement("td").setInnerText("-"),
 								    priceCell = createElement("td").setInnerText("-");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
 								row.appendChild(driverCell);
 								row.appendChild(parkingCell);
+								row.appendChild(subCell);
 								row.appendChild(priceCell);
 								rpc.getClient(events[i].ClientID, function(clientCell, refCell, companyCell, i, client) {
 									events[i].ClientReference = client.Reference;
@@ -1988,9 +1998,12 @@ window.addEventListener("load", function(oldDate) {
 								rpc.getEventFinals(events[i].ID, function(parkingCell, priceCell, i, eventFinals) {
 									if (eventFinals.FinalsSet) {
 										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
+										subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney());
 										priceCell.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
 										events[i].Parking = eventFinals.Parking;
 										events[i].Price = eventFinals.Price;
+										events[i].Sub = eventFinals.Sub;
+										totalSubs += eventFinals.Sub;
 										totalParking += eventFinals.Parking;
 										totalCost += eventFinals.Price;
 									}
@@ -2096,13 +2109,14 @@ window.addEventListener("load", function(oldDate) {
 								eventTable.parentNode.appendChild(invoiceButton);
 							    }),
 							    row, i = 0,
-							    totalWaiting = 0, totalTripTime = 0, totalPrice = 0,
+							    totalWaiting = 0, totalTripTime = 0, totalSubs = 0, totalPrice = 0,
 							    wg = new waitGroup(function() {
 								var row = createElement("tr");
 								row.appendChild(createElement("td")).setInnerText(events.length + " events").setAttribute("colspan", "6");
 								row.appendChild(createElement("td")).setInnerText(totalWaiting + " mins");
 								row.appendChild(createElement("td")).setInnerText("");
 								row.appendChild(createElement("td")).setInnerText((new Date(totalTripTime)).toTimeString());
+								row.appendChild(createElement("td")).setInnerText("£" + (totalSubs / 100).formatMoney());
 								row.appendChild(createElement("td")).setInnerText("£" + (totalPrice / 100).formatMoney());
 								eventTable.appendChild(row).setAttribute("class", "overline");
 							    });
@@ -2115,6 +2129,7 @@ window.addEventListener("load", function(oldDate) {
 								    waiting = createElement("td").setInnerText("-"),
 								    dropOff = createElement("td").setInnerText("-"),
 								    tripTime = createElement("td").setInnerText("-"),
+								    sub = createElement("td").setInnerText("-"),
 								    price = createElement("td").setInnerText("-");
 								row.appendChild(createElement("td")).setInnerText(events[i].From);
 								row.appendChild(createElement("td")).setInnerText(events[i].To);
@@ -2124,6 +2139,7 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(waiting);
 								row.appendChild(dropOff);
 								row.appendChild(tripTime);
+								row.appendChild(sub);
 								row.appendChild(price);
 								if (events[i].DriverID === 0) {
 									driverCell.setInnerText("Unassigned");
@@ -2142,12 +2158,14 @@ window.addEventListener("load", function(oldDate) {
 										dropOff.setInnerText((new Date(eventFinals.Drop)).toTimeString());
 										tripTime.setInnerText((new Date(eventFinals.Trip)).toTimeString());
 										price.setInnerText("£" + (eventFinals.Price / 100).formatMoney());
+										sub.setInnerText("£" + (eventFinals.Sub / 100).formatMoney());
 										events[i].Parking = eventFinals.Parking;
 										events[i].Price = eventFinals.Price;
 										events[i].Waiting = eventFinals.Waiting;
 										totalWaiting += eventFinals.Waiting;
 										totalTripTime += eventFinals.Trip;
 										totalPrice += eventFinals.Price;
+										totalPrice += eventFinals.Sub;
 									}
 									wg.done();
 								}.bind(null, inCar, waiting, dropOff, tripTime, price, i));
@@ -2174,6 +2192,7 @@ window.addEventListener("load", function(oldDate) {
 					tableTitles.appendChild(createElement("th")).setInnerText("Waiting");
 					tableTitles.appendChild(createElement("th")).setInnerText("Drop Off");
 					tableTitles.appendChild(createElement("th")).setInnerText("Flight Time");
+					tableTitles.appendChild(createElement("th")).setInnerText("Subs Price");
 					tableTitles.appendChild(createElement("th")).setInnerText("Price");
 					getEvents.dispatchEvent(new MouseEvent("click", {"view": window, "bubble": false, "cancelable": true}));
 				};
