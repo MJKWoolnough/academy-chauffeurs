@@ -27,8 +27,10 @@ func (c *Calls) export(w http.ResponseWriter, r *http.Request) {
 		c.exportClientList(w, r)
 	case "companyList":
 		c.exportCompanyList(w, r)
-	case "overview":
-		c.exportOverview(w, r)
+	case "companiesOverview":
+		c.exportOverview(w, r, false)
+	case "driversOverview":
+		c.exportOverview(w, r, true)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -415,7 +417,7 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
-func (c *Calls) exportOverview(w http.ResponseWriter, r *http.Request) {
+func (c *Calls) exportOverview(w http.ResponseWriter, r *http.Request, drivers bool) {
 	var f CEventsFilter
 	err := form.Parse(&f, r.PostForm)
 	if err != nil {
@@ -440,7 +442,11 @@ func (c *Calls) exportOverview(w http.ResponseWriter, r *http.Request) {
 	}
 	f.End += 24 * 3600 * 1000
 	var e []Event
-	err = c.CompaniesEvents(f, &e)
+	if drivers {
+		err = c.DriversEvents(f, &e)
+	} else {
+		err = c.CompaniesEvents(f, &e)
+	}
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
@@ -448,8 +454,14 @@ func (c *Calls) exportOverview(w http.ResponseWriter, r *http.Request) {
 	}
 	buf := make([]byte, 0, 1024*1024)
 	ss := csv.NewWriter(memio.Create(&buf))
+	var title string
+	if drivers {
+		title = "Drivers Events for " + dateStr
+	} else {
+		title = "Company Events for " + dateStr
+	}
 	ss.WriteAll([][]string{
-		{"Company Events for " + dateStr},
+		{title},
 		{},
 		{
 			"Start",

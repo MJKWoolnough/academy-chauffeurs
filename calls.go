@@ -95,6 +95,7 @@ const (
 	DriverEvents
 	ClientEvents
 	CompanyEvents
+	DriversEvents
 	EventOverlap
 	CompanyList
 	ClientList
@@ -244,6 +245,9 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Row of Events for company
 		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+
+		// Row of Events for drivers
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
 
 		// Event Overlaps
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND MAX([Start], ?) < MIN([End], ?);",
@@ -575,10 +579,18 @@ func (s sortEvents) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+func (c *Calls) DriversEvents(f CEventsFilter, events *[]Event) error {
+	return c.driverCompanyEvents(DriversEvents, f, events)
+}
+
 func (c *Calls) CompaniesEvents(f CEventsFilter, events *[]Event) error {
+	return c.driverCompanyEvents(CompanyEvents, f, events)
+}
+
+func (c *Calls) driverCompanyEvents(stmtID int, f CEventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
 	for _, id := range f.IDs {
-		err := c.getList(CompanyEvents, is{id, f.Start, f.End}, func() is {
+		err := c.getList(stmtID, is{id, f.Start, f.End}, func() is {
 			pos := len(*events)
 			*events = append(*events, Event{})
 			return is{

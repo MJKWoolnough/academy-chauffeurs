@@ -99,6 +99,9 @@ window.addEventListener("load", function(oldDate) {
 		this.getEventsWithCompanies = function(companyIDs, start, end, callback) {
 			request("CompaniesEvents", {"IDs": companyIDs, "Start": start, "End": end}, callback);
 		};
+		this.getEventsWithDrivers = function(driverIDs, start, end, callback) {
+			request("DriversEvents", {"IDs": driverIDs, "Start": start, "End": end}, callback);
+		};
 		this.setDriverNote = function(id, note, callback) {
 			request("SetDriverNote", {ID: id, Note: note}, callback);
 		};
@@ -1292,6 +1295,9 @@ window.addEventListener("load", function(oldDate) {
 		tabDiv.setAttribute("class", "tabs");
 		contentDiv.setAttribute("class", "content")
 		for (var i = 0; i < arguments.length; i++) {
+			if (arguments[i] === null) {
+				continue;
+			}
 			tabs[i] = tabDiv.appendChild(createElement("div")).setInnerText(arguments[i][0]);
 			tabs[i].addEventListener("click", function(tab, callback) {
 				if (tab.getAttribute("class") === "selected") {
@@ -1788,7 +1794,7 @@ window.addEventListener("load", function(oldDate) {
 			doOverview.setAttribute("value", "✔");
 			doOverview.addEventListener("click", function() {
 				overview.setAttribute("class", "");
-				table.setAttribute("class", "toPrint")
+				table.setAttribute("class", "toPrint");
 				var list = [],
 				    i = 0;
 				for (; i < checks.length; i++) {
@@ -1807,14 +1813,14 @@ window.addEventListener("load", function(oldDate) {
 					showCompany(list[0]);
 				} else if (list.length > 1) {
 					stack.addLayer("showOverview");
-					showOverview(list);
+					showOverview(list, false);
 				}
 			});
 			cancelOverview.setAttribute("type", "button");
 			cancelOverview.setAttribute("value", "✗");
 			cancelOverview.addEventListener("click", function () {
 				overview.setAttribute("class", "");
-				table.setAttribute("class", "toPrint")
+				table.setAttribute("class", "toPrint");
 			});
 			if (companies.length > 0) {
 				makeExportButton(exportButton, "companyList");
@@ -1834,7 +1840,7 @@ window.addEventListener("load", function(oldDate) {
 			layer.setAttribute("class", "toPrint");
 		});
 	},
-	showOverview = function(companies) {
+	showOverview = function(companies, drivers = false) {
 		stack.addFragment();
 		var ids = [];
 		companies.map(function(company) {
@@ -1844,8 +1850,11 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(makeTabs(
 			[ "Details", function() {
 				for (var i = 0; i < ids.length; i++) {
-					layer.appendChild(createElement("label")).setInnerText("Company " + (i + 1));
+					layer.appendChild(createElement("label")).setInnerText((drivers ? "Driver " : "Company ") + (i + 1));
 					layer.appendChild(createElement("div")).setInnerText(companies[ids[i]].Name);
+				}
+				if (drivers) {
+					return;
 				}
 				layer.appendChild(createElement("label")).setInnerText("Total Clients")
 				var totalClients = layer.appendChild(createElement("div")).setInnerText("-"),
@@ -1859,7 +1868,7 @@ window.addEventListener("load", function(oldDate) {
 					totalEvents.setInnerText(total);
 				});
 			}],
-			[ "Clients", function() {
+			drivers ? null : [ "Clients", function() {
 				var toPrint = layer.appendChild(createElement("div")),
 				    printOnly = toPrint.appendChild(createElement("div")),
 				    clientsTable = toPrint.appendChild(createElement("table")),
@@ -1903,6 +1912,7 @@ window.addEventListener("load", function(oldDate) {
 				return function() {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
+					    rpcFn = drivers ? rpc.getEventsWithDrivers : rpc.getEventsWithCompanies,
 					    getEvents = addFormSubmit("Show Events", function() {
 						eventTable.removeChildren(function(elm) {
 							return elm !== tableTitles;
@@ -1925,13 +1935,13 @@ window.addEventListener("load", function(oldDate) {
 							eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
 							return;
 						}
-						rpc.getEventsWithCompanies(ids, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+						rpcFn(ids, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
 							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "9");
 								return;
 							}
-							makeExportButton(exportButton, "overview", ids, eventsStartDate, eventsEndDate);
+							makeExportButton(exportButton, drivers ? "driversOverview" : "companiesOverview", ids, eventsStartDate, eventsEndDate);
 							var row, i = 0,
 							    totalParking = 0, totalCost = 0,
 							    wg = new waitGroup(function() {
@@ -1961,7 +1971,9 @@ window.addEventListener("load", function(oldDate) {
 									events[i].ClientName = client.Name;
 									clientCell.setInnerText(client.Name);
 									refCell.setInnerText(client.Reference);
-									companyCell.setInnerText(companies[client.CompanyID].Name).style.backgroundColor = companies[client.CompanyID].Colour.formatColour();
+									if (!drivers) {
+										companyCell.setInnerText(companies[client.CompanyID].Name).style.backgroundColor = companies[client.CompanyID].Colour.formatColour();
+									}
 								}.bind(null, clientCell, refCell, companyCell, i));
 								if (events[i].DriverID === 0) {
 									events[i].DriverName = "Unassigned";
@@ -2662,6 +2674,11 @@ window.addEventListener("load", function(oldDate) {
 		layer.appendChild(createElement("h1")).setInnerText("Drivers");
 		var table = createElement("table"),
 		    headerRow = table.appendChild(createElement("tr")),
+		    overview = createElement("div"),
+		    overviewButton = overview.appendChild(createElement("input")),
+		    doOverview = overview.appendChild(createElement("input")),
+		    cancelOverview = overview.appendChild(createElement("input")),
+		    checks = [],
 		    driverIDs = Object.keys(drivers),
 		    swapAnim = function(row, dir) {
 			if (dir === "up") {
@@ -2721,10 +2738,15 @@ window.addEventListener("load", function(oldDate) {
 			    up = createElement("button"),
 			    down = createElement("button"),
 			    showHide = show.appendChild(createElement("input")),
-			    showHideLabel = show.appendChild(createElement("label"));
+			    showHideLabel = show.appendChild(createElement("label")),
+			    nameCell = row.appendChild(createElement("td")),
+			    check = nameCell.appendChild(createElement("input"));
 			row.setAttribute("class", "rowSwapper");
 			row.setAttribute("driverID", driverIDs[i]);
-			row.appendChild(createElement("td")).setInnerText(driver.Name);
+			check.setAttribute("type", "checkbox");
+			check.setAttribute("checked", "true");
+			checks.push(check);
+			nameCell.appendChild(createElement("div").setInnerText(driver.Name));
 			row.appendChild(createElement("td")).setInnerText(driver.RegistrationNumber);
 			row.appendChild(createElement("td")).setInnerText(driver.PhoneNumber);
 			if (i == 0) {
@@ -2753,7 +2775,49 @@ window.addEventListener("load", function(oldDate) {
 			row.appendChild(show);
 		}
 
+		overview.setAttribute("id", "overview");
+		overviewButton.setAttribute("type", "button");
+		overviewButton.setAttribute("value", "Overview");
+		overviewButton.addEventListener("click", function() {
+			overview.setAttribute("class", "check");
+			table.setAttribute("class", "toPrint check");
+		});
+		doOverview.setAttribute("type", "button");
+		doOverview.setAttribute("value", "✔");
+		doOverview.addEventListener("click", function() {
+			overview.setAttribute("class", "");
+			table.setAttribute("class", "toPrint");
+			var list = [],
+			    i = 0;
+			for (; i < checks.length; i++) {
+				if (checks[i].checked) {
+					list[driverIDs[i]] = drivers[driverIDs[i]];
+				}
+			}
+			if (list.length === 1) {
+				stack.addLayer("showDriver", function(d) {
+					if (typeof d === "undefined") {
+						stack.removeLayer();
+						stack.addLayer("driverList");
+						driverList();
+					}
+				});
+				showDriver(list[0]);
+			} else if (list.length > 1) {
+				stack.addLayer("showOverview");
+				showOverview(list, true);
+			}
+		});
+		cancelOverview.setAttribute("type", "button");
+		cancelOverview.setAttribute("value", "✗");
+		cancelOverview.addEventListener("click", function() {
+			overview.setAttribute("class", "");
+			table.setAttribute("class", "toPrint");
+		});
+		overview.setAttribute("style", "overflow: hidden;");
+		table.setAttribute("class", "toPrint");
 		layer.appendChild(table);
+		layer.appendChild(overview);
 		stack.setFragment();
 		layer.setAttribute("class", "toPrint");
 	},
