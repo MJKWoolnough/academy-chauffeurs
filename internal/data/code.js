@@ -2886,6 +2886,7 @@ window.addEventListener("load", function(oldDate) {
 			"CompanyName": "",
 			"CompanyID": 0,
 			"PhoneNumber": "",
+			"Email": "",
 			"Reference": "",
 		});
 	},
