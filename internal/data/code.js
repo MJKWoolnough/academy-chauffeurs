@@ -2165,7 +2165,7 @@ window.addEventListener("load", function(oldDate) {
 										totalWaiting += eventFinals.Waiting;
 										totalTripTime += eventFinals.Trip;
 										totalPrice += eventFinals.Price;
-										totalPrice += eventFinals.Sub;
+										totalSub += eventFinals.Sub;
 									}
 									wg.done();
 								}.bind(null, inCar, waiting, dropOff, tripTime, price, sub, i));
