@@ -166,5 +166,28 @@ func upgradeDB(db *sql.DB) error {
 
 		log.Println("Completed updating to version 2")
 	}
+	if version == 2 {
+		log.Println("Upgrading to database version 3")
+		if err := upgradeQueries(db,
+			"ALTER TABLE [Event] ADD [Booker] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Event] ADD [FlightTime] TEXT NOT NULL DEFAULT '';",
+			"ALTER TABLE [Event] ADD [ClientReference] TEXT NOT NULL DEFAULT '';",
+		); err != nil {
+			return err
+		}
+		log.Println("	Updated Table Structures")
+
+		_, err := db.Exec("UPDATE [Event] SET [ClientReference] = (SELECT [Client].[Reference] FROM [Client] WHERE [Client].[ID] = [Event].[ClientID]);")
+		if err != nil {
+			return err
+		}
+
+		log.Println("	Set Client References")
+
+		db.Exec("UPDATE [Settings] SET [Version] = 3;")
+		version = 2
+
+		log.Println("Completed updating to version 3")
+	}
 	return nil
 }

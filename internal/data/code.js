@@ -1651,14 +1651,13 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(parkingCell);
 								row.appendChild(subCell);
 								row.appendChild(priceCell);
+								refCell.setInnerText(events[i].ClientReference);
 								loading.add();
-								rpc.getClient(events[i].ClientID, function(clientCell, refCell, i, client) {
+								rpc.getClient(events[i].ClientID, function(clientCell, i, client) {
 									loading.done();
-									events[i].ClientReference = client.Reference;
 									events[i].ClientName = client.Name;
 									clientCell.setInnerText(client.Name);
-									refCell.setInnerText(client.Reference);
-								}.bind(null, clientCell, refCell, i));
+								}.bind(null, clientCell, i));
 								if (events[i].DriverID === 0) {
 									events[i].DriverName = "Unassigned";
 									driverCell.setInnerText("Unassigned");
@@ -1976,15 +1975,14 @@ window.addEventListener("load", function(oldDate) {
 								row.appendChild(parkingCell);
 								row.appendChild(subCell);
 								row.appendChild(priceCell);
-								rpc.getClient(events[i].ClientID, function(clientCell, refCell, companyCell, i, client) {
-									events[i].ClientReference = client.Reference;
+								refCell.setInnerText(events[i].ClientReference + "\u00A0");
+								rpc.getClient(events[i].ClientID, function(clientCell, companyCell, i, client) {
 									events[i].ClientName = client.Name;
 									clientCell.setInnerText(client.Name);
-									refCell.setInnerText(client.Reference);
 									if (!drivers) {
 										companyCell.setInnerText(companies[client.CompanyID].Name).style.backgroundColor = companies[client.CompanyID].Colour.formatColour();
 									}
-								}.bind(null, clientCell, refCell, companyCell, i));
+								}.bind(null, clientCell, companyCell, i));
 								if (events[i].DriverID === 0) {
 									events[i].DriverName = "Unassigned";
 									driverCell.setInnerText("Unassigned");
@@ -2123,7 +2121,6 @@ window.addEventListener("load", function(oldDate) {
 							    });
 							for (; i < events.length; i++) {
 								events[i].ClientName = client.Name;
-								events[i].ClientReference = client.Reference;
 								row = createElement("tr");
 								var driverCell = row.appendChild(createElement("td")),
 								    inCar = createElement("td").setInnerText("-"),
@@ -2958,14 +2955,13 @@ window.addEventListener("load", function(oldDate) {
 			toPrint.appendChild(createElement("label")).setInnerText("Client Name");
 			var clientName = toPrint.appendChild(createElement("div")).setInnerText("-"),
 			    clientPhone = createElement("div").setInnerText("-"),
-			    clientRef = createElement("div").setInnerText("-"),
 			    companyName = createElement("div").setInnerText("-"),
 			    driverName = createElement("div").setInnerText("-"),
 			    driverReg = createElement("div").setInnerText("-");
 			toPrint.appendChild(createElement("label")).setInnerText("Client Phone Number");
 			toPrint.appendChild(clientPhone);
 			toPrint.appendChild(createElement("label")).setInnerText("Client Reference");
-			toPrint.appendChild(clientRef);
+			toPrint.appendChild(createElement("div").setInnerText(e.ClientReference + "\u00A0"));
 			toPrint.appendChild(createElement("label")).setInnerText("Other Passengers");
 			toPrint.appendChild(createElement("div").setInnerText(e.Other + "\u00A0"));
 			toPrint.appendChild(createElement("label")).setInnerText("Company Name");
@@ -2982,6 +2978,10 @@ window.addEventListener("load", function(oldDate) {
 			toPrint.appendChild(createElement("div")).setInnerText(e.From);
 			toPrint.appendChild(createElement("label")).setInnerText("To");
 			toPrint.appendChild(createElement("div")).setInnerText(e.To);
+			toPrint.appendChild(createElement("label")).setInnerText("Booker");
+			toPrint.appendChild(createElement("div")).setInnerText(e.Booker + "\u00A0");
+			toPrint.appendChild(createElement("label")).setInnerText("Flight Time");
+			toPrint.appendChild(createElement("div")).setInnerText(e.FlightTime + "\u00A0");
 			if (e.Start < (new Date()).getTime()) {
 				var inCar = createElement("div").setInnerText("-"),
 				    parking = createElement("div").setInnerText("-"),
@@ -2995,7 +2995,7 @@ window.addEventListener("load", function(oldDate) {
 				    invoiceTo = createElement("div").setInnerText("-"),
 				    invoiceFrom = createElement("div").setInnerText("-"),
 				    invoiceNote = createElement("div").setInnerText("-");
-				toPrint.appendChild(createElement("label")).setInnerText("Flight Time");
+				toPrint.appendChild(createElement("label")).setInnerText("Trip Time");
 				toPrint.appendChild(tripTime);
 				toPrint.appendChild(createElement("label")).setInnerText("In Car Time");
 				toPrint.appendChild(inCar);
@@ -3047,7 +3047,6 @@ window.addEventListener("load", function(oldDate) {
 				if (clientPhone !== "") {
 					clientPhone.setInnerText(client.PhoneNumber + "\u00A0");
 				}
-				clientRef.setInnerText(client.Reference + "\u00A0");
 				rpc.getCompany(client.CompanyID, function(company) {
 					companyName.setInnerText(company.Name);
 				});
@@ -3180,9 +3179,12 @@ window.addEventListener("load", function(oldDate) {
 		var driverTime = addFormElement("End", "text", "", dateTimeFormat(event.End)),
 		    clientID = addFormElement("", "hidden", "", event.ClientID),
 		    clientName = addFormElement("Client Name", "text", "client_name", event.ClientName, regexpCheck(/.+/, "Client Name Required")),
+		    clientReference = addFormElement("Client Reference", "text", "client_reference", event.ClientReference),
 		    other = addFormElement("Other Passengers", "text", "other", event.Other),
 		    from = addFormElement("From", "textarea", "from", event.From, regexpCheck(/.+/, "From Address Required")),
-		    to = addFormElement("To", "textarea", "to", event.To, regexpCheck(/.+/, "To Address Required"));
+		    to = addFormElement("To", "textarea", "to", event.To, regexpCheck(/.+/, "To Address Required")),
+		    booker = addFormElement("Booker", "text", "booker", event.Booker),
+		    flightTime = addFormElement("Flight Time", "text", "flight_time", event.FlightTime);
 		addAdder(clientName[1], function() {
 			clientName[1].setInnerText("");
 			stack.addLayer("addClient")
@@ -3197,10 +3199,11 @@ window.addEventListener("load", function(oldDate) {
 				clientID.value = client.ID;
 				clientName[0].value = client.Name;
 				clientName[1].setInnerText("");
+				clientReference[0].value = client.Reference;
 			});
 			clientList(true);
 		});
-		autocomplete(rpc.autocompleteClientName, clientName[0], clientID);
+		autocomplete(rpc.autocompleteClientName, clientName[0], clientID, clientReference[0]);
 		autocomplete(rpc.autocompleteClientName, other[0]);
 		autocomplete(function(partial, callback) {
 			rpc.autocompleteAddress(0, parseInt(clientID.value), partial, callback);
@@ -3209,12 +3212,15 @@ window.addEventListener("load", function(oldDate) {
 			rpc.autocompleteAddress(1, parseInt(clientID.value), partial, callback);
 		}, to[0]);
 		addFormSubmit((event.ID == 0) ? "Add Event" : "Edit Event", function() {
-			var parts = [this, clientName[0], to[0], from[0], other[0]];
+			var parts = [this, clientName[0], clientReference[0], to[0], from[0], other[0], booker[0], flightTime[0]];
 			parts.map(disableElement);
 			event.ClientID = parseInt(clientID.value);
+			event.ClientReference = clientReference[0].value;
 			event.Other = other[0].value;
 			event.From = from[0].value;
 			event.To = to[0].value;
+			event.Booker = booker[0].value;
+			event.FlightTime = flightTime[0].value;
 			rpc.setEvent(event, function(resp) {
 				if (resp.Errors) {
 					clientName[1].setInnerText(resp.ClientError);
@@ -3239,10 +3245,10 @@ window.addEventListener("load", function(oldDate) {
 			"To": "",
 			"ClientID": 0,
 			"ClientName": "",
+			"ClientReference": "",
 			"Other": "",
 			"DriverID": driver.ID,
 			"DriverName": driver.Name,
-			//"ClientRef": "",
 			"InvoiceNote": "",
 			"InvoiceFrom": "",
 			"InvoiceTo": ""
@@ -3259,7 +3265,7 @@ window.addEventListener("load", function(oldDate) {
 		}
 	},
 	dateCheck = regexpCheck(/^(0?[1-9]|1[0-9]|2[0-9]|3[01])\/(0?[1-9]|1[0-2])\/[0-9]{1,4}$/, "Please enter a valid date (DD/MM/YYYY)"),
-	autocomplete = function(rpcCall, nameDiv, idDiv) {
+	autocomplete = function(rpcCall, nameDiv, idDiv, disDiv) {
 		var autocompleteDiv = createElement("ul"),
 		    cache = {},
 		    clicker,
@@ -3306,6 +3312,9 @@ window.addEventListener("load", function(oldDate) {
 			clicker = function(val) {
 				nameDiv.value = val.Value;
 				idDiv.value = val.ID;
+				if (disDiv) {
+					disDiv.value = val.Disambiguation.replace(/.*\(([^)]+)\).*/, "$1");
+				}
 				if (autocompleteDiv.parentNode !== null) {
 					autocompleteDiv.parentNode.removeChild(autocompleteDiv);
 				}

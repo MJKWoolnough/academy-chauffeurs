@@ -37,11 +37,11 @@ type Client struct {
 }
 
 type Event struct {
-	ID, DriverID, ClientID              int64
-	Start, End                          int64
-	Other, From, To                     string
-	MessageSent                         bool
-	InvoiceNote, InvoiceFrom, InvoiceTo string
+	ID, DriverID, ClientID                               int64
+	Start, End                                           int64
+	Other, From, To, ClientReference, Booker, FlightTime string
+	MessageSent                                          bool
+	InvoiceNote, InvoiceFrom, InvoiceTo                  string
 }
 
 const (
@@ -175,7 +175,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"INSERT INTO [Driver]([Name], [RegistrationNumber], [PhoneNumber]) VALUES (?, ?, ?);",
 		"INSERT INTO [Company]([Name], [Address], [Colour]) VALUES (?, ?, ?);",
 		"INSERT INTO [Client]([CompanyID], [Name], [PhoneNumber], [Reference], [Email], [Address]) VALUES (?, ?, ?, ?, ?, ?);",
-		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To], [Other], [Note], [Created], [Updated]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To], [Other], [Note], [ClientReference], [Booker], [FlightTime], [Created], [Updated]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
 		"INSERT INTO [FromAddresses]([Address]) VALUES (?);",
 		"INSERT INTO [ToAddresses]([Address]) VALUES (?);",
 
@@ -184,7 +184,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [Name], [RegistrationNumber], [PhoneNumber], IFNULL([Pos], 0), [Show] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Name], [Address], [Colour] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference], [Email], [Address] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
-		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[InvoiceNote], [Event].[InvoiceFrom], [Event].[InvoiceTo], [Event].[Other], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
+		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[InvoiceNote], [Event].[InvoiceFrom], [Event].[InvoiceTo], [Event].[Other], [Event].[ClientReference], [Event].[Booker], [Event].[FlightTime], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
 		"SELECT [FinalsSet], [InCar], [Parking], [Waiting], [Drop], [Miles], [Trip], [DriverHours], [Price], [Sub], [InvoiceNote], [InvoiceFrom], [InvoiceTo] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [ID] FROM [FromAddresses] WHERE [Address] = ?;",
 		"SELECT [ID] FROM [ToAddresses] WHERE [Address] = ?;",
@@ -194,7 +194,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Driver] SET [Name] = ?, [RegistrationNumber] = ?, [PhoneNumber] = ? WHERE [ID] = ?;",
 		"UPDATE [Company] SET [Name] = ?, [Address] = ?, [Colour] = ? WHERE [ID] = ?;",
 		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ?, [Email] = ?, [Address] = ? WHERE [ID] = ?;",
-		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ?, [Other] = ?, [Updated] = ? WHERE [ID] = ?;",
+		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ?, [Other] = ?, [ClientReference] = ?, [Booker] = ?, [FlightTime] = ?, [Updated] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [FinalsSet] = 1, [InCar] = ?, [Parking] = ?, [Waiting] = ?, [Drop] = ?, [Miles] = ?, [Trip] = ?, [DriverHours] = ?, [Price] = ?, [Sub] = ?, [InvoiceNote] = ?, [InvoiceFrom] = ?, [InvoiceTo] = ? WHERE [ID] = ?;",
 
 		// Delete (set deleted)
@@ -238,16 +238,16 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber], IFNULL([Pos], 0), [Show] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[Booker], [Event].[FlightTime], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for client
 		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for company
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for drivers
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
 
 		// Event Overlaps
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND MAX([Start], ?) < MIN([End], ?);",
@@ -512,6 +512,9 @@ func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 			&(*events)[pos].Start,
 			&(*events)[pos].End,
 			&(*events)[pos].Other,
+			&(*events)[pos].ClientReference,
+			&(*events)[pos].Booker,
+			&(*events)[pos].FlightTime,
 			&(*events)[pos].From,
 			&(*events)[pos].To,
 		}
@@ -551,6 +554,7 @@ func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
 			&(*events)[pos].Start,
 			&(*events)[pos].End,
 			&(*events)[pos].Other,
+			&(*events)[pos].ClientReference,
 			&(*events)[pos].InvoiceTo,
 			&(*events)[pos].InvoiceFrom,
 			&(*events)[pos].InvoiceNote,
@@ -600,6 +604,7 @@ func (c *Calls) driverCompanyEvents(stmtID int, f CEventsFilter, events *[]Event
 				&(*events)[pos].Start,
 				&(*events)[pos].End,
 				&(*events)[pos].Other,
+				&(*events)[pos].ClientReference,
 				&(*events)[pos].InvoiceTo,
 				&(*events)[pos].InvoiceFrom,
 				&(*events)[pos].InvoiceNote,

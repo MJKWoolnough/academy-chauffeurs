@@ -41,7 +41,7 @@ func (c *Calls) GetCompany(id int64, cy *Company) error {
 func (c *Calls) GetEvent(id int64, e *Event) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	err := c.statements[ReadEvent].QueryRow(id).Scan(&e.DriverID, &e.ClientID, &e.Start, &e.End, &e.InvoiceNote, &e.InvoiceFrom, &e.InvoiceTo, &e.Other, &e.From, &e.To)
+	err := c.statements[ReadEvent].QueryRow(id).Scan(&e.DriverID, &e.ClientID, &e.Start, &e.End, &e.InvoiceNote, &e.InvoiceFrom, &e.InvoiceTo, &e.Other, &e.ClientReference, &e.Booker, &e.FlightTime, &e.From, &e.To)
 	if err == sql.ErrNoRows {
 		return nil
 	}
@@ -241,7 +241,7 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 			var note string
 			_, err = c.statements[GetClientNote].Exec(e.ClientID)
 			if err == nil {
-				r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, e.Other, note, t, t)
+				r, er := c.statements[CreateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, e.Other, note, e.ClientReference, e.Booker, e.FlightTime, t, t)
 				if er == nil {
 					resp.ID, er = r.LastInsertId()
 				}
@@ -249,7 +249,7 @@ func (c *Calls) SetEvent(e Event, resp *SetEventResponse) error {
 			}
 		} else {
 			resp.ID = e.ID
-			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, e.Other, t, e.ID)
+			_, err = c.statements[UpdateEvent].Exec(e.DriverID, e.ClientID, e.Start, e.End, fromID, toID, e.Other, e.ClientReference, e.Booker, e.FlightTime, t, e.ID)
 		}
 		if err != nil {
 			return err
