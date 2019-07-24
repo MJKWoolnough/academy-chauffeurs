@@ -1672,7 +1672,7 @@ window.addEventListener("load", function(oldDate) {
 								}
 								loading.add();
 								wg.add();
-								rpc.getEventFinals(events[i].ID, function(hoursCell, parkingCell, priceCell, i, eventFinals) {
+								rpc.getEventFinals(events[i].ID, function(hoursCell, parkingCell, priceCell, subCell, i, eventFinals) {
 									if (eventFinals.FinalsSet) {
 										loading.done();
 										hoursCell.setInnerText(eventFinals.DriverHours / 3600000)
@@ -1689,7 +1689,7 @@ window.addEventListener("load", function(oldDate) {
 										totalSubs += eventFinals.Sub;
 									}
 									wg.done();
-								}.bind(null, hoursCell, parkingCell, priceCell, i));
+								}.bind(null, hoursCell, parkingCell, priceCell, subCell, i));
 								eventTable.appendChild(row);
 							}
 						});
@@ -1995,7 +1995,7 @@ window.addEventListener("load", function(oldDate) {
 									}.bind(null, driverCell, i));
 								}
 								wg.add();
-								rpc.getEventFinals(events[i].ID, function(parkingCell, priceCell, i, eventFinals) {
+								rpc.getEventFinals(events[i].ID, function(parkingCell, priceCell, subCell, i, eventFinals) {
 									if (eventFinals.FinalsSet) {
 										parkingCell.setInnerText("£" + (eventFinals.Parking / 100).formatMoney());
 										subCell.setInnerText("£" + (eventFinals.Sub / 100).formatMoney());
@@ -2008,7 +2008,7 @@ window.addEventListener("load", function(oldDate) {
 										totalCost += eventFinals.Price;
 									}
 									wg.done();
-								}.bind(null, parkingCell, priceCell, i));
+								}.bind(null, parkingCell, priceCell, subCell, i));
 								eventTable.appendChild(row);
 							}
 						});
@@ -2150,7 +2150,7 @@ window.addEventListener("load", function(oldDate) {
 								}
 								loading.add()
 								wg.add();
-								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, price, i, eventFinals) {
+								rpc.getEventFinals(events[i].ID, function(inCar, waiting, dropOff, tripTime, price, sub, i, eventFinals) {
 									if (eventFinals.FinalsSet) {
 										loading.done()
 										inCar.setInnerText((new Date(eventFinals.InCar)).toTimeString());
@@ -2168,7 +2168,7 @@ window.addEventListener("load", function(oldDate) {
 										totalPrice += eventFinals.Sub;
 									}
 									wg.done();
-								}.bind(null, inCar, waiting, dropOff, tripTime, price, i));
+								}.bind(null, inCar, waiting, dropOff, tripTime, price, sub, i));
 								eventTable.appendChild(row);
 							}
 						});
