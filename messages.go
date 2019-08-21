@@ -11,7 +11,7 @@ import (
 )
 
 const DefaultTemplate = `Hello {{.ClientName}},
-I'm your Acadamy Chauffeurs driver, {{.DriverName}}, for your appointment at {{.StartTime}}.`
+I'm your driver, {{.DriverName}}, for your appointment at {{.StartTime}}.`
 
 var (
 	compiledTemplate *template.Template
