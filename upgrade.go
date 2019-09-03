@@ -172,22 +172,34 @@ func upgradeDB(db *sql.DB) error {
 			"ALTER TABLE [Event] ADD [Booker] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Event] ADD [FlightTime] TEXT NOT NULL DEFAULT '';",
 			"ALTER TABLE [Event] ADD [ClientReference] TEXT NOT NULL DEFAULT '';",
+			"UPDATE [Event] SET [ClientReference] = (SELECT [Client].[Reference] FROM [Client] WHERE [Client].[ID] = [Event].[ClientID]);",
 		); err != nil {
 			return err
 		}
-		log.Println("	Updated Table Structures")
 
-		_, err := db.Exec("UPDATE [Event] SET [ClientReference] = (SELECT [Client].[Reference] FROM [Client] WHERE [Client].[ID] = [Event].[ClientID]);")
-		if err != nil {
+		db.Exec("UPDATE [Settings] SET [Version] = 3;")
+		version = 3
+
+		log.Println("Completed updating to version 3")
+	}
+	if version == 3 {
+		log.Println("Upgrading to database version 4")
+
+		if err := upgradeQueries(db,
+			"CREATE TABLE [Profiles]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT NOT NULL DEFAULT '', [InvoiceHeader] TEXT NOT NULL DEFAULT '', [VAT] REAL, [AdminPercent] REAL);",
+			"ALTER TABLE [Event] ADD [Profile] INTEGER DEFAULT 0;",
+			"INSERT INTO [Profiles] ([Name], [InvoiceHeader], [VAT], [AdminPercent]) SELECT [Name], [InvoiceHeader], [VAT], [AdminPercent] FROM [Settings];",
+			"CREATE TABLE [NEW_Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL, [Port] INTEGER, [Unassigned] INTEGER, [AlarmTime] INTEGER, [Version] INTEGER, [InvoiceHeader] TEXT NOT NULL DEFAULT '', [EmailSMTP] TEXT NOT NULL DEFAULT '', [EmailUsername] TEXT NOT NULL DEFAULT '', [EmailPassword] TEXT NOT NULL DEFAULT '', [EmailTemplate] TEXT NOT NULL DEFAULT '');",
+			"INSERT INTO [NEW_Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime], [Version], [InvoiceHeader], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate]) SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime], [Version], [InvoiceHeader], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate] FROM [Settings];",
+			"DROP TABLE [Settings];",
+			"ALTER TABLE [NEW_Settings] RENAME TO [Settings];",
+		); err != nil {
 			return err
 		}
 
-		log.Println("	Set Client References")
-
-		db.Exec("UPDATE [Settings] SET [Version] = 3;")
-		version = 2
-
-		log.Println("Completed updating to version 3")
+		db.Exec("UPDATE [Settings] SET [Version] = 4;")
+		version = 4
+		log.Println("Completed updating to version 4")
 	}
 	return nil
 }

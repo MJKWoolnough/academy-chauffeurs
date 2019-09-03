@@ -42,6 +42,7 @@ type Event struct {
 	Other, From, To, ClientReference, Booker, FlightTime string
 	MessageSent                                          bool
 	InvoiceNote, InvoiceFrom, InvoiceTo                  string
+	Profile                                              uint64
 }
 
 const (
@@ -90,6 +91,11 @@ const (
 
 	GetSettings
 	SetSettings
+
+	GetProfiles
+	CreateProfile
+	UpdateProfile
+	DeleteProfile
 
 	DriverList
 	DriverEvents
@@ -175,7 +181,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"INSERT INTO [Driver]([Name], [RegistrationNumber], [PhoneNumber]) VALUES (?, ?, ?);",
 		"INSERT INTO [Company]([Name], [Address], [Colour]) VALUES (?, ?, ?);",
 		"INSERT INTO [Client]([CompanyID], [Name], [PhoneNumber], [Reference], [Email], [Address]) VALUES (?, ?, ?, ?, ?, ?);",
-		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To], [Other], [Note], [ClientReference], [Booker], [FlightTime], [Created], [Updated]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+		"INSERT INTO [Event]([DriverID], [ClientID], [Start], [End], [From], [To], [Other], [Note], [ClientReference], [Booker], [FlightTime], [Profile], [Created], [Updated]) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
 		"INSERT INTO [FromAddresses]([Address]) VALUES (?);",
 		"INSERT INTO [ToAddresses]([Address]) VALUES (?);",
 
@@ -184,7 +190,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [Name], [RegistrationNumber], [PhoneNumber], IFNULL([Pos], 0), [Show] FROM [Driver] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [Name], [Address], [Colour] FROM [Company] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [CompanyID], [Name], [PhoneNumber], [Reference], [Email], [Address] FROM [Client] WHERE [ID] = ? AND [Deleted] = 0;",
-		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[InvoiceNote], [Event].[InvoiceFrom], [Event].[InvoiceTo], [Event].[Other], [Event].[ClientReference], [Event].[Booker], [Event].[FlightTime], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
+		"SELECT [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[InvoiceNote], [Event].[InvoiceFrom], [Event].[InvoiceTo], [Event].[Other], [Event].[ClientReference], [Event].[Booker], [Event].[FlightTime], [Event].[Profile], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ID] = ? AND [Event].[Deleted] = 0;",
 		"SELECT [FinalsSet], [InCar], [Parking], [Waiting], [Drop], [Miles], [Trip], [DriverHours], [Price], [Sub], [InvoiceNote], [InvoiceFrom], [InvoiceTo] FROM [Event] WHERE [ID] = ? AND [Deleted] = 0;",
 		"SELECT [ID] FROM [FromAddresses] WHERE [Address] = ?;",
 		"SELECT [ID] FROM [ToAddresses] WHERE [Address] = ?;",
@@ -194,7 +200,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"UPDATE [Driver] SET [Name] = ?, [RegistrationNumber] = ?, [PhoneNumber] = ? WHERE [ID] = ?;",
 		"UPDATE [Company] SET [Name] = ?, [Address] = ?, [Colour] = ? WHERE [ID] = ?;",
 		"UPDATE [Client] SET [CompanyID] = ?, [Name] = ?, [PhoneNumber] = ?, [Reference] = ?, [Email] = ?, [Address] = ? WHERE [ID] = ?;",
-		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ?, [Other] = ?, [ClientReference] = ?, [Booker] = ?, [FlightTime] = ?, [Updated] = ? WHERE [ID] = ?;",
+		"UPDATE [Event] SET [DriverID] = ?, [ClientID] = ?, [Start] = ?, [End] = ?, [From] = ?, [To] = ?, [Other] = ?, [ClientReference] = ?, [Booker] = ?, [FlightTime] = ?, [Profile] = ?, [Updated] = ? WHERE [ID] = ?;",
 		"UPDATE [Event] SET [FinalsSet] = 1, [InCar] = ?, [Parking] = ?, [Waiting] = ?, [Drop] = ?, [Miles] = ?, [Trip] = ?, [DriverHours] = ?, [Price] = ?, [Sub] = ?, [InvoiceNote] = ?, [InvoiceFrom] = ?, [InvoiceTo] = ? WHERE [ID] = ?;",
 
 		// Delete (set deleted)
@@ -229,8 +235,15 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Settings
 
-		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime], [InvoiceHeader], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate] FROM [Settings];",
-		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [VATPercent] = ?, [AdminPercent] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?, [InvoiceHeader] = ?, [EmailSMTP] = ?, [EmailUsername] = ?, [EmailPassword] = ?, [EmailTemplate] = ?;",
+		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [Port], [Unassigned], [AlarmTime], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate] FROM [Settings];",
+		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?, [EmailSMTP] = ?, [EmailUsername] = ?, [EmailPassword] = ?, [EmailTemplate] = ?;",
+
+		// Profiles
+
+		"SELECT [ID], [VATPercent], [AdminPercent], [InvoiceHeader] FROM [Profiles];",
+		"INSERT INTO [Profiles]([VATPercent], [AdminPercent], [InvoiceHeader]);",
+		"UPDATE [Profiles] SET [VATPercent] = ?, [AdminPercent] = ?, [InvoiceHeader] = ? WHERE [ID] = ?;",
+		"DELETE FROM [Profiles] WHERE [ID] = ?;",
 
 		// Searches
 
@@ -238,16 +251,16 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber], IFNULL([Pos], 0), [Show] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[Booker], [Event].[FlightTime], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[Booker], [Event].[FlightTime], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? AND ? IN(-1, [Event].[Profile]) ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for client
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [Event].[Profile] [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? AND ? IN(-1, [Event].[Profile]) ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for company
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [Event].[Profile], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? AND ? IN(-1, [Event].[Profile]) ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for drivers
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [Event].[Profile], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? AND ? IN(-1, [Event].[Profile]) ORDER BY [Event].[Start] ASC;",
 
 		// Event Overlaps
 		"SELECT COUNT(1) FROM [Event] WHERE [ID] != ? AND [Deleted] = 0 AND [DriverID] = ? AND MAX([Start], ?) < MIN([End], ?);",
@@ -498,11 +511,12 @@ func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
 
 type EventsFilter struct {
 	ID, Start, End int64
+	Profile        uint64
 }
 
 func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
-	return c.getList(DriverEvents, is{f.ID, f.Start, f.End}, func() is {
+	return c.getList(DriverEvents, is{f.ID, f.Start, f.End, f.Profile}, func() is {
 		pos := len(*events)
 		*events = append(*events, Event{})
 		return is{
@@ -515,6 +529,7 @@ func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 			&(*events)[pos].ClientReference,
 			&(*events)[pos].Booker,
 			&(*events)[pos].FlightTime,
+			&(*events)[pos].Profile,
 			&(*events)[pos].From,
 			&(*events)[pos].To,
 		}
@@ -523,7 +538,7 @@ func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
 
 func (c *Calls) ClientEvents(f EventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
-	return c.getList(ClientEvents, is{f.ID, f.Start, f.End}, func() is {
+	return c.getList(ClientEvents, is{f.ID, f.Start, f.End, f.Profile}, func() is {
 		pos := len(*events)
 		*events = append(*events, Event{})
 		return is{
@@ -536,6 +551,7 @@ func (c *Calls) ClientEvents(f EventsFilter, events *[]Event) error {
 			&(*events)[pos].InvoiceTo,
 			&(*events)[pos].InvoiceFrom,
 			&(*events)[pos].InvoiceNote,
+			&(*events)[pos].Profile,
 			&(*events)[pos].From,
 			&(*events)[pos].To,
 		}
@@ -544,7 +560,7 @@ func (c *Calls) ClientEvents(f EventsFilter, events *[]Event) error {
 
 func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
-	return c.getList(CompanyEvents, is{f.ID, f.Start, f.End}, func() is {
+	return c.getList(CompanyEvents, is{f.ID, f.Start, f.End, f.Profile}, func() is {
 		pos := len(*events)
 		*events = append(*events, Event{})
 		return is{
@@ -558,6 +574,7 @@ func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
 			&(*events)[pos].InvoiceTo,
 			&(*events)[pos].InvoiceFrom,
 			&(*events)[pos].InvoiceNote,
+			&(*events)[pos].Profile,
 			&(*events)[pos].From,
 			&(*events)[pos].To,
 		}
@@ -567,6 +584,7 @@ func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
 type CEventsFilter struct {
 	IDs        []int64
 	Start, End int64
+	Profile    uint64
 }
 
 type sortEvents []Event
@@ -594,7 +612,7 @@ func (c *Calls) CompaniesEvents(f CEventsFilter, events *[]Event) error {
 func (c *Calls) driverCompanyEvents(stmtID int, f CEventsFilter, events *[]Event) error {
 	*events = make([]Event, 0)
 	for _, id := range f.IDs {
-		err := c.getList(stmtID, is{id, f.Start, f.End}, func() is {
+		err := c.getList(stmtID, is{id, f.Start, f.End, f.Profile}, func() is {
 			pos := len(*events)
 			*events = append(*events, Event{})
 			return is{
@@ -608,6 +626,7 @@ func (c *Calls) driverCompanyEvents(stmtID int, f CEventsFilter, events *[]Event
 				&(*events)[pos].InvoiceTo,
 				&(*events)[pos].InvoiceFrom,
 				&(*events)[pos].InvoiceNote,
+				&(*events)[pos].Profile,
 				&(*events)[pos].From,
 				&(*events)[pos].To,
 			}
@@ -946,15 +965,20 @@ type Settings struct {
 	Port, Unassigned                                       uint16
 	TMUseNumber                                            bool
 	TMUsername, TMPassword, TMTemplate, TMFrom             string
-	VATPercent, AdminPercent                               float64
 	UploadCalendar                                         bool
 	AlarmTime                                              int
-	InvoiceHeader                                          string
 	EmailSMTP, EmailUsername, EmailPassword, EmailTemplate string
+	Profiles
 }
 
 func (c *Calls) GetSettings(_ struct{}, s *Settings) error {
-	return c.statements[GetSettings].QueryRow().Scan(&s.TMUsername, &s.TMPassword, &s.TMTemplate, &s.TMUseNumber, &s.TMFrom, &s.VATPercent, &s.AdminPercent, &s.Port, &s.Unassigned, &s.AlarmTime, &s.InvoiceHeader, &s.EmailSMTP, &s.EmailUsername, &s.EmailPassword, &s.EmailTemplate)
+	c.mu.Lock()
+	err := c.statements[GetSettings].QueryRow().Scan(&s.TMUsername, &s.TMPassword, &s.TMTemplate, &s.TMUseNumber, &s.TMFrom, &s.Port, &s.Unassigned, &s.AlarmTime, &s.EmailSMTP, &s.EmailUsername, &s.EmailPassword, &s.EmailTemplate)
+	c.mu.Unlock()
+	if err != nil {
+		return err
+	}
+	return c.GetProfiles(struct{}{}, &s.Profiles)
 }
 
 func (c *Calls) SetSettings(s Settings, errStr *string) error {
@@ -965,7 +989,53 @@ func (c *Calls) SetSettings(s Settings, errStr *string) error {
 	if err := setEmailVars(s.EmailSMTP, s.EmailUsername, s.EmailPassword, s.EmailTemplate); err != nil {
 		*errStr = err.Error()
 	}
-	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.VATPercent, s.AdminPercent, s.Port, s.Unassigned, s.AlarmTime, s.InvoiceHeader, s.EmailSMTP, s.EmailUsername, s.EmailPassword, s.EmailTemplate)
+	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.Port, s.Unassigned, s.AlarmTime, s.EmailSMTP, s.EmailUsername, s.EmailPassword, s.EmailTemplate)
+	return err
+}
+
+type Profiles []Profile
+
+type Profile struct {
+	ID                       int64
+	VATPercent, AdminPercent float64
+	InvoiceHeader            string
+}
+
+func (c *Calls) GetProfiles(_ struct{}, ps *Profiles) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	rows, err := c.statements[GetProfiles].Query()
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var p Profile
+		if err := rows.Scan(&p.ID, &p.VATPercent, &p.AdminPercent, &p.InvoiceHeader); err != nil {
+			return err
+		}
+		*ps = append(*ps, p)
+	}
+	return rows.Close()
+}
+
+func (c *Calls) SetProfile(p Profile, _ *struct{}) error {
+	if p.ID < 0 {
+		c.mu.Lock()
+		_, err := c.statements[CreateProfile].Exec(p.VATPercent, p.AdminPercent, p.InvoiceHeader)
+		c.mu.Unlock()
+		return err
+	} else {
+		c.mu.Lock()
+		_, err := c.statements[UpdateProfile].Exec(p.VATPercent, p.AdminPercent, p.InvoiceHeader, p.ID)
+		c.mu.Unlock()
+		return err
+	}
+}
+
+func (c *Calls) RemoveProfile(pid uint64, _ *struct{}) error {
+	c.mu.Lock()
+	_, err := c.statements[DeleteProfile].Exec(pid)
+	c.mu.Unlock()
 	return err
 }
 

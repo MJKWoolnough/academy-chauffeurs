@@ -87,20 +87,20 @@ window.addEventListener("load", function(oldDate) {
 		this.getSettings               = request.bind(this, "GetSettings", null);      //              callback
 		this.setSettings               = request.bind(this, "SetSettings");            // settings   , callback
 		this.setDriverPosShows         = request.bind(this, "SetDriverPosShows");      // []{ID, Pos, Show}, callback
-		this.getEventsWithDriver = function(driverID, start, end, callback) {
-			request("DriverEvents", {"ID": driverID, "Start": start, "End": end}, callback);
+		this.getEventsWithDriver = function(driverID, start, end, profile, callback) {
+			request("DriverEvents", {"ID": driverID, "Start": start, "End": end, "Profile": profile}, callback);
 		};
-		this.getEventsWithClient = function(clientID, start, end, callback) {
-			request("ClientEvents", {"ID": clientID, "Start": start, "End": end}, callback);
+		this.getEventsWithClient = function(clientID, start, end, profile, callback) {
+			request("ClientEvents", {"ID": clientID, "Start": start, "End": end, "Profile": profile}, callback);
 		};
-		this.getEventsWithCompany = function(companyID, start, end, callback) {
-			request("CompanyEvents", {"ID": companyID, "Start": start, "End": end}, callback);
+		this.getEventsWithCompany = function(companyID, start, end, profile, callback) {
+			request("CompanyEvents", {"ID": companyID, "Start": start, "End": end, "Profile": profile}, callback);
 		};
-		this.getEventsWithCompanies = function(companyIDs, start, end, callback) {
-			request("CompaniesEvents", {"IDs": companyIDs, "Start": start, "End": end}, callback);
+		this.getEventsWithCompanies = function(companyIDs, start, end, profile, callback) {
+			request("CompaniesEvents", {"IDs": companyIDs, "Start": start, "End": end, "Profile": profile}, callback);
 		};
-		this.getEventsWithDrivers = function(driverIDs, start, end, callback) {
-			request("DriversEvents", {"IDs": driverIDs, "Start": start, "End": end}, callback);
+		this.getEventsWithDrivers = function(driverIDs, start, end, profile, callback) {
+			request("DriversEvents", {"IDs": driverIDs, "Start": start, "End": end, "Profile": profile}, callback);
 		};
 		this.setDriverNote = function(id, note, callback) {
 			request("SetDriverNote", {ID: id, Note: note}, callback);
@@ -147,9 +147,7 @@ window.addEventListener("load", function(oldDate) {
 		};
 	},
 	animated = window.localStorage.getItem("animated") === "true",
-	vatPercent = 20,
-	adminPercent = 10,
-	invoiceHeader = "",
+	profiles = {},
 	createElement = (function(){
 		var ns = document.getElementsByTagName("html")[0].namespaceURI;
 		return function(elementName) {
@@ -448,7 +446,7 @@ window.addEventListener("load", function(oldDate) {
 					driverIDs.push(0);
 					for (i = 0; i < driverIDs.length; i++) {
 						if (driverIDs[i] === 0 || drivers[parseInt(driverIDs[i])].Show !== false) {
-							rpc.getEventsWithDriver(parseInt(driverIDs[i]), tDate.getTime(), tDate.getTime() + 86400000, function(events) {
+							rpc.getEventsWithDriver(parseInt(driverIDs[i]), tDate.getTime(), tDate.getTime() + 86400000, -1, function(events) {
 								for(var i = 0; i < events.length; i++) {
 									addEventToTable(events[i]);
 								}
@@ -638,9 +636,15 @@ window.addEventListener("load", function(oldDate) {
 					return;
 				} else if (paramParts[0] === "invoice") {
 					rpc.getSettings(function (s) {
-						vatPercent = s.VATPercent;
-						adminPercent = s.AdminPercent;
-						invoiceHeader = s.InvoiceHeader;
+						profiles = s.Profiles;
+						var profile = 0;
+						for (var j = 0; j < params.length; j++) {
+							var pps = params[j].split("=");
+							if (pps[0] == "profile") {
+								profile = parseInt(pps[1]);
+								break;
+							}
+						}
 						var events = [], i = 0, todo = parseInt(paramParts[1]);
 						for (; i < todo; i++ ) {
 							var clientID = (Math.random() * 1000 + 1)|0,
@@ -655,7 +659,7 @@ window.addEventListener("load", function(oldDate) {
 							}
 							return 0;
 						})
-						makeInvoice({ "ID": 0, "Name": "Example Company", "Address": "123 Fakestreet\nLondon\nLW1 1WL", "Colour": 65535 }, events);
+						makeInvoice({ "ID": 0, "Name": "Example Company", "Address": "123 Fakestreet\nLondon\nLW1 1WL", "Colour": 65535 }, events, profile);
 					});
 					return;
 				} else if (paramParts.length === 2) {
@@ -728,9 +732,7 @@ window.addEventListener("load", function(oldDate) {
 			}
 			rpc.getSettings(function (s) {
 				unassignedNear = s.Unassigned * 24 * 3600 * 1000;
-				vatPercent = s.VATPercent;
-				adminPercent = s.AdminPercent;
-				invoiceHeader = s.InvoiceHeader;
+				profiles = s.Profiles;
 				addToBar("Companies", function() {
 					stack.addLayer("companyList");
 					companyList();
@@ -1326,11 +1328,17 @@ window.addEventListener("load", function(oldDate) {
 		});
 		return note;
 	},
-	makeInvoice = function(company, events) {
+	makeInvoice = function(company, events, profile = -1) {
+		if (!profiles[profile]) {
+			profile = 0;
+		}
 		stack.addLayer("invoice");
 		layer.setAttribute("class", "toPrint printInvoice");
 		stack.addFragment();
-		var header = layer.appendChild(createElement("div")),
+		var vatPercent = s.Profiles[profile].VATPercent,
+		    adminPercent = s.Profiles[profile].AdminPercent,
+		    invoiceHeader = s.Profiles[profile].InvoiceHeader,
+		    header = layer.appendChild(createElement("div")),
 		    topTable = layer.appendChild(createElement("table")),
 		    table = layer.appendChild(createElement("table")),
 		    tableTitles = table.appendChild(createElement("thead")).appendChild(createElement("tr")),
@@ -1605,7 +1613,7 @@ window.addEventListener("load", function(oldDate) {
 							eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
 							return;
 						}
-						rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+						rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), -1, function(events) {
 							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "9");
@@ -1618,7 +1626,7 @@ window.addEventListener("load", function(oldDate) {
 								invoiceButton.setAttribute("type", "button");
 								invoiceButton.value = "Make Invoice";
 								invoiceButton.addEventListener("click", function() {
-									makeInvoice(company, events);
+									makeInvoice(company, events, -1);
 								});
 								eventTable.parentNode.appendChild(invoiceButton);
 							    }),
@@ -1941,7 +1949,7 @@ window.addEventListener("load", function(oldDate) {
 							eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
 							return;
 						}
-						rpcFn(ids, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+						rpcFn(ids, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), -1, function(events) {
 							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "9");
@@ -2090,7 +2098,7 @@ window.addEventListener("load", function(oldDate) {
 							pT += " to " + eventsEndDate.toDateString();
 						}
 						printTitle.setInnerText(pT);
-						rpc.getEventsWithClient(client.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+						rpc.getEventsWithClient(client.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), -1, function(events) {
 							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "10");
@@ -2103,7 +2111,7 @@ window.addEventListener("load", function(oldDate) {
 								invoiceButton.setAttribute("type", "button");
 								invoiceButton.value = "Make Invoice";
 								invoiceButton.addEventListener("click", function() {
-									makeInvoice({"ID": 0, "Name": client.Name, "Address": client.Address, "Colour": 65535}, events);
+									makeInvoice({"ID": 0, "Name": client.Name, "Address": client.Address, "Colour": 65535}, events, -1);
 								});
 								eventTable.parentNode.appendChild(invoiceButton);
 							    }),
@@ -2512,7 +2520,7 @@ window.addEventListener("load", function(oldDate) {
 						    endParts = endDate[0].value.split("/");
 						eventsStartDate = new Date(startParts[2], startParts[1]-1, startParts[0]),
 						eventsEndDate = new Date(endParts[2], endParts[1]-1, endParts[0]);
-						rpc.getEventsWithDriver(driver.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), function(events) {
+						rpc.getEventsWithDriver(driver.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), -1, function(events) {
 							var row,
 							    i = 0,
 							    pT = "Driver Sheet for " + driver.Name + " for " + eventsStartDate.toDateString(),
