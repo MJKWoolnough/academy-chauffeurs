@@ -127,6 +127,9 @@ window.addEventListener("load", function(oldDate) {
 		this.removeUser = request.bind(this, "RemoveUser"); // Username, callback
 		this.update = request.bind(this, "Update", null); // callback
 		this.usersOnline = request.bind(this, "UsersOnline", null); // callback
+		this.getProfiles = request.bind(this, "GetProfiles", null); // callback
+		this.setProfile = request.bind(this, "SetProfile"); // id, profile, callback
+		this.removeProfile = request.bind(this, "RemoveProfile"); // id, callback
 	})(function() {
 		if (animated) {
 			document.body.setAttribute("class", "animate");
@@ -329,16 +332,19 @@ window.addEventListener("load", function(oldDate) {
 			    template = addFormElement("Message Template", "textarea", "template", s.TMTemplate, regexpCheck(/.*/, "Please enter a valid message template")),
 			    senderID = addFormElement("Sender ID", "text", "senderID", s.TMFrom, regexpCheck(/.+/, "Please enter a sender ID")),
 			    useNumber = addFormElement("Driver # as Sender", "checkbox", "useNumber", s.TMUseNumber),
-			    vat = addFormElement("VAT (%)", "text", "vat", s.VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
-			    admin = addFormElement("Admin Cost (%)", "text", "admin", s.AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
 			    unass = addFormElement("Unassigned events warning (days)", "text", "uass", s.Unassigned, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
 			    alarmTime = addFormElement("Calendar Export Alarm Time (m)", "text", "alarmTime", s.AlarmTime, regexpCheck(/^-?[0-9]+$/, "Please enter a valid integer")),
 			    serverPort = addFormElement("Server Port", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
-			    invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", s.InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header")),
 			    emailSMTP = addFormElement("SMTP Server", "text", "smtpServer", s.EmailSMTP, regexpCheck(/.*/, "Please enter a valid SMTP server")),
 			    emailUsername = addFormElement("Email Username", "text", "emailUsername", s.EmailUsername, regexpCheck(/.*/, "Please enter a valid Email Username")),
 			    emailPassword = addFormElement("Email Password", "password", "emailPassword", s.EmailPassword, regexpCheck(/.*/, "Please enter a valid Email Password")),
-			    emailTemplate = addFormElement("Email Template", "textarea", "emailTemplate", s.EmailTemplate, regexpCheck(/.*/, "Please enter a valid Email Template"));
+			    emailTemplate = addFormElement("Email Template", "textarea", "emailTemplate", s.EmailTemplate, regexpCheck(/.*/, "Please enter a valid Email Template")),
+			    vat, admin, invoiceHeader;
+			if (s.Profiles.length < 2) {
+				vat = addFormElement("VAT (%)", "text", "vat", s.Profiles[0].VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
+				admin = addFormElement("Admin Cost (%)", "text", "admin", s.Profiles[0].AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
+				invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", s.Profiles[0].InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header"));
+			}
 
 			useNumber[0].addEventListener("change", function() {
 				if (useNumber[0].checked) {
@@ -352,7 +358,7 @@ window.addEventListener("load", function(oldDate) {
 			addFormSubmit("Set Settings", function() {
 				var error = false;
 				[username, password, template, vat, admin].map(function(i) {
-					if (i[1].hasChildNodes()) {
+					if (i && i[1].hasChildNodes()) {
 						error = true;
 					}
 				});
@@ -364,19 +370,22 @@ window.addEventListener("load", function(oldDate) {
 				s.TMTemplate = template[0].value;
 				s.TMFrom = senderID[0].value;
 				s.TMUseNumber = useNumber[0].checked;
-				s.VATPercent = parseFloat(vat[0].value);
-				s.AdminPercent = parseFloat(admin[0].value);
 				s.Unassigned = parseInt(unass[0].value);
 				s.Port = parseInt(serverPort[0].value);
 				s.AlarmTime = parseInt(alarmTime[0].value);
-				s.InvoiceHeader = invoiceHeader[0].value;
 				s.EmailSMTP = emailSMTP[0].value;
 				s.EmailUsername = emailUsername[0].value;
 				s.EmailPassword = emailPassword[0].value;
 				s.EmailTemplate = emailTemplate[0].value;
 				rpc.setSettings(s, function(templateError) {
 					if (templateError === "") {
-						window.location.search = '';
+						if (s.Profiles.length < 2) {
+							rpc.setProfile(s.Profiles.length == 0 ? -1 : 0, {"Name": "DEFAULT", "VATPercent": parseFloat(vat[0].value), "AdminPercent": parseFloat(admin[0].value), "InvoiceHeader": invoiceHeader[0].value}, function() {
+								window.location.search = '';
+							});
+						} else {
+							window.location.search = '';
+						}
 					} else {
 						template[1].setInnerText(templateError);
 					}
@@ -1335,9 +1344,9 @@ window.addEventListener("load", function(oldDate) {
 		stack.addLayer("invoice");
 		layer.setAttribute("class", "toPrint printInvoice");
 		stack.addFragment();
-		var vatPercent = s.Profiles[profile].VATPercent,
-		    adminPercent = s.Profiles[profile].AdminPercent,
-		    invoiceHeader = s.Profiles[profile].InvoiceHeader,
+		var vatPercent = profiles[profile].VATPercent,
+		    adminPercent = profiles[profile].AdminPercent,
+		    invoiceHeader = profiles[profile].InvoiceHeader,
 		    header = layer.appendChild(createElement("div")),
 		    topTable = layer.appendChild(createElement("table")),
 		    table = layer.appendChild(createElement("table")),

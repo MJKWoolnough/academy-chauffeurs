@@ -240,9 +240,9 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Profiles
 
-		"SELECT [ID], [VATPercent], [AdminPercent], [InvoiceHeader] FROM [Profiles];",
-		"INSERT INTO [Profiles]([VATPercent], [AdminPercent], [InvoiceHeader]);",
-		"UPDATE [Profiles] SET [VATPercent] = ?, [AdminPercent] = ?, [InvoiceHeader] = ? WHERE [ID] = ?;",
+		"SELECT [ID], [Name], [VATPercent], [AdminPercent], [InvoiceHeader] FROM [Profiles];",
+		"INSERT INTO [Profiles]([Name], [VATPercent], [AdminPercent], [InvoiceHeader]) VALUES (?, ?, ?, ?);",
+		"UPDATE [Profiles] SET [Name] = ?, [VATPercent] = ?, [AdminPercent] = ?, [InvoiceHeader] = ? WHERE [ID] = ?;",
 		"DELETE FROM [Profiles] WHERE [ID] = ?;",
 
 		// Searches
@@ -251,10 +251,10 @@ func newCalls(dbFName string) (*Calls, error) {
 		"SELECT [ID], [Name], [RegistrationNumber], [PhoneNumber], IFNULL([Pos], 0), [Show] FROM [Driver] WHERE [Deleted] = 0 ORDER BY [ID] ASC;",
 
 		// Row of Events for driver
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[Booker], [Event].[FlightTime], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? AND ? IN(-1, [Event].[Profile]) ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[Booker], [Event].[FlightTime], [Event].[Profile], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[DriverID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? AND ? IN(-1, [Event].[Profile]) ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for client
-		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [Event].[Profile] [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? AND ? IN(-1, [Event].[Profile]) ORDER BY [Event].[Start] ASC;",
+		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [Event].[Profile], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] = ? AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? AND ? IN(-1, [Event].[Profile]) ORDER BY [Event].[Start] ASC;",
 
 		// Row of Events for company
 		"SELECT [Event].[ID], [Event].[DriverID], [Event].[ClientID], [Event].[Start], [Event].[End], [Event].[Other], [Event].[ClientReference], [Event].[InvoiceTo], [Event].[InvoiceFrom], [Event].[InvoiceNote], [Event].[Profile], [FromAddresses].[Address], [ToAddresses].[Address] FROM [Event] LEFT JOIN [FromAddresses] ON ([FromAddresses].[ID] = [Event].[From]) LEFT JOIN [ToAddresses] ON ([ToAddresses].[ID] = [Event].[To]) WHERE [Event].[ClientID] IN (SELECT [ID] FROM [Client] WHERE [CompanyID] = ?) AND [Event].[Deleted] = 0 AND [Event].[Start] >= ? AND [Event].[Start] < ? AND ? IN(-1, [Event].[Profile]) ORDER BY [Event].[Start] ASC;",
@@ -511,7 +511,7 @@ func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
 
 type EventsFilter struct {
 	ID, Start, End int64
-	Profile        uint64
+	Profile        int64
 }
 
 func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
@@ -584,7 +584,7 @@ func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
 type CEventsFilter struct {
 	IDs        []int64
 	Start, End int64
-	Profile    uint64
+	Profile    int64
 }
 
 type sortEvents []Event
@@ -997,6 +997,7 @@ type Profiles []Profile
 
 type Profile struct {
 	ID                       int64
+	Name                     string
 	VATPercent, AdminPercent float64
 	InvoiceHeader            string
 }
@@ -1010,7 +1011,7 @@ func (c *Calls) GetProfiles(_ struct{}, ps *Profiles) error {
 	}
 	for rows.Next() {
 		var p Profile
-		if err := rows.Scan(&p.ID, &p.VATPercent, &p.AdminPercent, &p.InvoiceHeader); err != nil {
+		if err := rows.Scan(&p.ID, &p.Name, &p.VATPercent, &p.AdminPercent, &p.InvoiceHeader); err != nil {
 			return err
 		}
 		*ps = append(*ps, p)
@@ -1021,12 +1022,12 @@ func (c *Calls) GetProfiles(_ struct{}, ps *Profiles) error {
 func (c *Calls) SetProfile(p Profile, _ *struct{}) error {
 	if p.ID < 0 {
 		c.mu.Lock()
-		_, err := c.statements[CreateProfile].Exec(p.VATPercent, p.AdminPercent, p.InvoiceHeader)
+		_, err := c.statements[CreateProfile].Exec(p.Name, p.VATPercent, p.AdminPercent, p.InvoiceHeader)
 		c.mu.Unlock()
 		return err
 	} else {
 		c.mu.Lock()
-		_, err := c.statements[UpdateProfile].Exec(p.VATPercent, p.AdminPercent, p.InvoiceHeader, p.ID)
+		_, err := c.statements[UpdateProfile].Exec(p.Name, p.VATPercent, p.AdminPercent, p.InvoiceHeader, p.ID)
 		c.mu.Unlock()
 		return err
 	}

@@ -186,9 +186,9 @@ func upgradeDB(db *sql.DB) error {
 		log.Println("Upgrading to database version 4")
 
 		if err := upgradeQueries(db,
-			"CREATE TABLE [Profiles]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT NOT NULL DEFAULT '', [InvoiceHeader] TEXT NOT NULL DEFAULT '', [VAT] REAL, [AdminPercent] REAL);",
+			"CREATE TABLE [Profiles]([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [Name] TEXT NOT NULL DEFAULT '', [InvoiceHeader] TEXT NOT NULL DEFAULT '', [VATPercent] REAL, [AdminPercent] REAL);",
 			"ALTER TABLE [Event] ADD [Profile] INTEGER DEFAULT 0;",
-			"INSERT INTO [Profiles] ([Name], [InvoiceHeader], [VAT], [AdminPercent]) SELECT [Name], [InvoiceHeader], [VAT], [AdminPercent] FROM [Settings];",
+			"INSERT INTO [Profiles]([Name], [InvoiceHeader], [VATPercent], [AdminPercent]) SELECT \"DEFAULT\", [InvoiceHeader], [VATPercent], [AdminPercent] FROM [Settings];",
 			"CREATE TABLE [NEW_Settings]([TMUsername] TEXT, [TMPassword] TEXT, [TMTemplate] TEXT, [TMUseNumber] BOOLEAN DEFAULT 0 NOT NULL CHECK ([TMUseNumber] IN (0,1)), [TMFrom] TEXT, [VATPercent] REAL, [AdminPercent] REAL, [Port] INTEGER, [Unassigned] INTEGER, [AlarmTime] INTEGER, [Version] INTEGER, [InvoiceHeader] TEXT NOT NULL DEFAULT '', [EmailSMTP] TEXT NOT NULL DEFAULT '', [EmailUsername] TEXT NOT NULL DEFAULT '', [EmailPassword] TEXT NOT NULL DEFAULT '', [EmailTemplate] TEXT NOT NULL DEFAULT '');",
 			"INSERT INTO [NEW_Settings] ([TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime], [Version], [InvoiceHeader], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate]) SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [VATPercent], [AdminPercent], [Port], [Unassigned], [AlarmTime], [Version], [InvoiceHeader], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate] FROM [Settings];",
 			"DROP TABLE [Settings];",
