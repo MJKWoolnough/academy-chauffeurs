@@ -1033,7 +1033,12 @@ func (c *Calls) SetProfile(p Profile, _ *struct{}) error {
 	}
 }
 
+var ErrNoRemoveDefault = errors.New("cannot remove default profile")
+
 func (c *Calls) RemoveProfile(pid uint64, _ *struct{}) error {
+	if pid == 0 {
+		return ErrNoRemoveDefault
+	}
 	c.mu.Lock()
 	_, err := c.statements[DeleteProfile].Exec(pid)
 	c.mu.Unlock()
