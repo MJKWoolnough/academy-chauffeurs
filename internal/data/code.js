@@ -399,12 +399,13 @@ window.addEventListener("load", function(oldDate) {
 		rpc.getProfiles(function(profiles) {
 			var selector = layer.appendChild(createElement("select"));
 			layer.appendChild(createElement("br"));
-			var profile = 0,
+			var profile = 0, profilePos = 0,
 			    opt,
 			    name = addFormElement("Name", "text", "name", profiles[0].Name, regexpCheck(/.+/, "Please enter a name")),
 			    vat = addFormElement("VAT (%)", "number", "vat", profiles[0].VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
 			    admin = addFormElement("Admin Cost (%)", "number", "admin", profiles[0].AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
-			    invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", profiles[0].InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header"));
+			    invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", profiles[0].InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header")),
+			    saver, remover;
 			for (var i = 0; i < profiles.length; i++) {
 				opt = selector.appendChild(createElement("option"));
 				opt.setAttribute("value", profiles[i].ID);
@@ -421,26 +422,35 @@ window.addEventListener("load", function(oldDate) {
 							return;
 						}
 					}
-				} else if (name[0].value !== profiles[profile].Name || parseFloat(vat[0].value) !== profiles[profile].VATPercent || parseFloat(admin[0].value) !== profiles[profile].AdminPercent || invoiceHeader[0].value !== profiles[profile].InvoiceHeader) {
+				} else if (name[0].value !== profiles[profilePos].Name || parseFloat(vat[0].value) !== profiles[profilePos].VATPercent || parseFloat(admin[0].value) !== profiles[profilePos].AdminPercent || invoiceHeader[0].value !== profiles[profilePos].InvoiceHeader) {
 					if (!confirm("There are unsaved changes, are you sure you wish to edit another profile?")) {
 						selector.value = profile;
 						return;
 					}
 				}
 				profile = parseInt(selector.value);
+				profilePos = parseInt(selector.selectedIndex);
 				if (profile === -1) {
 					name[0].value = "";
 					vat[0].value = 0;
 					admin[0].value = 0;
 					invoiceHeader[0].value = "";
 				} else {
-					name[0].value = profiles[profile].Name;
-					vat[0].value = profiles[profile].VATPercent;
-					admin[0].value = profiles[profile].AdminPercent;
-					invoiceHeader[0].value = profiles[profile].InvoiceHeader;
+					name[0].value = profiles[profilePos].Name;
+					vat[0].value = profiles[profilePos].VATPercent;
+					admin[0].value = profiles[profilePos].AdminPercent;
+					invoiceHeader[0].value = profiles[profilePos].InvoiceHeader;
+				}
+				if (profile > 0) {
+					remover.removeAttribute("disabled");
+				} else {
+					remover.setAttribute("disabled", "disabled");
 				}
 			});
-			addFormSubmit("Save Changes",  function() {
+			saver = addFormSubmit("Save Changes",  function() {
+				remover.setAttribute("disabled", "disabled");
+				saver.setAttribute("disabled", "disabled");
+				selector.setAttribute("disabled", "disabled");
 				var np = {
 					"ID": profile,
 					"Name": name[0].value,
@@ -455,7 +465,7 @@ window.addEventListener("load", function(oldDate) {
 						opt.setAttribute("value", profile);
 						opt.innerText = np.Name;
 						selector.insertBefore(opt, selector.lastChild);
-						selector.value = profile;
+						selector.selectedIndex = selector.length - 2;
 					} else {
 						for (var i = 0; i < selector.options.length; i++) {
 							if (selector.options[i].value == profile) {
@@ -465,9 +475,21 @@ window.addEventListener("load", function(oldDate) {
 						}
 					}
 					profiles[profile] = np;
-					alert("Profile Saved");
+					window.location.search = "";
 				});
 			});
+			remover = addFormSubmit("Remove", function() {
+				if (profile <= 0 || !confirm("Are you sure you wish to remove this profile? This CANNOT be undone.")) {
+					return;
+				}
+				remover.setAttribute("disabled", "disabled");
+				saver.setAttribute("disabled", "disabled");
+				selector.setAttribute("disabled", "disabled");
+				rpc.removeProfile(profile, function() {
+					window.location.search = "";
+				});
+			});
+			remover.setAttribute("disabled", "disabled");
 			stack.setFragment();
 		});
 	},
