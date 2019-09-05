@@ -417,11 +417,13 @@ window.addEventListener("load", function(oldDate) {
 				if (profile === -1) {
 					if (name[0].value !== "" || parseFloat(vat[0].value) !== 0 || parseFloat(admin[0].value) !== 0 || invoiceHeader[0].value !== "") {
 						if (!confirm("There are unsaved changes, are you sure you wish to edit another profile?")) {
+							selector.value = profile;
 							return;
 						}
 					}
 				} else if (name[0].value !== profiles[profile].Name || parseFloat(vat[0].value) !== profiles[profile].VATPercent || parseFloat(admin[0].value) !== profiles[profile].AdminPercent || invoiceHeader[0].value !== profiles[profile].InvoiceHeader) {
 					if (!confirm("There are unsaved changes, are you sure you wish to edit another profile?")) {
+						selector.value = profile;
 						return;
 					}
 				}
