@@ -240,7 +240,7 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Profiles
 
-		"SELECT [ID], [Name], [VATPercent], [AdminPercent], [InvoiceHeader] FROM [Profiles];",
+		"SELECT [ID], [Name], [VATPercent], [AdminPercent], [InvoiceHeader] FROM [Profiles] ORDER BY [ID] ASC;",
 		"INSERT INTO [Profiles]([Name], [VATPercent], [AdminPercent], [InvoiceHeader]) VALUES (?, ?, ?, ?);",
 		"UPDATE [Profiles] SET [Name] = ?, [VATPercent] = ?, [AdminPercent] = ?, [InvoiceHeader] = ? WHERE [ID] = ?;",
 		"DELETE FROM [Profiles] WHERE [ID] = ?;",
@@ -1019,16 +1019,20 @@ func (c *Calls) GetProfiles(_ struct{}, ps *Profiles) error {
 	return rows.Close()
 }
 
-func (c *Calls) SetProfile(p Profile, _ *struct{}) error {
+func (c *Calls) SetProfile(p Profile, newID *int64) error {
 	if p.ID < 0 {
 		c.mu.Lock()
-		_, err := c.statements[CreateProfile].Exec(p.Name, p.VATPercent, p.AdminPercent, p.InvoiceHeader)
+		res, err := c.statements[CreateProfile].Exec(p.Name, p.VATPercent, p.AdminPercent, p.InvoiceHeader)
+		if err == nil {
+			*newID, err = res.LastInsertId()
+		}
 		c.mu.Unlock()
 		return err
 	} else {
 		c.mu.Lock()
 		_, err := c.statements[UpdateProfile].Exec(p.Name, p.VATPercent, p.AdminPercent, p.InvoiceHeader, p.ID)
 		c.mu.Unlock()
+		*newID = p.ID
 		return err
 	}
 }
