@@ -332,17 +332,17 @@ window.addEventListener("load", function(oldDate) {
 			    template = addFormElement("Message Template", "textarea", "template", s.TMTemplate, regexpCheck(/.*/, "Please enter a valid message template")),
 			    senderID = addFormElement("Sender ID", "text", "senderID", s.TMFrom, regexpCheck(/.+/, "Please enter a sender ID")),
 			    useNumber = addFormElement("Driver # as Sender", "checkbox", "useNumber", s.TMUseNumber),
-			    unass = addFormElement("Unassigned events warning (days)", "text", "uass", s.Unassigned, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
-			    alarmTime = addFormElement("Calendar Export Alarm Time (m)", "text", "alarmTime", s.AlarmTime, regexpCheck(/^-?[0-9]+$/, "Please enter a valid integer")),
-			    serverPort = addFormElement("Server Port", "text", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
+			    unass = addFormElement("Unassigned events warning (days)", "number", "unass", s.Unassigned, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
+			    alarmTime = addFormElement("Calendar Export Alarm Time (m)", "number", "alarmTime", s.AlarmTime, regexpCheck(/^-?[0-9]+$/, "Please enter a valid integer")),
+			    serverPort = addFormElement("Server Port", "number", "port", s.Port, regexpCheck(/^[0-9]+$/, "Please enter a valid integer")),
 			    emailSMTP = addFormElement("SMTP Server", "text", "smtpServer", s.EmailSMTP, regexpCheck(/.*/, "Please enter a valid SMTP server")),
 			    emailUsername = addFormElement("Email Username", "text", "emailUsername", s.EmailUsername, regexpCheck(/.*/, "Please enter a valid Email Username")),
 			    emailPassword = addFormElement("Email Password", "password", "emailPassword", s.EmailPassword, regexpCheck(/.*/, "Please enter a valid Email Password")),
 			    emailTemplate = addFormElement("Email Template", "textarea", "emailTemplate", s.EmailTemplate, regexpCheck(/.*/, "Please enter a valid Email Template")),
 			    vat, admin, invoiceHeader;
 			if (s.Profiles.length < 2) {
-				vat = addFormElement("VAT (%)", "text", "vat", s.Profiles[0].VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
-				admin = addFormElement("Admin Cost (%)", "text", "admin", s.Profiles[0].AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
+				vat = addFormElement("VAT (%)", "number", "vat", s.Profiles[0].VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
+				admin = addFormElement("Admin Cost (%)", "number", "admin", s.Profiles[0].AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
 				invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", s.Profiles[0].InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header"));
 			}
 
@@ -402,8 +402,8 @@ window.addEventListener("load", function(oldDate) {
 			var profile = 0,
 			    opt,
 			    name = addFormElement("Name", "text", "name", profiles[0].Name, regexpCheck(/.+/, "Please enter a name")),
-			    vat = addFormElement("VAT (%)", "text", "vat", profiles[0].VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
-			    admin = addFormElement("Admin Cost (%)", "text", "admin", profiles[0].AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
+			    vat = addFormElement("VAT (%)", "number", "vat", profiles[0].VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
+			    admin = addFormElement("Admin Cost (%)", "number", "admin", profiles[0].AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
 			    invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", profiles[0].InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header"));
 			for (var i = 0; i < profiles.length; i++) {
 				opt = selector.appendChild(createElement("option"));
