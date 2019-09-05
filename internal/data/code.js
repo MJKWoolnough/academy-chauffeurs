@@ -3370,7 +3370,9 @@ window.addEventListener("load", function(oldDate) {
 			"DriverName": driver.Name,
 			"InvoiceNote": "",
 			"InvoiceFrom": "",
-			"InvoiceTo": ""
+			"InvoiceTo": "",
+			"Booker": "",
+			"FlightTime": ""
 		});
 	},
 	regexpCheck = function(regexp, error) {
