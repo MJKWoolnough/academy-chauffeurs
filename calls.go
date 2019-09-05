@@ -96,6 +96,7 @@ const (
 	CreateProfile
 	UpdateProfile
 	DeleteProfile
+	DefaultProfile
 
 	DriverList
 	DriverEvents
@@ -244,6 +245,7 @@ func newCalls(dbFName string) (*Calls, error) {
 		"INSERT INTO [Profiles]([Name], [VATPercent], [AdminPercent], [InvoiceHeader]) VALUES (?, ?, ?, ?);",
 		"UPDATE [Profiles] SET [Name] = ?, [VATPercent] = ?, [AdminPercent] = ?, [InvoiceHeader] = ? WHERE [ID] = ?;",
 		"DELETE FROM [Profiles] WHERE [ID] = ?;",
+		"UPDATE [Event] SET [Profile] = 0 WHERE Profile = ?;",
 
 		// Searches
 
@@ -1045,6 +1047,9 @@ func (c *Calls) RemoveProfile(pid uint64, _ *struct{}) error {
 	}
 	c.mu.Lock()
 	_, err := c.statements[DeleteProfile].Exec(pid)
+	if err == nil {
+		_, err = c.statements[DefaultProfile].Exec(pid)
+	}
 	c.mu.Unlock()
 	return err
 }
