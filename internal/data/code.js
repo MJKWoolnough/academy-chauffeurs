@@ -128,7 +128,7 @@ window.addEventListener("load", function(oldDate) {
 		this.update = request.bind(this, "Update", null); // callback
 		this.usersOnline = request.bind(this, "UsersOnline", null); // callback
 		this.getProfiles = request.bind(this, "GetProfiles", null); // callback
-		this.setProfile = request.bind(this, "SetProfile"); // id, profile, callback
+		this.setProfile = request.bind(this, "SetProfile"); // profile, callback
 		this.removeProfile = request.bind(this, "RemoveProfile"); // id, callback
 	})(function() {
 		if (animated) {
@@ -150,7 +150,7 @@ window.addEventListener("load", function(oldDate) {
 		};
 	},
 	animated = window.localStorage.getItem("animated") === "true",
-	profiles = {},
+	profiles = [],
 	createElement = (function(){
 		var ns = document.getElementsByTagName("html")[0].namespaceURI;
 		return function(elementName) {
@@ -394,6 +394,81 @@ window.addEventListener("load", function(oldDate) {
 			stack.setFragment();
 		});
 	},
+	setProfiles = function() {
+		layer.appendChild(createElement("h1")).setInnerText("Profiles");
+		rpc.getProfiles(function(profiles) {
+			var selector = layer.appendChild(createElement("select"));
+			layer.appendChild(createElement("br"));
+			var profile = 0,
+			    opt,
+			    name = addFormElement("Name", "text", "name", profiles[0].Name, regexpCheck(/.+/, "Please enter a name")),
+			    vat = addFormElement("VAT (%)", "text", "vat", profiles[0].VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
+			    admin = addFormElement("Admin Cost (%)", "text", "admin", profiles[0].AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
+			    invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", profiles[0].InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header"));
+			for (var i = 0; i < profiles.length; i++) {
+				opt = selector.appendChild(createElement("option"));
+				opt.setAttribute("value", profiles[i].ID);
+				opt.innerText = profiles[i].Name;
+			}
+			opt = selector.appendChild(createElement("option"));
+			opt.setAttribute("value", "-1");
+			opt.innerText = "-- New Profile --";
+			selector.addEventListener("input", function() {
+				if (profile === -1) {
+					if (name[0].value !== "" || parseFloat(vat[0].value) !== 0 || parseFloat(admin[0].value) !== 0 || invoiceHeader[0].value !== "") {
+						if (!confirm("There are unsaved changes, are you sure you wish to edit another profile?")) {
+							return;
+						}
+					}
+				} else if (name[0].value !== profiles[profile].Name || parseFloat(vat[0].value) !== profiles[profile].VATPercent || parseFloat(admin[0].value) !== profiles[profile].AdminPercent || invoiceHeader[0].value !== profiles[profile].InvoiceHeader) {
+					if (!confirm("There are unsaved changes, are you sure you wish to edit another profile?")) {
+						return;
+					}
+				}
+				profile = parseInt(selector.value);
+				if (profile === -1) {
+					name[0].value = "";
+					vat[0].value = 0;
+					admin[0].value = 0;
+					invoiceHeader[0].value = "";
+				} else {
+					name[0].value = profiles[profile].Name;
+					vat[0].value = profiles[profile].VATPercent;
+					admin[0].value = profiles[profile].AdminPercent;
+					invoiceHeader[0].value = profiles[profile].InvoiceHeader;
+				}
+			});
+			addFormSubmit("Save Changes",  function() {
+				var np = {
+					"ID": profile,
+					"Name": name[0].value,
+					"VATPercent": parseFloat(vat[0].value),
+					"AdminPercent": parseFloat(admin[0].value),
+					"InvoiceHeader": invoiceHeader[0].value
+				}
+				rpc.setProfile(np, function(newID) {
+					if (profile === -1) {
+						profile = newID;
+						var opt = createElement("option");
+						opt.setAttribute("value", profile);
+						opt.innerText = np.Name;
+						selector.insertBefore(opt, selector.lastChild);
+						selector.value = profile;
+					} else {
+						for (var i = 0; i < selector.options.length; i++) {
+							if (selector.options[i].value == profile) {
+								selector.options[i].innerText = name[0].value;
+								break;
+							}
+						}
+					}
+					profiles[profile] = np;
+					alert("Profile Saved");
+				});
+			});
+			stack.setFragment();
+		});
+	},
 	events = new (function() {
 		var dateTime,
 		    dateShift,
@@ -630,6 +705,9 @@ window.addEventListener("load", function(oldDate) {
 				paramParts = params[i].split("=");
 				if (params[0] === "settings") {
 					settings();
+					return;
+				} else if (params[0] === "profiles") {
+					setProfiles();
 					return;
 				} else if (params[0] === "users") {
 					users();
