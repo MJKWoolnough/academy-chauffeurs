@@ -2513,6 +2513,16 @@ window.addEventListener("load", function(oldDate) {
 			input.setAttribute("spellcheck", "false");
 			input.setAttribute("autocomplete", "new-password");
 			input.value = contents;
+		} else if (type === "select") {
+			input = createElement("select");
+			for (var i = 0; i < contents[1].length; i++) {
+				var opt = input.appendChild(createElement("option"));
+				opt.innerText = contents[1][i].Name;
+				opt.setAttribute("value", contents[1][i].ID);
+				if (contents[1][i].ID === contents[0]) {
+					opt.setAttribute("selected", "selected");
+				}
+			}
 		} else {
 			input = createElement("input");
 			input.setAttribute("type", type);
@@ -3303,7 +3313,11 @@ window.addEventListener("load", function(oldDate) {
 		    from = addFormElement("From", "textarea", "from", event.From, regexpCheck(/.+/, "From Address Required")),
 		    to = addFormElement("To", "textarea", "to", event.To, regexpCheck(/.+/, "To Address Required")),
 		    booker = addFormElement("Booker", "text", "booker", event.Booker),
-		    flightTime = addFormElement("Flight Time", "text", "flight_time", event.FlightTime);
+		    flightTime = addFormElement("Flight Time", "text", "flight_time", event.FlightTime),
+		    profile = [{"value":0}];
+		if (profiles.length > 1) {
+			profile = addFormElement("Profile", "select", "profile", [event.Profile, profiles]);
+		}
 		addAdder(clientName[1], function() {
 			clientName[1].setInnerText("");
 			stack.addLayer("addClient")
@@ -3340,6 +3354,7 @@ window.addEventListener("load", function(oldDate) {
 			event.To = to[0].value;
 			event.Booker = booker[0].value;
 			event.FlightTime = flightTime[0].value;
+			event.Profile = parseInt(profile[0].value);
 			rpc.setEvent(event, function(resp) {
 				if (resp.Errors) {
 					clientName[1].setInnerText(resp.ClientError);
@@ -3372,7 +3387,8 @@ window.addEventListener("load", function(oldDate) {
 			"InvoiceFrom": "",
 			"InvoiceTo": "",
 			"Booker": "",
-			"FlightTime": ""
+			"FlightTime": "",
+			"Profile": 0
 		});
 	},
 	regexpCheck = function(regexp, error) {
