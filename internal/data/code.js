@@ -2196,6 +2196,7 @@ window.addEventListener("load", function(oldDate) {
 				return function() {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
+					    profile = profiles.length > 1 ? addFormElement("Profile", "select", "profile", [-1, [{"ID": -1, "Name": "-- Any --"}].concat(profiles)]) : [{"value": -1}],
 					    getEvents = addFormSubmit("Show Events", function() {
 						eventTable.removeChildren(function(elm) {
 							return elm !== tableTitles;
@@ -2210,13 +2211,13 @@ window.addEventListener("load", function(oldDate) {
 							pT += " to " + eventsEndDate.toDateString();
 						}
 						printTitle.setInnerText(pT);
-						rpc.getEventsWithClient(client.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), -1, function(events) {
+						rpc.getEventsWithClient(client.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), parseInt(profile[0].value), function(events) {
 							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "10");
 								return;
 							}
-							makeExportButton(exportButton, "clientEvents", client.ID, eventsStartDate, eventsEndDate);
+							makeExportButton(exportButton, "clientEvents", client.ID, eventsStartDate, eventsEndDate, profile[0].value);
 							var loading = new waitGroup(function() {
 								var invoiceButton = createElement("input");
 								invoiceButton.setAttribute("class", "noPrint");
