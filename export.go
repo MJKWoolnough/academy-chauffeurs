@@ -41,6 +41,7 @@ func (e *EventsFilter) ParserList() form.ParserList {
 		"id":        form.Int64{&e.ID},
 		"startTime": form.Int64{&e.Start},
 		"endTime":   form.Int64{&e.End},
+		"profile":   form.Int64{&e.Profile},
 	}
 }
 
@@ -64,6 +65,7 @@ func (c *CEventsFilter) ParserList() form.ParserList {
 		"id":        IDs{&c.IDs},
 		"startTime": form.Int64{&c.Start},
 		"endTime":   form.Int64{&c.End},
+		"profile":   form{&c.Profile},
 	}
 }
 
