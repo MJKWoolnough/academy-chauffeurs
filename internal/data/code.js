@@ -2647,6 +2647,7 @@ window.addEventListener("load", function(oldDate) {
 				return function () {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
+					    profile = profiles.length > 1 ? addFormElement("Profile", "select", "profile", [-1, [{"ID": -1, "Name": "-- Any --"}].concat(profiles)]) : [{"value": -1}],
 					    getEvents = addFormSubmit("Show Events", function() {
 						eventTable.removeChildren(function(elm) {
 							return elm !== tableTitles;
@@ -2656,7 +2657,7 @@ window.addEventListener("load", function(oldDate) {
 						    endParts = endDate[0].value.split("/");
 						eventsStartDate = new Date(startParts[2], startParts[1]-1, startParts[0]),
 						eventsEndDate = new Date(endParts[2], endParts[1]-1, endParts[0]);
-						rpc.getEventsWithDriver(driver.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), -1, function(events) {
+						rpc.getEventsWithDriver(driver.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), parseInt(profile[0].value), function(events) {
 							var row,
 							    i = 0,
 							    pT = "Driver Sheet for " + driver.Name + " for " + eventsStartDate.toDateString(),
@@ -2684,7 +2685,7 @@ window.addEventListener("load", function(oldDate) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "14");
 								return;
 							}
-							makeExportButton(exportButton ,"driverEvents", driver.ID, eventsStartDate, eventsEndDate);
+							makeExportButton(exportButton ,"driverEvents", driver.ID, eventsStartDate, eventsEndDate, profile[0].value);
 							for (; i < events.length; i++) {
 								row = createElement("tr");
 								row.appendChild(createElement("td")).setInnerText(new Date(events[i].Start).toLocaleString());
