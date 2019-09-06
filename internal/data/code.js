@@ -2037,6 +2037,7 @@ window.addEventListener("load", function(oldDate) {
 				return function() {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
+					    profile = profiles.length > 1 ? addFormElement("Profile", "select", "profile", [-1, [{"ID": -1, "Name": "-- Any --"}].concat(profiles)]) : [{"value": -1}],
 					    rpcFn = drivers ? rpc.getEventsWithDrivers : rpc.getEventsWithCompanies,
 					    getEvents = addFormSubmit("Show Events", function() {
 						eventTable.removeChildren(function(elm) {
@@ -2060,13 +2061,13 @@ window.addEventListener("load", function(oldDate) {
 							eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
 							return;
 						}
-						rpcFn(ids, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), -1, function(events) {
+						rpcFn(ids, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), parseInt(profile[0].value), function(events) {
 							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "9");
 								return;
 							}
-							makeExportButton(exportButton, drivers ? "driversOverview" : "companiesOverview", ids, eventsStartDate, eventsEndDate);
+							makeExportButton(exportButton, drivers ? "driversOverview" : "companiesOverview", ids, eventsStartDate, eventsEndDate, profile[0].value);
 							var row, i = 0,
 							    totalParking = 0, totalSubs = 0, totalCost = 0,
 							    wg = new waitGroup(function() {
@@ -2571,7 +2572,7 @@ window.addEventListener("load", function(oldDate) {
 	enableElement = function(part) {
 		part.removeAttribute("disabled");
 	},
-	makeExportButton = function(exportButton, typeStr, id, startDate, endDate) {
+	makeExportButton = function(exportButton, typeStr, id, startDate, endDate, profile = -1) {
 		var type = exportButton.appendChild(createElement("input")),
 		    submit = exportButton.appendChild(createElement("input"));
 		type.setAttribute("type", "hidden");
@@ -2603,6 +2604,10 @@ window.addEventListener("load", function(oldDate) {
 				end.setAttribute("name", "endTime");
 				end.setAttribute("value", endDate.getTime().toString());
 			}
+			var profileElem = exportButton.appendChild(createElement("input"));
+			profileElem.setAttribute("type", "hidden");
+			profileElem.setAttribute("name", "profile");
+			profileElem.setAttribute("value", profile);
 		}
 	},
 	showDriver = function(driver) {
@@ -3314,10 +3319,7 @@ window.addEventListener("load", function(oldDate) {
 		    to = addFormElement("To", "textarea", "to", event.To, regexpCheck(/.+/, "To Address Required")),
 		    booker = addFormElement("Booker", "text", "booker", event.Booker),
 		    flightTime = addFormElement("Flight Time", "text", "flight_time", event.FlightTime),
-		    profile = [{"value":0}];
-		if (profiles.length > 1) {
-			profile = addFormElement("Profile", "select", "profile", [event.Profile, profiles]);
-		}
+		    profile = profiles.length > 1 ? addFormElement("Profile", "select", "profile", [event.Profile, profiles]) : [{"value": 0}];
 		addAdder(clientName[1], function() {
 			clientName[1].setInnerText("");
 			stack.addLayer("addClient")
