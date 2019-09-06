@@ -151,6 +151,14 @@ window.addEventListener("load", function(oldDate) {
 	},
 	animated = window.localStorage.getItem("animated") === "true",
 	profiles = [],
+	profileIDToProfilePos = function(id) {
+		for (var i = 0; i < profiles.length; i++) {
+			if (profiles[i].ID === id) {
+				return i;
+			}
+		}
+		return 0;
+	},
 	createElement = (function(){
 		var ns = document.getElementsByTagName("html")[0].namespaceURI;
 		return function(elementName) {
@@ -1702,6 +1710,7 @@ window.addEventListener("load", function(oldDate) {
 				return function() {
 					var startDate = addFormElement("Start Date", "text", "startDate", eventsStartDate.toDateString(), dateCheck),
 					    endDate = addFormElement("End Date", "text", "endDate", eventsEndDate.toDateString(), dateCheck),
+					    profile = profiles.length > 1 ? addFormElement("Profile", "select", "profile", [-1, [{"ID": -1, "Name": "-- Any --"}].concat(profiles)]) : [{"value": -1}],
 					    getEvents = addFormSubmit("Show Events", function() {
 						eventTable.removeChildren(function(elm) {
 							return elm !== tableTitles;
@@ -1724,20 +1733,20 @@ window.addEventListener("load", function(oldDate) {
 							eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "5");
 							return;
 						}
-						rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), -1, function(events) {
+						rpc.getEventsWithCompany(company.ID, eventsStartDate.getTime(), eventsEndDate.getTime() + (24 * 3600 * 1000), parseInt(profile[0].value), function(events) {
 							exportButton.removeChildren();
 							if (events.length === 0) {
 								eventTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("No Events").setAttribute("colspan", "9");
 								return;
 							}
-							makeExportButton(exportButton, "companyEvents", company.ID, eventsStartDate, eventsEndDate);
+							makeExportButton(exportButton, "companyEvents", company.ID, eventsStartDate, eventsEndDate, profile[0].value);
 							var loading = new waitGroup(function() {
 								var invoiceButton = createElement("input");
 								invoiceButton.setAttribute("class", "noPrint");
 								invoiceButton.setAttribute("type", "button");
 								invoiceButton.value = "Make Invoice";
 								invoiceButton.addEventListener("click", function() {
-									makeInvoice(company, events, -1);
+									makeInvoice(company, events, profileIDToProfilePos(parseInt(profile[0].value)));
 								});
 								eventTable.parentNode.appendChild(invoiceButton);
 							    }),
