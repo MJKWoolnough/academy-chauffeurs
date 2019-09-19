@@ -2548,14 +2548,14 @@ window.addEventListener("load", function(oldDate) {
 				input.setAttribute("value", contents);
 			}
 		}
-		input.setAttribute("id", id);
+		input.setAttribute("id", "badChrome_" + id);
 		if (type === "hidden") {
 			return layer.appendChild(input);
 		}
 		if (id === "") {
 			input.setAttribute("readonly", "readonly");
 		} else {
-			label.setAttribute("for", id);
+			label.setAttribute("for", "badChrome_" + id);
 		}
 		if (typeof onBlur === "function") {
 			input.addEventListener("blur", onBlur.bind(input));
