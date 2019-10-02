@@ -3837,7 +3837,6 @@ window.addEventListener("load", function(oldDate) {
 		    integer = +amount | 0 + "",
 		    fract = 0;
 		if (amount < 0) {
-			toRet = "-";
 			amount = -amount;
 		}
 		fract = amount - (amount | 0);
