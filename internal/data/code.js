@@ -1510,7 +1510,7 @@ window.addEventListener("load", function(oldDate) {
 				extra.setInnerText(events[i].Waiting + " mins waiting");
 			}
 			extra.setAttribute("contenteditable", "true");
-			extra.setPreText(extra.innerText + "\n" + events[i].InvoiceNote);
+			extra.setPreText(extra.innerText + " " + events[i].InvoiceNote);
 			details.appendChild(createElement("span")).setInnerText("From: ");
 			if (events[i].InvoiceFrom === "") {
 				details.appendChild(document.createTextNode(events[i].From));
