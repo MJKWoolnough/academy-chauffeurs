@@ -388,7 +388,7 @@ window.addEventListener("load", function(oldDate) {
 				rpc.setSettings(s, function(templateError) {
 					if (templateError === "") {
 						if (s.Profiles.length < 2) {
-							rpc.setProfile(s.Profiles.length == 0 ? -1 : 0, {"Name": "DEFAULT", "VATPercent": parseFloat(vat[0].value), "AdminPercent": parseFloat(admin[0].value), "InvoiceHeader": invoiceHeader[0].value}, function() {
+							rpc.setProfile({"Name": "DEFAULT", "VATPercent": parseFloat(vat[0].value), "AdminPercent": parseFloat(admin[0].value), "InvoiceHeader": invoiceHeader[0].value}, function() {
 								window.location.search = '';
 							});
 						} else {
