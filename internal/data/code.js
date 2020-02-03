@@ -1499,7 +1499,7 @@ window.addEventListener("load", function(oldDate) {
 			cr = row.appendChild(createElement("td"));
 			cr.setInnerText(events[i].ClientReference).setAttribute("contenteditable", "true");
 			if (events[i].Other != "") {
-				cn += "\n" + events[i].Other;
+				cn += ", " + events[i].Other.split("\n").join(", ");
 			}
 			row.appendChild(createElement("td")).setPreText(cn).setAttribute("contenteditable", "true");
 			row.appendChild(createElement("td")).setInnerText(events[i].ID).setAttribute("contenteditable", "true");
