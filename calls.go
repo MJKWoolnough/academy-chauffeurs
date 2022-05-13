@@ -512,8 +512,10 @@ func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
 }
 
 type EventsFilter struct {
-	ID, Start, End int64
-	Profile        int64
+	ID      int64 `form:"id,post"`
+	Start   int64 `form:"startTime,post"`
+	End     int64 `form:"endTime,post"`
+	Profile int64 `form:"profile,post"`
 }
 
 func (c *Calls) DriverEvents(f EventsFilter, events *[]Event) error {
@@ -584,9 +586,10 @@ func (c *Calls) CompanyEvents(f EventsFilter, events *[]Event) error {
 }
 
 type CEventsFilter struct {
-	IDs        []int64
-	Start, End int64
-	Profile    int64
+	IDs     []int64 `form:"id,post"`
+	Start   int64   `form:"startTime,post"`
+	End     int64   `form:"endTime,post"`
+	Profile int64   `form:"profile,post"`
 }
 
 type sortEvents []Event
