@@ -58,7 +58,7 @@ func (c *Calls) makeCalendar() (*ics.Calendar, error) {
 	} else {
 		a.Trigger.Duration = &ics.Duration{Minutes: uint(alarmTime)}
 	}
-	alarm := []ics.Alarm{{&a}}
+	alarm := []ics.Alarm{{AlarmType: &a}}
 	cal.ProductID = "Academy Chauffeurs 1.1"
 	cal.Version = "2.0"
 	n := now()
