@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/cheggaaa/pb v1.0.29
-	github.com/mxk/go-sqlite v0.0.0-20140611214908-167da9432e1f
+	github.com/mattn/go-sqlite3 v1.14.13
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
 	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6
 	vimagination.zapto.org/form v1.1.0

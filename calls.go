@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	_ "github.com/mxk/go-sqlite/sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Driver struct {
