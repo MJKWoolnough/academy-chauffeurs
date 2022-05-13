@@ -36,39 +36,6 @@ func (c *Calls) export(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (e *EventsFilter) ParserList() form.ParserList {
-	return form.ParserList{
-		"id":        form.Int64{&e.ID},
-		"startTime": form.Int64{&e.Start},
-		"endTime":   form.Int64{&e.End},
-		"profile":   form.Int64{&e.Profile},
-	}
-}
-
-type IDs struct {
-	d *[]int64
-}
-
-func (i IDs) Parse(d []string) error {
-	for _, id := range d {
-		n, err := strconv.ParseInt(id, 10, 64)
-		if err != nil {
-			return err
-		}
-		*i.d = append(*i.d, n)
-	}
-	return nil
-}
-
-func (c *CEventsFilter) ParserList() form.ParserList {
-	return form.ParserList{
-		"id":        IDs{&c.IDs},
-		"startTime": form.Int64{&c.Start},
-		"endTime":   form.Int64{&c.End},
-		"profile":   form.Int64{&c.Profile},
-	}
-}
-
 func formatDateTime(msec int64) string {
 	return time.Unix(msec/1000, (msec%1000)*1000000).Format("02/01/2006 15:04")
 }
@@ -87,10 +54,10 @@ func formatMoney(pence int64) string {
 
 func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 	var f EventsFilter
-	err := form.Parse(&f, r.PostForm)
+	err := form.Process(r, &f)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		if e, ok := err.(form.Errors); ok {
+		if e, ok := err.(form.ErrorMap); ok {
 			for k, v := range e {
 				fmt.Fprintf(w, "%s = %s\n", k, v)
 			}
@@ -208,10 +175,10 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 
 func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 	var f EventsFilter
-	err := form.Parse(&f, r.PostForm)
+	err := form.Process(r, &f)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		if e, ok := err.(form.Errors); ok {
+		if e, ok := err.(form.ErrorMap); ok {
 			for k, v := range e {
 				fmt.Fprintf(w, "%s = %s\n", k, v)
 			}
@@ -320,10 +287,10 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 
 func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 	var f EventsFilter
-	err := form.Parse(&f, r.PostForm)
+	err := form.Process(r, &f)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		if e, ok := err.(form.Errors); ok {
+		if e, ok := err.(form.ErrorMap); ok {
 			for k, v := range e {
 				fmt.Fprintf(w, "%s = %s\n", k, v)
 			}
@@ -427,10 +394,10 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 
 func (c *Calls) exportOverview(w http.ResponseWriter, r *http.Request, drivers bool) {
 	var f CEventsFilter
-	err := form.Parse(&f, r.PostForm)
+	err := form.Process(r, &f)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		if e, ok := err.(form.Errors); ok {
+		if e, ok := err.(form.ErrorMap); ok {
 			for k, v := range e {
 				fmt.Fprintf(w, "%s = %s\n", k, v)
 			}
@@ -544,11 +511,13 @@ func (c *Calls) exportOverview(w http.ResponseWriter, r *http.Request, drivers b
 }
 
 func (c *Calls) exportCompanyClients(w http.ResponseWriter, r *http.Request) {
-	var companyID int64
-	err := form.ParseValue("id", form.Int64{&companyID}, r.PostForm)
+	var companyID struct {
+		ID int64 `form:"id,post"`
+	}
+	err := form.Process(r, &companyID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		if e, ok := err.(form.Errors); ok {
+		if e, ok := err.(form.ErrorMap); ok {
 			for k, v := range e {
 				fmt.Fprintf(w, "%s = %s\n", k, v)
 			}
@@ -558,14 +527,14 @@ func (c *Calls) exportCompanyClients(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var cy Company
-	err = c.GetCompany(companyID, &cy)
+	err = c.GetCompany(companyID.ID, &cy)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 	var cl []Client
-	err = c.ClientsForCompany(companyID, &cl)
+	err = c.ClientsForCompany(companyID.ID, &cl)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -609,7 +578,7 @@ func (c *Calls) exportCompanyList(w http.ResponseWriter, r *http.Request) {
 	err := c.Companies(struct{}{}, &cy)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		if e, ok := err.(form.Errors); ok {
+		if e, ok := err.(form.ErrorMap); ok {
 			for k, v := range e {
 				fmt.Fprintf(w, "%s = %s\n", k, v)
 			}
