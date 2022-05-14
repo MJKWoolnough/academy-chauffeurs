@@ -236,14 +236,14 @@ func newCalls(dbFName string) (*Calls, error) {
 
 		// Settings
 
-		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [Port], [Unassigned], [AlarmTime], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate] FROM [Settings];",
-		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?, [EmailSMTP] = ?, [EmailUsername] = ?, [EmailPassword] = ?, [EmailTemplate] = ?;",
+		"SELECT [TMUsername], [TMPassword], [TMTemplate], [TMUseNumber], [TMFrom], [Port], [Unassigned], [AlarmTime], [EmailSMTP], [EmailUsername], [EmailPassword], [EmailTemplate], [DefaultProfile] FROM [Settings];",
+		"UPDATE [Settings] SET [TMUsername] = ?, [TMPassword] = ?, [TMTemplate] = ?, [TMUseNumber] = ?, [TMFrom] = ?, [Port] = ?, [Unassigned] = ?, [AlarmTime] = ?, [EmailSMTP] = ?, [EmailUsername] = ?, [EmailPassword] = ?, [EmailTemplate] = ?, [DefaultProfile] = ?;",
 
 		// Profiles
 
-		"SELECT [ID], [Name], [VATPercent], [AdminPercent], [InvoiceHeader] FROM [Profiles] ORDER BY [ID] ASC;",
-		"INSERT INTO [Profiles]([Name], [VATPercent], [AdminPercent], [InvoiceHeader]) VALUES (?, ?, ?, ?);",
-		"UPDATE [Profiles] SET [Name] = ?, [VATPercent] = ?, [AdminPercent] = ?, [InvoiceHeader] = ? WHERE [ID] = ?;",
+		"SELECT [ID], [Name], [VATPercent], [AdminPercent], [InvoiceHeader], [InvoiceFooter] FROM [Profiles] ORDER BY [ID] ASC;",
+		"INSERT INTO [Profiles]([Name], [VATPercent], [AdminPercent], [InvoiceHeader], [InvoiceFooter]) VALUES (?, ?, ?, ?, ?);",
+		"UPDATE [Profiles] SET [Name] = ?, [VATPercent] = ?, [AdminPercent] = ?, [InvoiceHeader] = ?, [InvoiceFooter] = ? WHERE [ID] = ?;",
 		"DELETE FROM [Profiles] WHERE [ID] = ?;",
 		"UPDATE [Event] SET [Profile] = 0 WHERE Profile = ?;",
 
@@ -973,12 +973,13 @@ type Settings struct {
 	UploadCalendar                                         bool
 	AlarmTime                                              int
 	EmailSMTP, EmailUsername, EmailPassword, EmailTemplate string
+	DefaultProfile                                         uint64
 	Profiles
 }
 
 func (c *Calls) GetSettings(_ struct{}, s *Settings) error {
 	c.mu.Lock()
-	err := c.statements[GetSettings].QueryRow().Scan(&s.TMUsername, &s.TMPassword, &s.TMTemplate, &s.TMUseNumber, &s.TMFrom, &s.Port, &s.Unassigned, &s.AlarmTime, &s.EmailSMTP, &s.EmailUsername, &s.EmailPassword, &s.EmailTemplate)
+	err := c.statements[GetSettings].QueryRow().Scan(&s.TMUsername, &s.TMPassword, &s.TMTemplate, &s.TMUseNumber, &s.TMFrom, &s.Port, &s.Unassigned, &s.AlarmTime, &s.EmailSMTP, &s.EmailUsername, &s.EmailPassword, &s.EmailTemplate, &s.DefaultProfile)
 	c.mu.Unlock()
 	if err != nil {
 		return err
@@ -994,17 +995,17 @@ func (c *Calls) SetSettings(s Settings, errStr *string) error {
 	if err := setEmailVars(s.EmailSMTP, s.EmailUsername, s.EmailPassword, s.EmailTemplate); err != nil {
 		*errStr = err.Error()
 	}
-	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.Port, s.Unassigned, s.AlarmTime, s.EmailSMTP, s.EmailUsername, s.EmailPassword, s.EmailTemplate)
+	_, err := c.statements[SetSettings].Exec(s.TMUsername, s.TMPassword, s.TMTemplate, s.TMUseNumber, s.TMFrom, s.Port, s.Unassigned, s.AlarmTime, s.EmailSMTP, s.EmailUsername, s.EmailPassword, s.EmailTemplate, s.DefaultProfile)
 	return err
 }
 
 type Profiles []Profile
 
 type Profile struct {
-	ID                       int64
-	Name                     string
-	VATPercent, AdminPercent float64
-	InvoiceHeader            string
+	ID                           int64
+	Name                         string
+	VATPercent, AdminPercent     float64
+	InvoiceHeader, InvoiceFooter string
 }
 
 func (c *Calls) GetProfiles(_ struct{}, ps *Profiles) error {
@@ -1016,7 +1017,7 @@ func (c *Calls) GetProfiles(_ struct{}, ps *Profiles) error {
 	}
 	for rows.Next() {
 		var p Profile
-		if err := rows.Scan(&p.ID, &p.Name, &p.VATPercent, &p.AdminPercent, &p.InvoiceHeader); err != nil {
+		if err := rows.Scan(&p.ID, &p.Name, &p.VATPercent, &p.AdminPercent, &p.InvoiceHeader, &p.InvoiceFooter); err != nil {
 			return err
 		}
 		*ps = append(*ps, p)
@@ -1027,7 +1028,7 @@ func (c *Calls) GetProfiles(_ struct{}, ps *Profiles) error {
 func (c *Calls) SetProfile(p Profile, newID *int64) error {
 	if p.ID < 0 {
 		c.mu.Lock()
-		res, err := c.statements[CreateProfile].Exec(p.Name, p.VATPercent, p.AdminPercent, p.InvoiceHeader)
+		res, err := c.statements[CreateProfile].Exec(p.Name, p.VATPercent, p.AdminPercent, p.InvoiceHeader, p.InvoiceFooter)
 		if err == nil {
 			*newID, err = res.LastInsertId()
 		}
@@ -1035,7 +1036,7 @@ func (c *Calls) SetProfile(p Profile, newID *int64) error {
 		return err
 	} else {
 		c.mu.Lock()
-		_, err := c.statements[UpdateProfile].Exec(p.Name, p.VATPercent, p.AdminPercent, p.InvoiceHeader, p.ID)
+		_, err := c.statements[UpdateProfile].Exec(p.Name, p.VATPercent, p.AdminPercent, p.InvoiceHeader, p.InvoiceFooter, p.ID)
 		c.mu.Unlock()
 		*newID = p.ID
 		return err
