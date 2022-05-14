@@ -201,5 +201,19 @@ func upgradeDB(db *sql.DB) error {
 		version = 4
 		log.Println("Completed updating to version 4")
 	}
+	if version == 4 {
+		log.Println("Upgrading to database version 5")
+
+		if err := upgradeQueries(db,
+			"ALTER TABLE [Settings] ADD [DefaultProfile] INTEGER DEFAULT 0;",
+			"ALTER TABLE [Profiles] ADD [InvoiceFooter] TEXT NOT NULL DEFAULT '';",
+		); err != nil {
+			return err
+		}
+
+		db.Exec("UPDATE [Settings] SET [Version] = 5;")
+		version = 5
+		log.Println("Completed updating to version 5")
+	}
 	return nil
 }
