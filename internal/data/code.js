@@ -151,6 +151,7 @@ window.addEventListener("load", function(oldDate) {
 	},
 	animated = window.localStorage.getItem("animated") === "true",
 	profiles = [],
+	defaultProfile = 0,
 	profileIDToProfilePos = function(id) {
 		for (var i = 0; i < profiles.length; i++) {
 			if (profiles[i].ID === id) {
@@ -347,11 +348,14 @@ window.addEventListener("load", function(oldDate) {
 			    emailUsername = addFormElement("Email Username", "text", "emailUsername", s.EmailUsername, regexpCheck(/.*/, "Please enter a valid Email Username")),
 			    emailPassword = addFormElement("Email Password", "password", "emailPassword", s.EmailPassword, regexpCheck(/.*/, "Please enter a valid Email Password")),
 			    emailTemplate = addFormElement("Email Template", "textarea", "emailTemplate", s.EmailTemplate, regexpCheck(/.*/, "Please enter a valid Email Template")),
-			    vat, admin, invoiceHeader;
+			    vat, admin, invoiceHeader, invoiceFooter, defaultProfile;
 			if (s.Profiles.length < 2) {
 				vat = addFormElement("VAT (%)", "number", "vat", s.Profiles[0].VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
 				admin = addFormElement("Admin Cost (%)", "number", "admin", s.Profiles[0].AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number"));
 				invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", s.Profiles[0].InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header"));
+				invoiceFooter = addFormElement("Invoice Header", "textarea", "invoiceFooter", s.Profiles[0].InvoiceFooter);
+			} else {
+				defaultProfile = addFormElement("Default Profile", "select", "defaultProfile", [s.DefaultProfile, s.Profiles]);
 			}
 
 			useNumber[0].addEventListener("change", function() {
@@ -385,10 +389,11 @@ window.addEventListener("load", function(oldDate) {
 				s.EmailUsername = emailUsername[0].value;
 				s.EmailPassword = emailPassword[0].value;
 				s.EmailTemplate = emailTemplate[0].value;
+				s.DefaultProfile = parseInt(defaultProfile?.[0].value ?? "0");
 				rpc.setSettings(s, function(templateError) {
 					if (templateError === "") {
 						if (s.Profiles.length < 2) {
-							rpc.setProfile({"Name": "DEFAULT", "VATPercent": parseFloat(vat[0].value), "AdminPercent": parseFloat(admin[0].value), "InvoiceHeader": invoiceHeader[0].value}, function() {
+							rpc.setProfile({"Name": "DEFAULT", "VATPercent": parseFloat(vat[0].value), "AdminPercent": parseFloat(admin[0].value), "InvoiceHeader": invoiceHeader[0].value, "InvoiceFooter": invoiceFooter[0].value}, function() {
 								window.location.search = '';
 							});
 						} else {
@@ -413,6 +418,7 @@ window.addEventListener("load", function(oldDate) {
 			    vat = addFormElement("VAT (%)", "number", "vat", profiles[0].VATPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
 			    admin = addFormElement("Admin Cost (%)", "number", "admin", profiles[0].AdminPercent, regexpCheck(/^[0-9]+(\.[0-9]+)?$/, "Please enter a valid number")),
 			    invoiceHeader = addFormElement("Invoice Header", "textarea", "invoiceHeader", profiles[0].InvoiceHeader, regexpCheck(/.*/, "Please enter a valid invoice header")),
+			    invoiceFooter = addFormElement("Invoice Footer", "textarea", "invoiceFooter", profiles[0].InvoiceFooter),
 			    saver, remover;
 			for (var i = 0; i < profiles.length; i++) {
 				opt = selector.appendChild(createElement("option"));
@@ -424,13 +430,13 @@ window.addEventListener("load", function(oldDate) {
 			opt.innerText = "-- New Profile --";
 			selector.addEventListener("input", function() {
 				if (profile === -1) {
-					if (name[0].value !== "" || parseFloat(vat[0].value) !== 0 || parseFloat(admin[0].value) !== 0 || invoiceHeader[0].value !== "") {
+					if (name[0].value !== "" || parseFloat(vat[0].value) !== 0 || parseFloat(admin[0].value) !== 0 || invoiceHeader[0].value !== "" || invoiceFooter[0].value !== "") {
 						if (!confirm("There are unsaved changes, are you sure you wish to edit another profile?")) {
 							selector.value = profile;
 							return;
 						}
 					}
-				} else if (name[0].value !== profiles[profilePos].Name || parseFloat(vat[0].value) !== profiles[profilePos].VATPercent || parseFloat(admin[0].value) !== profiles[profilePos].AdminPercent || invoiceHeader[0].value !== profiles[profilePos].InvoiceHeader) {
+				} else if (name[0].value !== profiles[profilePos].Name || parseFloat(vat[0].value) !== profiles[profilePos].VATPercent || parseFloat(admin[0].value) !== profiles[profilePos].AdminPercent || invoiceHeader[0].value !== profiles[profilePos].InvoiceHeader || invoiceFooter[0].value !== profiles[profilePos].InvoiceFooter) {
 					if (!confirm("There are unsaved changes, are you sure you wish to edit another profile?")) {
 						selector.value = profile;
 						return;
@@ -443,11 +449,13 @@ window.addEventListener("load", function(oldDate) {
 					vat[0].value = 0;
 					admin[0].value = 0;
 					invoiceHeader[0].value = "";
+					invoiceFooter[0].value = "";
 				} else {
 					name[0].value = profiles[profilePos].Name;
 					vat[0].value = profiles[profilePos].VATPercent;
 					admin[0].value = profiles[profilePos].AdminPercent;
 					invoiceHeader[0].value = profiles[profilePos].InvoiceHeader;
+					invoiceFooter[0].value = profiles[profilePos].InvoiceFooter;
 				}
 				if (profile > 0) {
 					remover.removeAttribute("disabled");
@@ -464,7 +472,8 @@ window.addEventListener("load", function(oldDate) {
 					"Name": name[0].value,
 					"VATPercent": parseFloat(vat[0].value),
 					"AdminPercent": parseFloat(admin[0].value),
-					"InvoiceHeader": invoiceHeader[0].value
+					"InvoiceHeader": invoiceHeader[0].value,
+					"InvoiceFooter": invoiceFooter[0].value
 				}
 				rpc.setProfile(np, function(newID) {
 					if (profile === -1) {
@@ -852,6 +861,7 @@ window.addEventListener("load", function(oldDate) {
 			rpc.getSettings(function (s) {
 				unassignedNear = s.Unassigned * 24 * 3600 * 1000;
 				profiles = s.Profiles;
+				defaultProfile = s.DefaultProfile;
 				addToBar("Companies", function() {
 					stack.addLayer("companyList");
 					companyList();
@@ -1469,6 +1479,7 @@ window.addEventListener("load", function(oldDate) {
 		    accountAdminUpdate, accountTotalUpdate, vatUpdate, transactionUpdate, totalUpdate;
 		header.setAttribute("class", "printOnly");
 		header.innerHTML = invoiceHeader;
+		footer.innerHTML = profiles[profile].InvoiceFooter;
 		topTable.setAttribute("class", "invoiceTop");
 		topTable.appendChild(createElement("tr")).appendChild(createElement("td")).setInnerText("Invoice to:").setAttribute("colspan", "3");
 		addressDate = topTable.appendChild(createElement("tr"));
@@ -3330,7 +3341,7 @@ window.addEventListener("load", function(oldDate) {
 		    to = addFormElement("To", "textarea", "to", event.To, regexpCheck(/.+/, "To Address Required")),
 		    booker = addFormElement("Booker", "text", "booker", event.Booker),
 		    flightTime = addFormElement("Flight Time", "text", "flight_time", event.FlightTime),
-		    profile = profiles.length > 1 ? addFormElement("Profile", "select", "profile", [event.Profile, profiles]) : [{"value": 0}];
+		    profile = profiles.length > 1 ? addFormElement("Profile", "select", "profile", [event.ID ? event.Profile : defaultProfile, profiles]) : [{"value": 0}];
 		addAdder(clientName[1], function() {
 			clientName[1].setInnerText("");
 			stack.addLayer("addClient")
