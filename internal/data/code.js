@@ -1475,7 +1475,7 @@ window.addEventListener("load", function(oldDate) {
 		    costTable = layer.appendChild(createElement("table")),
 		    footer = layer.appendChild(createElement("div")),
 		    addressDate, eomDate = new Date(0), eomDateElm, invoiceNo, ref, i = 0, totalParking = 0, totalPrice = 0,
-		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, cn, cc, ccEditCell, ccTotal, ccFee = 0, ccPercent = 0, myVATPercent = vatPercent,
+		    subTotal, admin, adminPrice, adminTotal, adminTotalPrice, vat, vatPrice, parking, total, finalTotal, lineOne, lineTwo, cn, cc, ccEditCell, cccEditCell, ccTotal, ccFee = 0, ccPercent = 0, myVATPercent = vatPercent,
 		    accountAdminUpdate, accountTotalUpdate, vatUpdate, transactionUpdate, totalUpdate;
 		header.setAttribute("class", "printOnly");
 		header.innerHTML = invoiceHeader;
@@ -1618,7 +1618,10 @@ window.addEventListener("load", function(oldDate) {
 		cc = costTable.appendChild(createElement("tr"));
 		cc.appendChild(createElement("td"));
 		ccEditCell = cc.appendChild(createElement("td"));
-		ccEditCell.appendChild(createElement("span")).setInnerText("Transaction Fee (");
+		cccEditCell = createElement("span");
+		cccEditCell.setInnerText("Transaction Fee");
+		cccEditCell.setAttribute("contenteditable", "true");
+		ccEditCell.appendChild(createElement("span")).append(cccEditCell, " (");
 		(function() {
 			var ccEdit = ccEditCell.appendChild(createElement("span").setInnerText("0"));
 			ccEdit.setAttribute("contenteditable", "true");
