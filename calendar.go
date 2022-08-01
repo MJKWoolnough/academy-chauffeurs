@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"database/sql"
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -130,7 +129,3 @@ func pad(s string) string {
 	copy(t[padLength-len(s):], s)
 	return string(t)
 }
-
-// Errors
-
-var ErrInvalidScheme = errors.New("invalid scheme")
