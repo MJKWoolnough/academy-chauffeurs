@@ -11,8 +11,6 @@ import (
 	"text/template"
 )
 
-const DefaultEmailTemplate = ``
-
 var (
 	compiledEmailTemplate *template.Template
 	emailServer           string
