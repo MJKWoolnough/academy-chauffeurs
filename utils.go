@@ -1,11 +1,8 @@
 package main
 
 import (
-	"errors"
 	"time"
 )
-
-var ErrInvalidMobileNumber = errors.New("Invalid Mobile Phone Number Format")
 
 type MobileNumber uint64
 
@@ -42,14 +39,9 @@ func ParseMobileNumber(a string) (MobileNumber, error) {
 		}
 	}
 	if (num < 7000000000 || num >= 8000000000) && (num < 447000000000 || num >= 448000000000) {
-		//return 0, ErrInvalidMobileNumber
+		// return 0, ErrInvalidMobileNumber
 	}
 	return num, nil
-}
-
-func ValidMobileNumber(pn string) bool {
-	_, err := ParseMobileNumber(pn)
-	return err == nil
 }
 
 func now() int64 {
