@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"strings"
 	"text/template"
 	"time"
@@ -36,7 +36,7 @@ func setMessageVars(username, password, messageTemplate, fromS string, fromNumbe
 	}
 	// test template
 
-	if err := t.Execute(ioutil.Discard, &MessageVars{}); err != nil {
+	if err := t.Execute(io.Discard, &MessageVars{}); err != nil {
 		return err
 	}
 
