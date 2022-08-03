@@ -17,7 +17,6 @@ var (
 	compiledTemplate *template.Template
 	text             textmagic.TextMagic
 	fromNumber       bool
-	from             string
 )
 
 type MessageData struct {
@@ -44,7 +43,6 @@ func setMessageVars(username, password, messageTemplate, fromS string, fromNumbe
 	compiledTemplate = t
 	text = textmagic.New(username, password)
 	fromNumber = fromNumberB
-	from = fromS
 	return nil
 }
 
