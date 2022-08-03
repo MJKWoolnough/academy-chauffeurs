@@ -123,7 +123,7 @@ func (c *Calls) SendMessage(md MessageData, e *string) error {
 		}
 		vars = append(vars, textmagic.From(driver.PhoneNumber))
 	}
-	var phoneNumber = client.PhoneNumber
+	phoneNumber := client.PhoneNumber
 	if phoneNumber[0] == '0' {
 		phoneNumber = "44" + phoneNumber[1:]
 	} else if phoneNumber[0] == '+' {
