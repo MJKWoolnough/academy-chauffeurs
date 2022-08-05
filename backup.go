@@ -25,7 +25,7 @@ func backupDatabase(fname string) error {
 	nfn := "backup_" + time.Now().Format("2006-01-02") + ".db"
 	if _, err := os.Stat(backupDir); err != nil {
 		if os.IsNotExist(err) {
-			os.Mkdir(backupDir, 0755)
+			os.Mkdir(backupDir, 0o755)
 		} else {
 			return err
 		}
@@ -69,7 +69,7 @@ func readBackupDir(except string) ([]string, error) {
 		return nil, err
 	}
 	files := make([]string, 0, maxBackups)
-	regex := regexp.MustCompile("backup_[0-9]{4}-[0-9]{2}-[0-9]{2}\\.db")
+	regex := regexp.MustCompile(`backup_[0-9]{4}-[0-9]{2}-[0-9]{2}\.db`)
 	for _, file := range fis {
 		filename := file.Name()
 		if filename == except {
