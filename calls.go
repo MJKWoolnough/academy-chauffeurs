@@ -4,12 +4,7 @@ import (
 	"crypto/sha1"
 	"database/sql"
 	"errors"
-	"fmt"
-	"io"
-	"net/http"
 	"net/rpc"
-	"os"
-	"os/exec"
 	"sort"
 	"strings"
 	"sync"
@@ -1135,35 +1130,6 @@ const (
 	updaterURL      = "http://vimagination.zapto.org/updater.exe"
 	updaterFilename = "updater.exe"
 )
-
-func (c *Calls) Update(_ struct{}, _ *struct{}) error {
-	return nil
-	if _, err := os.Stat(updaterFilename); err != nil {
-		if os.IsNotExist(err) {
-			resp, err := http.Get(updaterURL)
-			if err != nil {
-				return err
-			}
-			f, err := os.Create(updaterFilename)
-			if err != nil {
-				return err
-			}
-			fmt.Println("Downloading updater...")
-			_, err = io.Copy(f, resp.Body)
-			resp.Body.Close()
-			f.Close()
-			if err != nil {
-				fmt.Println("...updater failed to download")
-				os.Remove(updaterFilename)
-				return err
-			}
-			fmt.Println("...updater Downloaded")
-		} else {
-			return err
-		}
-	}
-	return exec.Command("updater.exe").Start()
-}
 
 func (c *Calls) UsersOnline(_ struct{}, users *map[string]uint) error {
 	*users = userMap.Copy()
