@@ -1126,11 +1126,6 @@ func (c *Calls) RemoveUser(username string, _ *struct{}) error {
 	return err
 }
 
-const (
-	updaterURL      = "http://vimagination.zapto.org/updater.exe"
-	updaterFilename = "updater.exe"
-)
-
 func (c *Calls) UsersOnline(_ struct{}, users *map[string]uint) error {
 	*users = userMap.Copy()
 	return nil
