@@ -72,8 +72,10 @@ func (c *Calls) SetDriver(d Driver, resp *SetDriverResponse) error {
 			r, e := c.statements[CreateDriver].Exec(d.Name, d.RegistrationNumber, d.PhoneNumber)
 			if e == nil {
 				resp.ID, e = r.LastInsertId()
+				if e == nil {
+					_, e = c.statements[SetDriverShowPos].Exec(true, resp.ID, resp.ID)
+				}
 			}
-			c.statements[SetDriverShowPos].Exec(true, resp.ID, resp.ID)
 			err = e
 		} else {
 			resp.ID = d.ID
