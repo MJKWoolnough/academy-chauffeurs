@@ -25,7 +25,9 @@ func backupDatabase(fname string) error {
 	nfn := "backup_" + time.Now().Format("2006-01-02") + ".db"
 	if _, err := os.Stat(backupDir); err != nil {
 		if os.IsNotExist(err) {
-			os.Mkdir(backupDir, 0o755)
+			if err := os.Mkdir(backupDir, 0o755); err != nil {
+				return err
+			}
 		} else {
 			return err
 		}
