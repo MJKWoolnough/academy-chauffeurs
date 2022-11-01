@@ -1549,6 +1549,11 @@ window.addEventListener("load", function(oldDate) {
 		admin.appendChild(createElement("td"));
 		admin.appendChild(createElement("td")).setInnerText("Account Admin");
 		admin.appendChild(createElement("td")).setInnerText("£");
+		parking = costTable.appendChild(createElement("tr"));
+		parking.appendChild(createElement("td"));
+		parking.appendChild(createElement("td")).setInnerText("Parking/Toll");
+		parking.appendChild(createElement("td")).setInnerText("£");
+		parking.appendChild(createElement("td")).setInnerText((totalParking / 100).formatMoney());
 		(function() {
 			var adminInput = admin.appendChild(createElement("td"));
 			adminInput.setAttribute("contenteditable", "true");
@@ -1557,7 +1562,7 @@ window.addEventListener("load", function(oldDate) {
 				var value = parseFloat(adminInput.textContent);
 				adminInput.setInnerText(value.formatMoney());
 				value *= 100;
-				adminTotalPrice = totalPrice + value;
+				adminTotalPrice = totalPrice + totalParking + value;
 				return accountTotalUpdate();
 			};
 			adminInput.addEventListener("blur", accountAdminUpdate);
@@ -1575,8 +1580,30 @@ window.addEventListener("load", function(oldDate) {
 			var accountTotal = adminTotal.appendChild(createElement("td"));
 			return function() {
 				accountTotal.setInnerText((adminTotalPrice/100).formatMoney());
-				vatUpdate();
+				transactionUpdate();
 			}
+		}());
+		cc = costTable.appendChild(createElement("tr"));
+		cc.appendChild(createElement("td"));
+		ccEditCell = cc.appendChild(createElement("td"));
+		cccEditCell = createElement("span");
+		cccEditCell.setInnerText("Fuel Surcharge");
+		cccEditCell.setAttribute("contenteditable", "true");
+		ccEditCell.appendChild(createElement("span")).append(cccEditCell, " (");
+		(function() {
+			var ccEdit = ccEditCell.appendChild(createElement("span").setInnerText("0"));
+			ccEdit.setAttribute("contenteditable", "true");
+			transactionUpdate = function() {
+				ccPercent = parseFloat(ccEdit.textContent) / 100;
+				if (isNaN(ccPercent)) {
+					ccPercent = 0;
+				}
+				ccEdit.setInnerText(ccPercent * 100);
+				ccFee = adminTotalPrice * ccPercent;
+				ccTotal.setInnerText((ccFee/100).formatMoney());
+				vatUpdate();
+			};
+			ccEdit.addEventListener("blur", transactionUpdate);
 		}());
 		vat = costTable.appendChild(createElement("tr"));
 		vat.appendChild(createElement("td"));
@@ -1593,38 +1620,11 @@ window.addEventListener("load", function(oldDate) {
 			vatUpdate = function() {
 				myVATPercent = parseFloat(vatPercentEdit.textContent) / 100;
 				vatPercentEdit.setInnerText(myVATPercent * 100);
-				vatPrice = adminTotalPrice * myVATPercent;
+				vatPrice = (adminTotalPrice + ccFee) * myVATPercent;
 				vatEdit.setInnerText((vatPrice/100).formatMoney());
-				transactionUpdate();
-			};
-			vatPercentEdit.addEventListener("blur", vatUpdate);
-		}());
-		parking = costTable.appendChild(createElement("tr"));
-		parking.appendChild(createElement("td"));
-		parking.appendChild(createElement("td")).setInnerText("Parking/Toll");
-		parking.appendChild(createElement("td")).setInnerText("£");
-		parking.appendChild(createElement("td")).setInnerText((totalParking / 100).formatMoney());
-		cc = costTable.appendChild(createElement("tr"));
-		cc.appendChild(createElement("td"));
-		ccEditCell = cc.appendChild(createElement("td"));
-		cccEditCell = createElement("span");
-		cccEditCell.setInnerText("Transaction Fee");
-		cccEditCell.setAttribute("contenteditable", "true");
-		ccEditCell.appendChild(createElement("span")).append(cccEditCell, " (");
-		(function() {
-			var ccEdit = ccEditCell.appendChild(createElement("span").setInnerText("0"));
-			ccEdit.setAttribute("contenteditable", "true");
-			transactionUpdate = function() {
-				ccPercent = parseFloat(ccEdit.textContent) / 100;
-				if (isNaN(ccPercent)) {
-					ccPercent = 0;
-				}
-				ccEdit.setInnerText(ccPercent * 100);
-				ccFee = (adminTotalPrice + vatPrice + totalParking) * ccPercent;
-				ccTotal.setInnerText((ccFee/100).formatMoney());
 				totalUpdate();
 			};
-			ccEdit.addEventListener("blur", transactionUpdate);
+			vatPercentEdit.addEventListener("blur", vatUpdate);
 		}());
 		ccEditCell.appendChild(createElement("span")).setInnerText("%)");
 		cc.appendChild(createElement("td")).setInnerText("£");
@@ -1640,7 +1640,7 @@ window.addEventListener("load", function(oldDate) {
 		(function() {
 			var totalEdit = total.appendChild(createElement("td"));
 			totalUpdate = function() {
-				finalTotal = adminTotalPrice + vatPrice + totalParking + ccFee;
+				finalTotal = adminTotalPrice + vatPrice + ccFee;
 				totalEdit.setInnerText((finalTotal / 100).formatMoney());
 			};
 		}());
