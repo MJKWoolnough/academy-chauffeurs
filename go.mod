@@ -1,12 +1,12 @@
 module vimagination.zapto.org/academy-chauffeurs
 
-go 1.24
+go 1.25.0
 
 require (
 	github.com/cheggaaa/pb v1.0.29
 	github.com/mattn/go-sqlite3 v1.14.13
-	golang.org/x/net v0.39.0
-	golang.org/x/sys v0.32.0
+	golang.org/x/net v0.55.0
+	golang.org/x/sys v0.45.0
 	vimagination.zapto.org/form v1.1.0
 	vimagination.zapto.org/httpdir v1.0.0
 	vimagination.zapto.org/httpgzip v1.0.0
