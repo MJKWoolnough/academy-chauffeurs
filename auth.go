@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha1"
+	"maps"
 	"net/http"
 	"sync"
 
@@ -46,9 +47,7 @@ func (u *UserMap) Remove(username string) {
 func (u *UserMap) Copy() map[string]uint {
 	u.RLock()
 	m := make(map[string]uint, len(u.users))
-	for u, c := range u.users {
-		m[u] = c
-	}
+	maps.Copy(m, u.users)
 	u.RUnlock()
 	return m
 }

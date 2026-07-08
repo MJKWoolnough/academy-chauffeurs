@@ -26,7 +26,7 @@ func (c *Calls) calendar(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+	for e := range strings.SplitSeq(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
 			var b bytes.Buffer

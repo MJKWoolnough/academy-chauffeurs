@@ -489,7 +489,7 @@ func (c *Calls) SetEventNote(nid NoteID, _ *struct{}) error {
 	return err
 }
 
-type is []interface{}
+type is []any
 
 func (c *Calls) getList(sqlStmt int, params is, get func() is) error {
 	c.mu.Lock()
@@ -764,21 +764,22 @@ type AutocompleteValue struct {
 }
 
 func makeAutocompleteSQL(column, table string, includeDeleted bool, notIDs []int64) string {
-	sql := "SELECT [ID], [" + column + "] FROM [" + table + "] WHERE [" + column + "] LIKE ?"
+	var sql strings.Builder
+	sql.WriteString("SELECT [ID], [" + column + "] FROM [" + table + "] WHERE [" + column + "] LIKE ?")
 	if !includeDeleted {
-		sql += " AND [Deleted] = 0"
+		sql.WriteString(" AND [Deleted] = 0")
 	}
 	if len(notIDs) > 0 {
-		sql += " AND [ID] NOT IN ("
+		sql.WriteString(" AND [ID] NOT IN (")
 		for n := range notIDs {
 			if n > 0 {
-				sql += ", "
+				sql.WriteString(", ")
 			}
-			sql += "?"
+			sql.WriteString("?")
 		}
-		sql += ")"
+		sql.WriteString(")")
 	}
-	return sql + " LIMIT ?;"
+	return sql.String() + " LIMIT ?;"
 }
 
 const MAXRETURN = 10
@@ -793,7 +794,7 @@ func (c *Calls) autocomplete(vals *[]AutocompleteValue, column, table, partial s
 	if err != nil {
 		return err
 	}
-	params := make([]interface{}, 1, len(notIDs)+2)
+	params := make([]any, 1, len(notIDs)+2)
 	params[0] = partial
 	for _, n := range notIDs {
 		params = append(params, n)
@@ -860,7 +861,7 @@ func filterDupes(vals *[]AutocompleteValue) {
 Loop:
 	for i, val := range *vals {
 		thisVal := strings.ToLower(val.Value)
-		for j := 0; j < i; j++ {
+		for j := range i {
 			if thisVal == strings.ToLower((*vals)[j].Value) {
 				continue Loop
 			}
