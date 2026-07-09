@@ -161,7 +161,7 @@ func (c *Calls) exportDriverEvents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "inline; filename=\"driverEvents-"+d.Name+"-"+dateStr+".csv\"")
 	w.Header().Add("Content-Length", strconv.Itoa(len(buf)))
 
-	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+	for e := range strings.SplitSeq(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
 			gw := gzip.NewWriter(w)
@@ -273,7 +273,7 @@ func (c *Calls) exportClientEvents(w http.ResponseWriter, r *http.Request) {
 	ss.Flush()
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	w.Header().Set("Content-Disposition", "inline; filename=\"clientEvents-"+cl.Name+"-"+dateStr+".csv\"")
-	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+	for e := range strings.SplitSeq(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
 			gw := gzip.NewWriter(w)
@@ -380,7 +380,7 @@ func (c *Calls) exportCompanyEvents(w http.ResponseWriter, r *http.Request) {
 	ss.Flush()
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	w.Header().Set("Content-Disposition", "inline; filename=\"companyEvents-"+cy.Name+"-"+dateStr+".csv\"")
-	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+	for e := range strings.SplitSeq(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
 			gw := gzip.NewWriter(w)
@@ -498,7 +498,7 @@ func (c *Calls) exportOverview(w http.ResponseWriter, r *http.Request, drivers b
 	ss.Flush()
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	w.Header().Set("Content-Disposition", "inline; filename=\"overview-"+dateStr+".csv\"")
-	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+	for e := range strings.SplitSeq(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
 			gw := gzip.NewWriter(w)
@@ -561,7 +561,7 @@ func (c *Calls) exportCompanyClients(w http.ResponseWriter, r *http.Request) {
 	ss.Flush()
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	w.Header().Set("Content-Disposition", "inline; filename=\"clientList-"+cy.Name+".csv\"")
-	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+	for e := range strings.SplitSeq(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
 			gw := gzip.NewWriter(w)
@@ -606,7 +606,7 @@ func (c *Calls) exportCompanyList(w http.ResponseWriter, r *http.Request) {
 	ss.Flush()
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	w.Header().Set("Content-Disposition", "inline; filename=\"companyList.csv\"")
-	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+	for e := range strings.SplitSeq(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
 			gw := gzip.NewWriter(w)
@@ -654,7 +654,7 @@ func (c *Calls) exportClientList(w http.ResponseWriter, r *http.Request) {
 	ss.Flush()
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	w.Header().Set("Content-Disposition", "inline; filename=\"clientList.csv\"")
-	for _, e := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+	for e := range strings.SplitSeq(r.Header.Get("Accept-Encoding"), ",") {
 		if strings.TrimSpace(e) == "gzip" {
 			w.Header().Set("Content-Encoding", "gzip")
 			gw := gzip.NewWriter(w)
